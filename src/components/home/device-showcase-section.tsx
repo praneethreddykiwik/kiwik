@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { InteractiveLogo } from "./interactive-logo";
 
 export function DeviceShowcaseSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -72,16 +73,7 @@ export function DeviceShowcaseSection() {
           }}
           className="flex justify-center relative"
         >
-          <img 
-            src="/logo.png" 
-            alt="Kiwik Logo" 
-            className="w-[160px] sm:w-[180px] h-auto object-contain dark:hidden"
-          />
-          <img 
-            src="/logo-dark.png" 
-            alt="Kiwik Logo" 
-            className="w-[160px] sm:w-[180px] h-auto object-contain hidden dark:block"
-          />
+          <InteractiveLogo />
         </motion.div>
       </div>
 
