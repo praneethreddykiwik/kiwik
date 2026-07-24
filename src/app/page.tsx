@@ -276,12 +276,11 @@ export default function HomePage() {
       {/* KIWIK LOGO CENTREPIECE — after Capabilities, above Mobile Showcase */}
       <section className="py-24 sm:py-32 flex flex-col items-center justify-center relative z-20 overflow-hidden bg-transparent select-none min-h-[500px]">
         <div className="relative flex flex-col items-center justify-center text-center w-full">
-          {/* Ambient Glow behind the logo */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] sm:w-[480px] sm:h-[480px] bg-gradient-to-tr from-blue-500/10 via-purple-500/10 to-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse" />
-
+          
           <motion.div
             animate={{ 
               y: [0, -12, 0],
+              rotate: [0, 2, 0]
             }}
             transition={{
               repeat: Infinity,
@@ -291,14 +290,11 @@ export default function HomePage() {
             whileHover={{ scale: 1.05 }}
             className="cursor-pointer relative z-10 flex justify-center items-center"
           >
-            {/* White card container keeps logo identical in both light & dark mode */}
-            <div className="bg-white rounded-3xl shadow-[0_32px_80px_-12px_rgba(59,130,246,0.18),0_8px_24px_rgba(0,0,0,0.10)] p-6 sm:p-8 md:p-10">
-              <img 
-                src="/kiwik-symbol.png" 
-                alt="Kiwik Symbol" 
-                className="w-44 h-44 sm:w-60 sm:h-60 md:w-80 md:h-80 object-contain" 
-              />
-            </div>
+            <img 
+              src="/kiwik-symbol.png" 
+              alt="Kiwik Large Symbol" 
+              className="w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 object-contain" 
+            />
           </motion.div>
 
           <h3 className="text-sm font-mono tracking-[0.3em] text-text-secondary mt-12 uppercase font-bold">
