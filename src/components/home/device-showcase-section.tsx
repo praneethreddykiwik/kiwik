@@ -75,12 +75,12 @@ export function DeviceShowcaseSection() {
           <img 
             src="/logo.png" 
             alt="Kiwik Logo" 
-            className="w-[80px] h-auto object-contain dark:hidden"
+            className="w-[160px] sm:w-[180px] h-auto object-contain dark:hidden"
           />
           <img 
             src="/logo-dark.png" 
             alt="Kiwik Logo" 
-            className="w-[80px] h-auto object-contain hidden dark:block"
+            className="w-[160px] sm:w-[180px] h-auto object-contain hidden dark:block"
           />
         </motion.div>
       </div>
