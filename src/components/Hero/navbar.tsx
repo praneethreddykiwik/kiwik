@@ -26,10 +26,13 @@ export function HeroNavbar() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="pointer-events-auto bg-[#18181B] text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-3 border border-white/10 hover:border-white/20 transition-all hover:scale-[1.02] cursor-pointer"
+        className="pointer-events-auto bg-[#18181B] text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/10 hover:border-white/20 transition-all hover:scale-[1.02] cursor-pointer"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
       >
-        <img src="/logo.png" alt="Kiwik Logo" className="h-5.5 w-auto object-contain brightness-0 invert" />
+        <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center font-bold text-[10px] text-black">
+          K
+        </div>
+        <span className="text-xs font-bold tracking-tight font-sans">{logoText}</span>
         <div className="w-px h-3.5 bg-white/20 ml-1" />
         <button className="text-white/80 hover:text-white transition-colors cursor-pointer p-0.5">
           {isMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}

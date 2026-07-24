@@ -4,7 +4,6 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { 
-  CreditCard, 
   Calendar, 
   Briefcase, 
   MessageSquare, 
@@ -53,7 +52,38 @@ export function DeviceShowcaseSection() {
       id="device-showcase-section"
       className="py-28 sm:py-36 md:py-40 lg:py-44 px-0 sm:px-4 max-w-[1700px] mx-auto relative z-20 select-none overflow-hidden bg-[#FAFAF8] dark:bg-[#08090C]"
     >
-      {/* Mockups Grid Section */}
+      {/* ─────────────────────────────────────────────────────────────
+          OFFICIAL KIWIK LOGO: Centered with subtle float animation
+         ───────────────────────────────────────────────────────────── */}
+      <div className="flex justify-center mb-[50px] relative z-30">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ 
+            opacity: 1, 
+            y: [0, -3, 0]
+          }}
+          transition={{
+            opacity: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+            y: {
+              repeat: Infinity,
+              duration: 6,
+              ease: "easeInOut"
+            }
+          }}
+          className="flex justify-center relative"
+        >
+          <img 
+            src="/logo.png" 
+            alt="Kiwik Logo" 
+            className="w-[80px] h-auto object-contain dark:hidden"
+          />
+          <img 
+            src="/logo-dark.png" 
+            alt="Kiwik Logo" 
+            className="w-[80px] h-auto object-contain hidden dark:block"
+          />
+        </motion.div>
+      </div>
 
       {/* ─────────────────────────────────────────────────────────────
           5 REALISTIC IPHONE 16 PRO HARDWARE MOCKUPS (Infinite Horizon)

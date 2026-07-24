@@ -273,36 +273,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* KIWIK LOGO CENTREPIECE — after Capabilities, above Mobile Showcase */}
-      <section className="py-24 sm:py-32 flex flex-col items-center justify-center relative z-20 overflow-hidden bg-transparent select-none min-h-[500px]">
-        <div className="relative flex flex-col items-center justify-center text-center w-full">
-          
-          <motion.div
-            animate={{ 
-              y: [0, -12, 0],
-              rotate: [0, 2, 0]
-            }}
-            transition={{
-              repeat: Infinity,
-              duration: 5.5,
-              ease: "easeInOut"
-            }}
-            whileHover={{ scale: 1.05 }}
-            className="cursor-pointer relative z-10 flex justify-center items-center"
-          >
-            <img 
-              src="/kiwik-symbol.png" 
-              alt="Kiwik Large Symbol" 
-              className="w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 object-contain" 
-            />
-          </motion.div>
-
-          <h3 className="text-sm font-mono tracking-[0.3em] text-text-secondary mt-12 uppercase font-bold">
-            Unified Operating Architecture
-          </h3>
-        </div>
-      </section>
-
       {/* THE FUTURE WE ARE BUILDING (Cosmic Horizon reference section) */}
       <FutureVision />
 
