@@ -36,7 +36,7 @@ export function InteractiveLogo() {
       };
 
       // Calculate vector from eye centers to mouse cursor
-      const maxDistance = 4; // Maximum travel distance of eyeball inside socket (in px)
+      const maxDistance = 10; // Maximum travel distance of eyeball inside socket (in px)
 
       const calculateOffset = (center: { x: number; y: number }) => {
         const dx = e.clientX - center.x;
@@ -67,7 +67,7 @@ export function InteractiveLogo() {
   return (
     <div
       ref={containerRef}
-      className="relative w-[160px] sm:w-[180px] aspect-square select-none pointer-events-none"
+      className="relative w-[300px] sm:w-[340px] md:w-[380px] aspect-square select-none pointer-events-none"
     >
       {/* Light Mode Logo Base */}
       <img
@@ -84,7 +84,7 @@ export function InteractiveLogo() {
 
       {/* Left Eyeball Container */}
       <div
-        className="absolute overflow-hidden rounded-full flex items-center justify-center bg-[#1a1a1a]"
+        className="absolute overflow-hidden rounded-full flex items-center justify-center bg-[#1a1a1a] z-10"
         style={{
           left: "42.7%",
           top: "28.8%",
@@ -114,7 +114,7 @@ export function InteractiveLogo() {
 
       {/* Right Eyeball Container */}
       <div
-        className="absolute overflow-hidden rounded-full flex items-center justify-center bg-[#1a1a1a]"
+        className="absolute overflow-hidden rounded-full flex items-center justify-center bg-[#1a1a1a] z-10"
         style={{
           left: "57.1%",
           top: "28.8%",
