@@ -7,8 +7,11 @@ export function InteractiveLogo() {
   const [leftEyeOffset, setLeftEyeOffset] = useState({ x: 0, y: 0 });
   const [rightEyeOffset, setRightEyeOffset] = useState({ x: 0, y: 0 });
   const [isBlinking, setIsBlinking] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+
     // Periodic blinking interval
     const blinkInterval = setInterval(() => {
       setIsBlinking(true);
@@ -22,6 +25,9 @@ export function InteractiveLogo() {
       const rect = containerRef.current.getBoundingClientRect();
       const width = rect.width;
       const height = rect.height;
+
+      // Prevent calculation glitch before layout loads or sizes are stable
+      if (width === 0 || height === 0) return;
 
       // Estimate center positions of the eyes inside the logo wrapper (width x height)
       // Left eye: 42.7% left, 28.8% top
@@ -105,7 +111,9 @@ export function InteractiveLogo() {
 
         {/* Eyelid overlay for blink animation */}
         <div
-          className="absolute inset-0 bg-[#FAFAF8] dark:bg-[#08090C] transition-transform duration-100 ease-in-out"
+          className={`absolute inset-0 bg-[#FAFAF8] dark:bg-[#08090C] ${
+            mounted ? "transition-transform duration-100 ease-in-out" : ""
+          }`}
           style={{
             transform: isBlinking ? "translateY(0)" : "translateY(-100%)",
           }}
@@ -135,7 +143,9 @@ export function InteractiveLogo() {
 
         {/* Eyelid overlay for blink animation */}
         <div
-          className="absolute inset-0 bg-[#FAFAF8] dark:bg-[#08090C] transition-transform duration-100 ease-in-out"
+          className={`absolute inset-0 bg-[#FAFAF8] dark:bg-[#08090C] ${
+            mounted ? "transition-transform duration-100 ease-in-out" : ""
+          }`}
           style={{
             transform: isBlinking ? "translateY(0)" : "translateY(-100%)",
           }}
