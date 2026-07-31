@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { PaperBackground } from "./paper-background";
 import { ImageRibbon } from "./ribbon";
@@ -20,6 +21,23 @@ export function MeliusHero() {
       {/* Hero Center Section */}
       <main className="flex-1 flex flex-col items-center justify-center space-y-6 sm:space-y-10 my-auto text-center px-4 relative z-10">
         
+        {/* Version Badge */}
+        {hero?.badgeVisible !== false && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+          >
+            <Link
+              href={hero?.badgeLink || "/projects"}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/5 dark:bg-white/10 border border-black/10 dark:border-white/15 text-[10px] font-mono font-bold tracking-tight text-neutral-800 dark:text-neutral-300 hover:border-neutral-800/40 dark:hover:border-white/30 transition-all"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-blue animate-pulse" />
+              <span>{hero?.versionBadge || "Kiwik.1 v1.0.0-beta"}</span>
+            </Link>
+          </motion.div>
+        )}
+
         {/* ─────────────────────────────────────────────────────────────
             HEADLINE (Large Editorial Serif, Canela / Playfair style)
            ───────────────────────────────────────────────────────────── */}

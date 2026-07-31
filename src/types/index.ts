@@ -80,6 +80,7 @@ export interface Project {
   views?: number;
   deploymentStatus?: "live" | "staging" | "offline";
   license?: string;
+  featured?: boolean;
 }
 
 export type ThemeMode = "dark" | "light";

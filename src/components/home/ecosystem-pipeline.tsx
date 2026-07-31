@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import * as LucideIcons from "lucide-react";
 import { Cpu, Layers, Cloud, Shield, ArrowRight } from "lucide-react";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 export function EcosystemPipeline() {
-  const cmsNodes = useSiteCMSStore((state) => state.cms.architectureNodes) || [];
+  const cmsNodes = useSiteCMSStore((state) => state.cms.architectureNodes);
 
   const defaultNodes = [
     {
@@ -27,7 +28,8 @@ export function EcosystemPipeline() {
       glow: "shadow-purple-500/10",
       badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30",
       badgeText: "Active Node",
-      order: 1
+      order: 1,
+      visible: true
     },
     {
       id: "kiwik",
@@ -39,7 +41,8 @@ export function EcosystemPipeline() {
       glow: "shadow-cyan-500/10",
       badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
       badgeText: "Active Node",
-      order: 2
+      order: 2,
+      visible: true
     },
     {
       id: "criska-cloud",
@@ -51,32 +54,33 @@ export function EcosystemPipeline() {
       glow: "shadow-blue-500/10",
       badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30",
       badgeText: "Active Node",
-      order: 3
-    },
-    {
-      id: "security-identity",
-      title: "Security & Identity",
-      subtitle: "Secure Access & Governance",
-      iconName: "Shield",
-      color: "from-emerald-500/20 to-teal-600/5",
-      border: "border-emerald-500/30 hover:border-emerald-500/60",
-      glow: "shadow-emerald-500/10",
-      badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-      badgeText: "Active Node",
-      order: 4
+      order: 3,
+      visible: true
     }
   ];
 
-  const nodes = cmsNodes.length > 0 ? cmsNodes : defaultNodes;
+  // Filter & sort nodes by order
+  const nodes = [...(cmsNodes && cmsNodes.length > 0 ? cmsNodes : defaultNodes)]
+    .filter((n) => n.visible !== false)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  const getIcon = (iconName: string) => {
+    const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.Cpu;
+    let colorClass = "text-purple-400";
+    if (iconName === "Layers") colorClass = "text-cyan-400";
+    else if (iconName === "Cloud") colorClass = "text-blue-400";
+    else if (iconName === "Shield") colorClass = "text-emerald-400";
+    return <IconComponent className={cn("w-5 h-5", colorClass)} />;
+  };
 
   return (
-    <section className="py-20 px-4 sm:px-6 md:px-8 max-w-[1400px] mx-auto relative z-20">
-      <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
-        <span className="text-xs font-mono font-bold text-accent-blue uppercase tracking-widest">
-          THE CRISKA ECOSYSTEM
+    <section className="w-full max-w-7xl mx-auto px-4 py-20 relative select-none">
+      <div className="text-center max-w-2xl mx-auto mb-16">
+        <span className="text-[10px] font-mono font-bold tracking-widest text-accent-blue uppercase bg-accent-blue/10 px-3 py-1 rounded-full border border-accent-blue/20">
+          Integrated Ecosystem
         </span>
-        <h2 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary tracking-wide leading-snug">
-          Unified Operating Architecture
+        <h2 className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight font-serif mt-4">
+          Headless Nodes Pipeline
         </h2>
       </div>
 
@@ -90,35 +94,42 @@ export function EcosystemPipeline() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -6, scale: 1.02 }}
-              className={cn(
-                "p-6 rounded-2xl bg-gradient-to-b border backdrop-blur-xl transition-all duration-300 select-none shadow-xl relative group",
-                node.color,
-                node.border,
-                node.glow
-              )}
+              className="relative group"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-xl bg-bg-primary/80 border border-white/10 shadow-inner">
-                  {ICON_MAP[node.iconName] || <Cpu className="w-5 h-5 text-purple-400" />}
+              <a
+                href={node.link || "/projects"}
+                target={node.link?.startsWith("http") ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                className={cn(
+                  "block p-6 rounded-2xl bg-gradient-to-b border backdrop-blur-xl transition-all duration-300 shadow-xl group",
+                  node.color,
+                  node.border,
+                  node.glow
+                )}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-bg-primary/80 border border-white/10 shadow-inner">
+                    {getIcon(node.iconName)}
+                  </div>
+                  <span className={cn("text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border", node.badgeColor)}>
+                    {node.badgeText || "Active Node"}
+                  </span>
                 </div>
-                <span className={cn("text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border", node.badgeColor)}>
-                  {node.badgeText || "Active Node"}
-                </span>
-              </div>
 
-              <h3 className="text-lg font-bold text-text-primary tracking-tight group-hover:text-accent-blue transition-colors">
-                {node.title}
-              </h3>
-              <p className="text-xs text-text-secondary leading-relaxed font-medium mt-1">
-                {node.subtitle}
-              </p>
+                <h3 className="text-lg font-bold text-text-primary tracking-tight group-hover:text-accent-blue transition-colors">
+                  {node.title}
+                </h3>
+                <p className="text-xs text-text-secondary leading-relaxed font-medium mt-1">
+                  {node.subtitle}
+                </p>
+              </a>
             </motion.div>
 
             {/* Connecting Arrow for larger screens */}
             {index < nodes.length - 1 && (
               <div className="hidden md:flex items-center justify-center absolute z-30 pointer-events-none" style={{ left: `${(index + 1) * 25 - 1.5}%`, top: "50%", transform: "translate(-50%, -50%)" }}>
                 <div className="w-8 h-8 rounded-full bg-bg-secondary border border-glass-border flex items-center justify-center text-accent-blue shadow-md">
-                  <ArrowRight className="w-4 h-4 animate-pulse" />
+                  <LucideIcons.ArrowRight className="w-4 h-4 animate-pulse" />
                 </div>
               </div>
             )}

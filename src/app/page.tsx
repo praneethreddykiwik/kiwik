@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import * as LucideIcons from "lucide-react";
 import { 
   ArrowRight, 
   Layers, 
@@ -52,13 +53,13 @@ export default function HomePage() {
   const featuredCMS = projects.slice(0, 3);
 
   const getIcon = (iconName: string) => {
-    switch (iconName) {
-      case "Sparkles": return <Sparkles className="w-4 h-4 text-purple-400" />;
-      case "Shield": return <Shield className="w-4 h-4 text-rose-400" />;
-      case "Workflow": return <Workflow className="w-4 h-4 text-amber-400" />;
-      case "Cloud": return <Cloud className="w-4 h-4 text-accent-blue" />;
-      default: return <Cpu className="w-4 h-4 text-accent-blue" />;
-    }
+    const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.Cpu;
+    let colorClass = "text-accent-blue";
+    if (iconName === "Sparkles") colorClass = "text-purple-400";
+    else if (iconName === "Shield") colorClass = "text-rose-400";
+    else if (iconName === "Workflow") colorClass = "text-amber-400";
+    else if (iconName === "Cloud") colorClass = "text-accent-blue";
+    return <IconComponent className={cn("w-4 h-4", colorClass)} />;
   };
 
   useEffect(() => {
@@ -111,14 +112,18 @@ export default function HomePage() {
           ]
         };
 
+        const activeStats = (earthShowcase.stats || []);
+
         return (
           <section className="relative w-full overflow-hidden bg-[#050608] text-white py-28 sm:py-36 md:py-40 lg:py-44 px-6 md:px-12 border-t border-b border-white/[0.06] select-none">
             {/* Immersive Curved Earth Background */}
             <div 
-              className="absolute inset-0 bg-cover bg-left md:bg-center opacity-65 md:opacity-80 mix-blend-screen pointer-events-none z-0 scale-[1.05]"
+              className="absolute inset-0 bg-cover bg-left md:bg-center mix-blend-screen pointer-events-none z-0 scale-[1.05]"
               style={{ 
                 backgroundImage: `url('${earthShowcase.earthImageUrl || "https://cdn.prod.website-files.com/68513e75563291f5d48ada9b/696df7aeb646a7a2198327de_36fa0c4d18a844367e1911df246f6613_earth.webp"}')`,
-                backgroundRepeat: "no-repeat"
+                backgroundRepeat: "no-repeat",
+                opacity: earthShowcase.overlayOpacity !== undefined ? earthShowcase.overlayOpacity : 0.8,
+                filter: earthShowcase.blurPx ? `blur(${earthShowcase.blurPx}px)` : undefined
               }}
             />
             {/* Soft Radial Ambient Lighting to Blend Edge */}
@@ -135,24 +140,28 @@ export default function HomePage() {
                   {earthShowcase.description || "Kiwik connects the edge telemetry, managed node clusters, and database replication pipelines on every cloud stack you operate."}
                 </p>
                 <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
-                  <Link 
-                    href="/docs" 
-                    className="px-6 py-2.5 rounded-full bg-white text-black font-sans font-bold text-xs hover:bg-neutral-200 transition-colors shadow-lg"
-                  >
-                    Book a demo
-                  </Link>
-                  <Link 
-                    href="/projects" 
-                    className="px-6 py-2.5 rounded-full bg-white/10 border border-white/20 text-white font-sans font-semibold text-xs hover:bg-white/20 transition-colors"
-                  >
-                    Telemetry integration
-                  </Link>
+                  {earthShowcase.cta1Text && (
+                    <Link 
+                      href={earthShowcase.cta1Href || "/docs"} 
+                      className="px-6 py-2.5 rounded-full bg-white text-black font-sans font-bold text-xs hover:bg-neutral-200 transition-colors shadow-lg"
+                    >
+                      {earthShowcase.cta1Text}
+                    </Link>
+                  )}
+                  {earthShowcase.cta2Text && (
+                    <Link 
+                      href={earthShowcase.cta2Href || "/projects"} 
+                      className="px-6 py-2.5 rounded-full bg-white/10 border border-white/20 text-white font-sans font-semibold text-xs hover:bg-white/20 transition-colors"
+                    >
+                      {earthShowcase.cta2Text}
+                    </Link>
+                  )}
                 </div>
               </div>
 
               {/* Row of Metrics (Reference Style) */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-16 mt-auto border-t border-white/10 max-w-5xl mx-auto w-full">
-                {(earthShowcase.stats || []).map((stat, i) => (
+                {activeStats.map((stat, i) => (
                   <div key={stat.id || i} className="space-y-1.5 text-center md:text-left">
                     <h3 className="text-3xl sm:text-4xl md:text-5xl font-mono font-bold text-white tracking-tight">{stat.value}</h3>
                     <p className="text-[11px] text-neutral-400 leading-normal max-w-[180px] mx-auto md:mx-0 font-medium">
@@ -183,25 +192,36 @@ export default function HomePage() {
           <div className="hidden lg:block absolute top-1/2 left-4 right-4 h-0.5 bg-gradient-to-r from-blue-500/20 via-indigo-500/40 to-cyan-500/20 -translate-y-1/2 z-0" />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-5 relative z-10">
-            {(howWeWork.steps || []).map((item, idx) => (
-              <GlassCard key={item.id || idx} className="p-6 border border-glass-border relative hover:border-accent-blue/40 transition-all select-none text-left shadow-lg group">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="w-8 h-8 rounded-xl bg-accent-blue/10 border border-accent-blue/20 text-accent-blue font-mono font-bold text-xs flex items-center justify-center group-hover:scale-110 transition-transform">
-                    0{idx + 1}
-                  </span>
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-text-muted">
-                    Phase {idx + 1}
-                  </span>
-                </div>
-                
-                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-text-primary group-hover:text-accent-blue transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-medium mt-2">
-                  {item.desc}
-                </p>
-              </GlassCard>
-            ))}
+            {[...(howWeWork.steps || [])]
+              .filter(step => step.visible !== false)
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map((item, idx) => {
+                const StepIcon = item.iconName ? ((LucideIcons as any)[item.iconName]) : null;
+                return (
+                  <GlassCard key={item.id || idx} className="p-6 border border-glass-border relative hover:border-accent-blue/40 transition-all select-none text-left shadow-lg group">
+                    <div className="flex items-center justify-between mb-4">
+                      <span 
+                        className={cn(
+                          "w-8 h-8 rounded-xl text-xs font-mono font-bold flex items-center justify-center group-hover:scale-110 transition-transform",
+                          item.color || "bg-accent-blue/10 border border-accent-blue/20 text-accent-blue"
+                        )}
+                      >
+                        {StepIcon ? <StepIcon className="w-4 h-4" /> : (item.step || `0${idx + 1}`)}
+                      </span>
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-text-muted">
+                        Phase {idx + 1}
+                      </span>
+                    </div>
+                    
+                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-text-primary group-hover:text-accent-blue transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-text-secondary leading-relaxed font-medium mt-2">
+                      {item.desc}
+                    </p>
+                  </GlassCard>
+                );
+              })}
           </div>
         </div>
       </section>
@@ -222,21 +242,24 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {(capabilities.items || []).map((cap, i) => (
-                <div key={cap.id || i} className="p-5 rounded-2xl bg-bg-secondary/40 border border-glass-border hover:border-accent-blue/30 transition-all flex gap-4 select-none backdrop-blur-xl group">
-                  <div className="p-2.5 rounded-xl bg-bg-primary border border-glass-border text-accent-blue flex-shrink-0 h-fit group-hover:scale-110 transition-transform">
-                    {getIcon(cap.iconName)}
+              {[...(capabilities.items || [])]
+                .filter(cap => cap.visible !== false)
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map((cap, i) => (
+                  <div key={cap.id || i} className="p-5 rounded-2xl bg-bg-secondary/40 border border-glass-border hover:border-accent-blue/30 transition-all flex gap-4 select-none backdrop-blur-xl group">
+                    <div className="p-2.5 rounded-xl bg-bg-primary border border-glass-border text-accent-blue flex-shrink-0 h-fit group-hover:scale-110 transition-transform">
+                      {getIcon(cap.iconName)}
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-text-primary tracking-tight leading-tight group-hover:text-accent-blue transition-colors">
+                        {cap.title}
+                      </h3>
+                      <p className="text-[11px] text-text-secondary font-medium leading-relaxed mt-1">
+                        {cap.desc}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-text-primary tracking-tight leading-tight group-hover:text-accent-blue transition-colors">
-                      {cap.title}
-                    </h3>
-                    <p className="text-[11px] text-text-secondary font-medium leading-relaxed mt-1">
-                      {cap.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
 
@@ -252,21 +275,27 @@ export default function HomePage() {
             </div>
 
             <GlassCard className="p-6 border border-glass-border space-y-5 select-none shadow-xl">
-              {(trust.items || []).map((item, i) => (
-                <div key={item.id || i} className="flex gap-3 text-left group">
-                  <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500 shrink-0 mt-0.5">
-                    <CheckCircle className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-text-primary leading-tight group-hover:text-emerald-400 transition-colors">
-                      {item.title}
-                    </h4>
-                    <p className="text-[11px] text-text-secondary leading-relaxed mt-1 font-medium">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
+              {[...(trust.items || [])]
+                .filter(item => item.visible !== false)
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map((item, i) => {
+                  const TrustIcon = item.iconName ? ((LucideIcons as any)[item.iconName]) : null;
+                  return (
+                    <div key={item.id || i} className="flex gap-3 text-left group">
+                      <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500 shrink-0 mt-0.5 animate-pulse-slow">
+                        {TrustIcon ? <TrustIcon className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-text-primary leading-tight group-hover:text-emerald-400 transition-colors">
+                          {item.title}
+                        </h4>
+                        <p className="text-[11px] text-text-secondary leading-relaxed mt-1 font-medium">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
             </GlassCard>
           </div>
 

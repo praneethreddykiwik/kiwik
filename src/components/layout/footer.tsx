@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import * as LucideIcons from "lucide-react";
 import { 
   Mail, 
   MapPin, 
@@ -59,18 +60,55 @@ function DiscordIcon({ className }: { className?: string }) {
 import { useSiteCMSStore } from "@/stores/site-cms-store";
 
 export function Footer() {
-  const footerCMS = useSiteCMSStore((state) => state.cms.footer);
-  const settingsCMS = useSiteCMSStore((state) => state.cms.settings);
+  const footerCMS = useSiteCMSStore((state) => state.cms.footer) || {
+    columns: [],
+    socialLinks: [],
+    copyrightText: "",
+    newsletterHeadline: "",
+    newsletterDescription: "",
+    newsletterButtonText: "",
+    policyBadges: [],
+    bottomLinks: []
+  };
 
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
     setSubscribed(true);
+    setStatusMessage(footerCMS.newsletterSuccessMessage || "Subscribed successfully!");
     setEmail("");
-    setTimeout(() => setSubscribed(false), 3000);
+    setTimeout(() => {
+      setSubscribed(false);
+      setStatusMessage("");
+    }, 4000);
+  };
+
+  const renderSocialIcon = (platform: string, iconName: string) => {
+    const platLower = platform.toLowerCase();
+    const iconLower = iconName ? iconName.toLowerCase() : "";
+
+    if (platLower.includes("github") || iconLower === "github") {
+      return <GithubIcon className="w-4 h-4" />;
+    }
+    if (platLower === "x" || platLower.includes("twitter") || iconLower === "x" || iconLower === "twitter") {
+      return <XIcon className="w-4 h-4" />;
+    }
+    if (platLower.includes("linkedin") || iconLower === "linkedin") {
+      return <LinkedInIcon className="w-4 h-4" />;
+    }
+    if (platLower.includes("youtube") || iconLower === "youtube") {
+      return <YoutubeIcon className="w-4 h-4" />;
+    }
+    if (platLower.includes("discord") || iconLower === "discord") {
+      return <DiscordIcon className="w-4 h-4" />;
+    }
+    
+    const LucideIcon = (LucideIcons as any)[iconName] || LucideIcons.Globe;
+    return <LucideIcon className="w-4 h-4" />;
   };
 
   return (
@@ -105,7 +143,7 @@ export function Footer() {
               <input
                 type="email"
                 required
-                placeholder="Enter your email"
+                placeholder={footerCMS.newsletterPlaceholder || "Enter your email"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white dark:bg-black/60 border border-neutral-300 dark:border-white/15 focus:outline-none focus:border-indigo-500 text-xs font-semibold text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 shadow-xs"
@@ -115,9 +153,14 @@ export function Footer() {
               type="submit"
               className="px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/20 shrink-0 cursor-pointer"
             >
-              {subscribed ? "Subscribed!" : "Subscribe"}
+              {subscribed ? "Subscribed!" : (footerCMS.newsletterButtonText || "Subscribe")}
             </button>
           </form>
+          {statusMessage && (
+            <div className="absolute bottom-2 right-6 text-[10px] font-mono text-emerald-500 animate-fade-in">
+              {statusMessage}
+            </div>
+          )}
         </div>
 
         {/* Main Sitemap Grid */}
@@ -126,103 +169,101 @@ export function Footer() {
           {/* Brand block */}
           <div className="sm:col-span-2 md:col-span-6 lg:col-span-3 space-y-4 text-left pr-0 lg:pr-4">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-serif font-bold text-neutral-900 dark:text-white tracking-wide">Kiwik</span>
+              <span className="text-xl font-serif font-bold text-neutral-900 dark:text-white tracking-wide">
+                {footerCMS.logoText || "Kiwik"}
+              </span>
             </div>
             <p className="text-neutral-600 dark:text-neutral-400 text-xs leading-relaxed max-w-sm font-medium">
               The operating system for digital products. Build, ship, document, and scale your ideas with engineering excellence.
             </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold tracking-tight">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>All Systems Operational</span>
-            </div>
+            {footerCMS.statusBadgeVisible !== false && (
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold tracking-tight">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{footerCMS.statusBadgeText || "All Systems Operational"}</span>
+              </div>
+            )}
 
             {/* Social Icons row */}
             <div className="flex items-center gap-2.5 pt-2 flex-wrap">
-              <Link href="https://github.com/shagantivivekgoud" target="_blank" className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 flex items-center justify-center text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-                <GithubIcon className="w-4 h-4" />
-              </Link>
-              <Link href="https://x.com/kiwik" target="_blank" className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 flex items-center justify-center text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-                <XIcon className="w-4 h-4" />
-              </Link>
-              <Link href="https://discord.gg/kiwik" target="_blank" className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 flex items-center justify-center text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-                <DiscordIcon className="w-4 h-4" />
-              </Link>
-              <Link href="https://linkedin.com" target="_blank" className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 flex items-center justify-center text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-                <LinkedInIcon className="w-4 h-4" />
-              </Link>
-              <Link href="https://youtube.com" target="_blank" className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 flex items-center justify-center text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-                <YoutubeIcon className="w-4 h-4" />
-              </Link>
+              {(footerCMS.socialLinks || []).map((link, idx) => (
+                <Link 
+                  key={link.id || idx}
+                  href={link.url} 
+                  target="_blank" 
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 flex items-center justify-center text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                >
+                  {renderSocialIcon(link.platform, link.iconName)}
+                </Link>
+              ))}
             </div>
           </div>
 
-          {/* Product links list */}
-          <div className="col-span-1 sm:col-span-1 md:col-span-3 lg:col-span-2 text-left space-y-3">
-            <h5 className="text-xs font-mono tracking-wider text-neutral-900 dark:text-white uppercase font-bold">Product</h5>
-            <ul className="space-y-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">
-              <li><Link href="/projects" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Projects</Link></li>
-              <li><Link href="#macos-dashboard-widget" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Documentation</Link></li>
-              <li><Link href="#capabilities-section" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Capabilities</Link></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Integrations</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Changelog</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Roadmap</span></li>
-            </ul>
-          </div>
-
-          {/* Resources links list */}
-          <div className="col-span-1 sm:col-span-1 md:col-span-3 lg:col-span-2 text-left space-y-3">
-            <h5 className="text-xs font-mono tracking-wider text-neutral-900 dark:text-white uppercase font-bold">Resources</h5>
-            <ul className="space-y-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Guides</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">API Reference</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Blog</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Showcase</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Templates</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Help Center</span></li>
-            </ul>
-          </div>
-
-          {/* Company links list */}
-          <div className="col-span-1 sm:col-span-1 md:col-span-3 lg:col-span-2 text-left space-y-3">
-            <h5 className="text-xs font-mono tracking-wider text-neutral-900 dark:text-white uppercase font-bold">Company</h5>
-            <ul className="space-y-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">About Kiwik</span></li>
-              <li><Link href="#timeline-section" className="hover:text-neutral-900 dark:hover:text-white transition-colors">How We Work</Link></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Careers</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Partners</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Contact Us</span></li>
-              <li><span className="opacity-50 cursor-not-allowed text-neutral-400 dark:text-neutral-500">Press Kit</span></li>
-            </ul>
-          </div>
+          {/* Dynamic Sitemap columns */}
+          {(footerCMS.columns || []).map((col, idx) => (
+            <div 
+              key={col.id || idx} 
+              className="col-span-1 sm:col-span-1 md:col-span-3 lg:col-span-2 text-left space-y-3"
+            >
+              <h5 className="text-xs font-mono tracking-wider text-neutral-900 dark:text-white uppercase font-bold">
+                {col.title}
+              </h5>
+              <ul className="space-y-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                {(col.links || []).map((link, lIdx) => (
+                  <li key={link.id || lIdx}>
+                    <Link 
+                      href={link.href} 
+                      target={link.target || "_self"}
+                      className="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                    >
+                      {link.label}
+                      {link.badge && (
+                        <span className="ml-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded-sm bg-indigo-500/10 text-indigo-500 uppercase tracking-tight">
+                          {link.badge}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
           {/* Get in Touch Card */}
           <div className="col-span-1 sm:col-span-2 md:col-span-6 lg:col-span-3 p-5 rounded-2xl bg-slate-50 dark:bg-neutral-900/60 border border-neutral-200/80 dark:border-white/10 flex flex-col gap-4 text-left shadow-sm w-full max-w-full">
             <h5 className="text-xs font-mono tracking-wider text-neutral-900 dark:text-white uppercase font-bold">Get in Touch</h5>
             
             <div className="space-y-3.5">
-              <div className="flex gap-2.5 items-start">
-                <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
-                <div>
-                  <a href="mailto:hello@kiwik.dev" className="text-xs font-bold text-neutral-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors break-all">hello@kiwik.dev</a>
-                  <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">We usually reply within 24 hours</p>
+              {footerCMS.contactEmail && (
+                <div className="flex gap-2.5 items-start">
+                  <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
+                  <div>
+                    <a href={`mailto:${footerCMS.contactEmail}`} className="text-xs font-bold text-neutral-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors break-all">
+                      {footerCMS.contactEmail}
+                    </a>
+                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">We usually reply within 24 hours</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex gap-2.5 items-start border-t border-neutral-200/80 dark:border-white/10 pt-3">
-                <MapPin className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
-                <div>
-                  <span className="text-xs font-bold text-neutral-900 dark:text-slate-100">Kiwik HQ</span>
-                  <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">Internet, Everywhere</p>
+              {footerCMS.address && (
+                <div className="flex gap-2.5 items-start border-t border-neutral-200/80 dark:border-white/10 pt-3">
+                  <MapPin className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
+                  <div>
+                    <span className="text-xs font-bold text-neutral-900 dark:text-slate-100">Kiwik HQ</span>
+                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">{footerCMS.address}</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex gap-2.5 items-start border-t border-neutral-200/80 dark:border-white/10 pt-3">
-                <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
-                <div>
-                  <span className="text-xs font-bold text-neutral-900 dark:text-slate-100">Live Support</span>
-                  <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">Available Mon - Fri, 9AM - 6PM UTC</p>
+              {footerCMS.contactPhone && (
+                <div className="flex gap-2.5 items-start border-t border-neutral-200/80 dark:border-white/10 pt-3">
+                  <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
+                  <div>
+                    <span className="text-xs font-bold text-neutral-900 dark:text-slate-100">Live Support</span>
+                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">{footerCMS.contactPhone}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -233,7 +274,9 @@ export function Footer() {
           
           {/* Copyright block */}
           <div className="text-left space-y-1 select-none">
-            <div className="text-xs font-bold text-neutral-900 dark:text-white">© {new Date().getFullYear()} Kiwik. All rights reserved.</div>
+            <div className="text-xs font-bold text-neutral-900 dark:text-white">
+              {footerCMS.copyrightText || `© ${new Date().getFullYear()} Kiwik. All rights reserved.`}
+            </div>
             <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed">
               Kiwik.1 is a registered trademark of Kiwik Inc. <br />
               Built with ❤️ by the Kiwik Engineering Team.

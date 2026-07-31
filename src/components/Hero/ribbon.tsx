@@ -33,7 +33,8 @@ export function ImageRibbon() {
   const poolIndexRef = useRef<number>(0);
   const activeImageUrlsRef = useRef<Set<string>>(new Set());
 
-  const cmsGalleryImages = useSiteCMSStore((state) => state.cms.hero.galleryImages);
+  const hero = useSiteCMSStore((state) => state.cms.hero);
+  const cmsGalleryImages = hero?.galleryImages;
   const currentPool = cmsGalleryImages && cmsGalleryImages.length > 0 ? cmsGalleryImages : MASTER_GALLERY_POOL;
 
   // Shuffle array helper
@@ -127,7 +128,7 @@ export function ImageRibbon() {
       lastTime = now;
 
       // Linear constant expansion speed (full transit in ~12.5 sec)
-      const speed = 0.075;
+      const speed = hero?.gallerySpeed !== undefined ? hero.gallerySpeed : 0.075;
 
       setCards((prevCards) =>
         prevCards.map((card) => {
@@ -161,7 +162,7 @@ export function ImageRibbon() {
 
     animId = requestAnimationFrame(updateEmitter);
     return () => cancelAnimationFrame(animId);
-  }, []);
+  }, [hero?.gallerySpeed]);
 
   return (
     <div
@@ -176,9 +177,9 @@ export function ImageRibbon() {
           const p = Math.max(0, Math.min(1, card.progress));
 
           // ── CONTINUOUS PERSPECTIVE SCALE MATHEMATICS ──
-          // Center (p = 0.0): scale = 0.28 (small)
-          // Edge (p = 1.0): scale = 1.35 (large)
-          const scale = 0.28 + Math.pow(p, 1.15) * (1.35 - 0.28);
+          const perspectiveScale = hero?.galleryPerspective !== undefined ? hero.galleryPerspective : 0.28;
+          const maxScale = hero?.galleryScale !== undefined ? hero.galleryScale : 1.35;
+          const scale = perspectiveScale + Math.pow(p, 1.15) * (maxScale - perspectiveScale);
 
           // ── CONTINUOUS HORIZONTAL EXPANSION DISTANCE ──
           // Left lane travels CENTER -> LEFT (-X)
@@ -192,8 +193,8 @@ export function ImageRibbon() {
           const zIndex = Math.floor(p * 100) + 10;
 
           // ── CONTINUOUS OPACITY FADE ──
-          // Center = 0.85, Edges = 1.0
-          const opacity = 0.85 + p * 0.15;
+          const baseOpacity = hero?.galleryOpacity !== undefined ? hero.galleryOpacity : 0.85;
+          const opacity = baseOpacity + p * (1 - baseOpacity);
 
           // ── DYNAMIC CARD DIMENSIONS ──
           // Base card is 260px wide by 320px high, scaled dynamically by perspective
@@ -216,6 +217,7 @@ export function ImageRibbon() {
                 zIndex,
                 opacity,
                 transformOrigin: "center center",
+                filter: hero?.galleryBlur ? `blur(${hero.galleryBlur}px)` : undefined,
               }}
               className={cn(
                 "group block overflow-hidden rounded-[20px] bg-neutral-900 border border-black/10 dark:border-white/15 transition-all duration-300 transform-gpu will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.6)] hover:scale-105 cursor-pointer"

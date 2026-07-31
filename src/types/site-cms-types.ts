@@ -40,6 +40,8 @@ export interface FloatingGalleryImage {
 
 export interface HeroCMS {
   versionBadge: string;
+  badgeVisible?: boolean;
+  badgeLink?: string;
   headlinePrefix: string;
   headlineHighlightWord: string;
   rotatingWords: string[];
@@ -52,6 +54,25 @@ export interface HeroCMS {
   backgroundIntensity: "low" | "medium" | "high";
   animationSpeedSeconds: number;
   galleryImages: FloatingGalleryImage[];
+  gallerySpeed?: number;
+  gallerySpacing?: number;
+  galleryPerspective?: number;
+  galleryOpacity?: number;
+  galleryBlur?: number;
+  galleryScale?: number;
+}
+
+export interface PromptBarCMS {
+  placeholder: string;
+  buttonLabel: string;
+  gradientStart: string;
+  gradientMiddle: string;
+  gradientEnd: string;
+  rotatingWords: string[];
+  suggestionChips: string[];
+  iconName: string;
+  buttonIcon: string;
+  buttonLink: string;
 }
 
 export interface NavigationItem {
@@ -103,6 +124,18 @@ export interface FooterCMS {
   newsletterDescription: string;
   newsletterButtonText: string;
   policyBadges: string[];
+  logoText?: string;
+  logoUrl?: string;
+  statusBadgeText?: string;
+  statusBadgeVisible?: boolean;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  bottomLinks?: Array<{ label: string; href: string }>;
+  newsletterPlaceholder?: string;
+  newsletterApiEndpoint?: string;
+  newsletterSuccessMessage?: string;
+  newsletterFailureMessage?: string;
 }
 
 export interface FeaturedSectionCMS {
@@ -115,6 +148,10 @@ export interface CapabilityItem {
   title: string;
   desc: string;
   iconName: string;
+  color?: string;
+  category?: string;
+  visible?: boolean;
+  order?: number;
 }
 
 export interface CapabilitiesCMS {
@@ -126,6 +163,9 @@ export interface TrustItem {
   id: string;
   title: string;
   desc: string;
+  iconName?: string;
+  order?: number;
+  visible?: boolean;
 }
 
 export interface TrustCMS {
@@ -138,6 +178,10 @@ export interface WorkflowStep {
   step: string;
   title: string;
   desc: string;
+  iconName?: string;
+  color?: string;
+  order?: number;
+  visible?: boolean;
 }
 
 export interface HowWeWorkCMS {
@@ -172,6 +216,19 @@ export interface PageCMS {
   lastUpdated: string;
 }
 
+export interface DeviceBlock {
+  id: string;
+  type: "resume" | "experience" | "faq" | "testimonial" | "socials" | "form" | "stats" | "timeline" | "gallery" | "skills" | "projects";
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  date?: string;
+  items?: Array<{ title: string; subtitle?: string; desc?: string; date?: string; link?: string; iconName?: string }>;
+  iconName?: string;
+  collapsed?: boolean;
+  visible?: boolean;
+}
+
 export interface DeviceShowcaseCard {
   id: string;
   name: string;
@@ -183,6 +240,58 @@ export interface DeviceShowcaseCard {
   accentColor: string;
   inputFields?: string[];
   ctaText?: string;
+  description?: string;
+  buttonLink?: string;
+  backgroundColor?: string;
+  visible?: boolean;
+  order?: number;
+  template?: "investor" | "designer" | "pm" | "botanist" | "marketer" | "custom";
+  subitems?: Array<{ title: string; subtitle: string; desc?: string; date?: string }>;
+  
+  // GENERAL settings:
+  jobTitle?: string;
+  company?: string;
+  themeColor?: string;
+  phoneFrame?: string;
+  phoneSize?: "small" | "medium" | "large";
+  
+  // HEADER settings:
+  onlineBadge?: boolean;
+  headerBackground?: string;
+  statusBadge?: string;
+
+  // MAIN TITLE & copy:
+  supportHeading?: string;
+  bodyText?: string;
+  highlightText?: string;
+  richText?: string;
+
+  // PRIMARY BUTTON:
+  primaryButtonLabel?: string;
+  primaryButtonLink?: string;
+  primaryButtonStyle?: "solid" | "glass" | "outline";
+  primaryButtonColor?: string;
+  primaryButtonIcon?: string;
+  primaryButtonNewTab?: boolean;
+
+  // SECONDARY BUTTON:
+  secondaryButtonLabel?: string;
+  secondaryButtonLink?: string;
+  secondaryButtonIcon?: string;
+  secondaryButtonVisible?: boolean;
+
+  // BACKGROUND:
+  backgroundImageUrl?: string;
+  backgroundGradient?: string;
+  backgroundOverlayOpacity?: number;
+  backgroundBlur?: number;
+  backgroundNoise?: boolean;
+
+  // PROFILE PHOTO:
+  profileAltText?: string;
+
+  // DYNAMIC BLOCKS:
+  blocks?: DeviceBlock[];
 }
 
 export interface DeviceShowcaseCMS {
@@ -202,6 +311,12 @@ export interface EarthShowcaseCMS {
   description: string;
   earthImageUrl: string;
   stats: StatItem[];
+  cta1Text?: string;
+  cta1Href?: string;
+  cta2Text?: string;
+  cta2Href?: string;
+  overlayOpacity?: number;
+  blurPx?: number;
 }
 
 export interface AIKnowledgeArticle {
@@ -309,6 +424,8 @@ export interface ArchitectureNodeCMS {
   badgeColor: string;
   badgeText: string;
   order: number;
+  link?: string;
+  visible?: boolean;
 }
 
 export interface WhyCriskaPillCMS {
@@ -317,6 +434,7 @@ export interface WhyCriskaPillCMS {
   iconName: string;
   order: number;
   visible: boolean;
+  color?: string;
 }
 
 export interface DashboardShowcaseCMS {
@@ -324,11 +442,19 @@ export interface DashboardShowcaseCMS {
   searchPlaceholder: string;
   kernelStatusText: string;
   systemCoreTechs: string[];
+  sectionSubtitle?: string;
+  dashboardImageUrl?: string;
+  rightPanelImageUrl?: string;
+  backgroundImageUrl?: string;
+  labels?: string[];
+  badges?: string[];
+  cards?: any[];
 }
 
 export interface SiteCMSData {
   settings: WebsiteSettings;
   hero: HeroCMS;
+  promptBar: PromptBarCMS;
   navigation: NavigationCMS;
   footer: FooterCMS;
   featuredSection: FeaturedSectionCMS;

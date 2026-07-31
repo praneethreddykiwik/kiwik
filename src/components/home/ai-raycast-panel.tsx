@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import * as LucideIcons from "lucide-react";
 import { 
   Sparkles, 
   FileText, 
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProjects } from "@/stores/projects-store";
+import { useSiteCMSStore } from "@/stores/site-cms-store";
 
 interface AIAction {
   id: string;
@@ -39,12 +41,14 @@ export function AiRaycastPanel() {
   const projects = useProjects();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const dashboardShowcase = useSiteCMSStore((state) => state.cms.dashboardShowcase);
+
   const actions: AIAction[] = [
-    { id: "summarize", label: "Summarize Project", sublabel: "Compress README parameters", icon: <FileText className="w-3.5 h-3.5 text-accent-blue" /> },
-    { id: "find_doc", label: "Find Documentation", sublabel: "Query platform manuals", icon: <Search className="w-3.5 h-3.5 text-purple-400" /> },
-    { id: "health", label: "Check Deployments", sublabel: "Query edge health status", icon: <Cloud className="w-3.5 h-3.5 text-emerald-400" /> },
-    { id: "readme", label: "Generate README", sublabel: "Draft codebase documentation", icon: <FileCode className="w-3.5 h-3.5 text-amber-400" /> },
-    { id: "ask", label: "Ask Anything", sublabel: "Ask about Kiwik systems", icon: <MessageSquare className="w-3.5 h-3.5 text-cyan-400" /> }
+    { id: "summarize", label: "Summarize Project", sublabel: "Compress README parameters", icon: <LucideIcons.FileText className="w-3.5 h-3.5 text-accent-blue" /> },
+    { id: "find_doc", label: "Find Documentation", sublabel: "Query platform manuals", icon: <LucideIcons.Search className="w-3.5 h-3.5 text-purple-400" /> },
+    { id: "health", label: "Check Deployments", sublabel: "Query edge health status", icon: <LucideIcons.Cloud className="w-3.5 h-3.5 text-emerald-400" /> },
+    { id: "readme", label: "Generate README", sublabel: "Draft codebase documentation", icon: <LucideIcons.FileCode className="w-3.5 h-3.5 text-amber-400" /> },
+    { id: "ask", label: "Ask Anything", sublabel: "Ask about Kiwik systems", icon: <LucideIcons.MessageSquare className="w-3.5 h-3.5 text-cyan-400" /> }
   ];
 
   // Auto-scroll chat history
@@ -158,7 +162,7 @@ export function AiRaycastPanel() {
             </div>
             <div className="flex items-center gap-1.5 text-[9px] font-semibold text-emerald-500 font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Ready</span>
+              <span>{dashboardShowcase?.badges?.[0] || "Ready"}</span>
             </div>
           </div>
 
@@ -229,8 +233,8 @@ export function AiRaycastPanel() {
                   
                   {loading && (
                     <div className="flex items-center gap-2 text-accent-blue py-1.5 font-mono text-[9px]">
-                      <Cpu className="w-3 h-3 animate-spin" />
-                      <span>Thinking...</span>
+                      <LucideIcons.Cpu className="w-3 h-3 animate-spin" />
+                      <span>{dashboardShowcase?.badges?.[1] || "Thinking..."}</span>
                     </div>
                   )}
                   <div ref={chatEndRef} />
@@ -260,8 +264,8 @@ export function AiRaycastPanel() {
                   onClick={() => setActiveAction(null)}
                   className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-divider hover:bg-bg-secondary text-[9px] font-mono text-text-secondary font-semibold"
                 >
-                  <RefreshCw className="w-2.5 h-2.5" />
-                  <span>Choose Another Action</span>
+                  <LucideIcons.RefreshCw className="w-2.5 h-2.5" />
+                  <span>{dashboardShowcase?.badges?.[2] || "Choose Another Action"}</span>
                 </button>
               </motion.div>
             )}

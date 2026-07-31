@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useProjects } from "@/stores/projects-store";
 import { ProjectImage } from "@/components/ui/project-image";
+import { useSiteCMSStore } from "@/stores/site-cms-store";
 
 type SidebarTab = "overview" | "projects" | "docs" | "analytics" | "ai" | "settings";
 
@@ -42,6 +43,16 @@ export function MacosDashboard() {
   const [activeTab, setActiveTab] = useState<SidebarTab>("projects");
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<string[]>(["Kiwik.1"]);
+
+  const dashboardShowcase = useSiteCMSStore((state) => state.cms.dashboardShowcase) || {
+    sectionTitle: "KIWIK OS Kernel",
+    searchPlaceholder: "Search projects, docs, commands...",
+    kernelStatusText: "OS Kernel Active",
+    systemCoreTechs: ["Next.js", "React", "TS TypeScript", "Tailwind CSS", "Prisma", "PostgreSQL", "Vercel"],
+    sectionSubtitle: "Unified Control & Edge Telemetry Console",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
+    labels: ["Kiwik OS", "Telemetry Status", "OS Kernel Active", "System Core:"]
+  };
 
   React.useEffect(() => {
     const handleSwitchTab = (e: Event) => {
@@ -98,15 +109,21 @@ export function MacosDashboard() {
     { id: "settings", label: "Settings", icon: <Settings className="w-3.5 h-3.5" /> }
   ] as const;
 
-  const stack = [
-    { name: "Next.js", icon: "▲" },
-    { name: "React", icon: "⚛" },
-    { name: "TypeScript", icon: "TS" },
-    { name: "Tailwind CSS", icon: "🎨" },
-    { name: "Prisma", icon: "⏵" },
-    { name: "PostgreSQL", icon: "🐘" },
-    { name: "Vercel", icon: "▲" }
-  ];
+  const getTechIcon = (name: string) => {
+    if (name.toLowerCase().includes("next")) return "▲";
+    if (name.toLowerCase().includes("react")) return "⚛";
+    if (name.toLowerCase().includes("type")) return "TS";
+    if (name.toLowerCase().includes("css") || name.toLowerCase().includes("tailwind")) return "🎨";
+    if (name.toLowerCase().includes("prisma")) return "⏵";
+    if (name.toLowerCase().includes("postgres") || name.toLowerCase().includes("sql")) return "🐘";
+    if (name.toLowerCase().includes("vercel")) return "▲";
+    return "⚡";
+  };
+
+  const stack = (dashboardShowcase.systemCoreTechs || []).map(t => ({
+    name: t,
+    icon: getTechIcon(t)
+  }));
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 mt-12 mb-16 relative z-30 select-none">
@@ -122,7 +139,7 @@ export function MacosDashboard() {
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 cursor-pointer hover:opacity-80" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 cursor-pointer hover:opacity-80" />
               <span className="ml-3 text-[10px] font-mono text-text-secondary select-none font-bold uppercase tracking-wider">
-                Kiwik OS
+                {dashboardShowcase.labels?.[0] || "Kiwik OS"}
               </span>
             </div>
 
@@ -158,10 +175,12 @@ export function MacosDashboard() {
           </div>
 
           <div className="p-3.5 rounded-xl bg-bg-primary/40 border border-glass-border select-none">
-            <span className="text-[9px] font-mono text-text-secondary uppercase tracking-widest font-bold block mb-1">Telemetry Status</span>
+            <span className="text-[9px] font-mono text-text-secondary uppercase tracking-widest font-bold block mb-1">
+              {dashboardShowcase.labels?.[1] || "Telemetry Status"}
+            </span>
             <div className="flex items-center gap-1.5 text-xs text-text-primary font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>OS Kernel Active</span>
+              <span>{dashboardShowcase.kernelStatusText || "OS Kernel Active"}</span>
             </div>
           </div>
         </aside>
@@ -175,7 +194,7 @@ export function MacosDashboard() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary" />
               <input
                 type="text"
-                placeholder="Search projects, docs, commands..."
+                placeholder={dashboardShowcase.searchPlaceholder || "Search projects, docs, commands..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 rounded-full bg-neutral-200/40 dark:bg-white/5 border border-glass-border focus:outline-none focus:border-accent-blue text-xs font-semibold transition-all"
@@ -191,9 +210,9 @@ export function MacosDashboard() {
                 <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-rose-500" />
               </button>
               <img 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" 
+                src={dashboardShowcase.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"} 
                 alt="Profile Avatar" 
-                className="w-7 h-7 rounded-full border border-glass-border" 
+                className="w-7 h-7 rounded-full border border-glass-border object-cover" 
               />
             </div>
           </div>
@@ -278,15 +297,17 @@ export function MacosDashboard() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4 text-left p-4 rounded-2xl bg-bg-secondary/20 border border-glass-border max-w-xl"
+                  className="space-y-4 text-left p-4 rounded-2xl bg-bg-secondary/20 border border-glass-border max-w-xl animate-fade-in"
                 >
-                  <h3 className="text-sm font-bold text-text-primary">Kiwik OS Control Console</h3>
+                  <h3 className="text-sm font-bold text-text-primary">
+                    {dashboardShowcase.sectionTitle || "Kiwik OS Control Console"}
+                  </h3>
                   <p className="text-xs text-text-secondary leading-relaxed">
-                    This operating cockpit connects all CriskaAI, CriskaCloud, and FlowEngine platforms. Use the left menu tab switcher to explore documentation libraries, deployment logs, and system settings files.
+                    {dashboardShowcase.sectionSubtitle || "This operating cockpit connects all platforms. Use the left menu tab switcher to explore documentation libraries, deployment logs, and system settings files."}
                   </p>
                   <div className="grid grid-cols-3 gap-3 pt-2">
                     <div className="p-3 rounded-xl bg-glass-bg border border-glass-border text-center">
-                      <div className="text-lg font-bold text-accent-blue">24</div>
+                      <div className="text-lg font-bold text-accent-blue">{projects.length}</div>
                       <div className="text-[9px] text-text-secondary uppercase">Projects</div>
                     </div>
                     <div className="p-3 rounded-xl bg-glass-bg border border-glass-border text-center">
@@ -317,7 +338,7 @@ export function MacosDashboard() {
           {/* Technology stack footer bar */}
           <footer className="px-6 py-4 bg-bg-secondary/40 border-t border-divider/60 flex flex-wrap items-center gap-3">
             <span className="text-[9px] font-mono text-text-secondary uppercase tracking-widest font-bold select-none mr-2">
-              System Core:
+              {dashboardShowcase.labels?.[3] || "System Core:"}
             </span>
             <div className="flex flex-wrap items-center gap-2">
               {stack.map((item) => (
@@ -329,9 +350,6 @@ export function MacosDashboard() {
                   <span>{item.name}</span>
                 </span>
               ))}
-              <span className="px-2.5 py-1 rounded-lg bg-accent-blue/10 border border-accent-blue/20 text-[9px] font-mono font-bold text-accent-blue">
-                + 20 More
-              </span>
             </div>
           </footer>
 

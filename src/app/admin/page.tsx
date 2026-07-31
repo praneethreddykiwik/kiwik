@@ -47,8 +47,9 @@ import {
   Activity,
   Workflow,
   Globe,
-  ChevronRight,
+  ChevronUp,
   ChevronDown,
+  EyeOff,
   Sliders,
   Play,
   RefreshCw,
@@ -200,6 +201,27 @@ export default function AdminPage() {
   const [projectSearch, setProjectSearch] = useState("");
   const [projectStatusFilter, setProjectStatusFilter] = useState("all");
   const [mediaSearch, setMediaSearch] = useState("");
+
+  // Media Picker popup states
+  const [mediaPickerTarget, setMediaPickerTarget] = useState<{
+    onSelect: (url: string) => void;
+    title: string;
+  } | null>(null);
+  const [pickerSearch, setPickerSearch] = useState("");
+  const [pickerFolder, setPickerFolder] = useState("all");
+
+  // Phone Showcase & Projects Editor States
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const [editingProject, setEditingProject] = useState<any | null>(null);
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+
+  // Prompt-less Media additions
+  const [showAddMediaForm, setShowAddMediaForm] = useState(false);
+  const [newMediaName, setNewMediaName] = useState("");
+  const [newMediaUrl, setNewMediaUrl] = useState("");
+  const [showPickerAddForm, setShowPickerAddForm] = useState(false);
+  const [newPickerAssetName, setNewPickerAssetName] = useState("");
+  const [newPickerAssetUrl, setNewPickerAssetUrl] = useState("");
 
   const filteredProjects = projects.filter((p) => {
     const matchesSearch =
@@ -473,11 +495,9 @@ export default function AdminPage() {
             <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">System Control</span>
             <button
               onClick={() => {
-                const name = prompt("Snapshot Name:", `Backup-${new Date().toLocaleTimeString()}`);
-                if (name) {
-                  createSnapshot(name, "Manual Admin Backup");
-                  showToast(`Created Snapshot [${name}]`);
-                }
+                const name = `Backup - ${new Date().toLocaleString()}`;
+                createSnapshot(name, "Manual Admin Backup");
+                showToast(`Created Snapshot [${name}]`);
               }}
               className="w-full py-1.5 rounded-lg bg-glass-bg border border-glass-border text-text-primary text-[11px] font-bold flex items-center justify-center gap-1.5 hover:bg-bg-secondary transition-colors cursor-pointer"
             >
@@ -711,14 +731,17 @@ export default function AdminPage() {
                     </div>
                     <button
                       onClick={() => {
-                        const url = prompt("Image URL (Unsplash/CDN):", "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop");
-                        const title = prompt("Image Title:", "Featured Artwork");
-                        const linkUrl = prompt("Click Target Link URL (e.g. /projects or https://...):", "/projects");
-                        if (url && title) {
-                          const updated = [...(cms.hero.galleryImages || []), { id: `g-${Date.now()}`, url, title, linkUrl: linkUrl || "/projects" }];
-                          updateHero({ galleryImages: updated });
-                          showToast(`Added Floating Ribbon Image [${title}]`);
-                        }
+                        const updated = [
+                          ...(cms.hero.galleryImages || []),
+                          {
+                            id: `g-${Date.now()}`,
+                            url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop",
+                            title: "New Featured Artwork",
+                            linkUrl: "/projects"
+                          }
+                        ];
+                        updateHero({ galleryImages: updated });
+                        showToast("Added new placeholder image card. Edit details inline below!");
                       }}
                       className="px-5 py-2.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer"
                     >
@@ -764,16 +787,32 @@ export default function AdminPage() {
 
                           <div>
                             <label className="text-[10px] font-bold text-text-muted block">Image URL</label>
-                            <input
-                              type="text"
-                              value={img.url}
-                              onChange={(e) => {
-                                const updated = (cms.hero.galleryImages || []).map((g) => (g.id === img.id ? { ...g, url: e.target.value } : g));
-                                updateHero({ galleryImages: updated });
-                                showToast("Updated image URL!");
-                              }}
-                              className="w-full px-3 py-1.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono"
-                            />
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={img.url}
+                                onChange={(e) => {
+                                  const updated = (cms.hero.galleryImages || []).map((g) => (g.id === img.id ? { ...g, url: e.target.value } : g));
+                                  updateHero({ galleryImages: updated });
+                                  showToast("Updated image URL!");
+                                }}
+                                className="flex-1 px-3 py-1.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setMediaPickerTarget({
+                                  title: `Ribbon Image #${idx + 1} (${img.title})`,
+                                  onSelect: (url) => {
+                                    const updated = (cms.hero.galleryImages || []).map((g) => (g.id === img.id ? { ...g, url } : g));
+                                    updateHero({ galleryImages: updated });
+                                    showToast("Linked ribbon image from DAM!");
+                                  }
+                                })}
+                                className="px-3 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] font-bold text-white transition-colors cursor-pointer"
+                              >
+                                Browse
+                              </button>
+                            </div>
                           </div>
                         </div>
 
@@ -805,12 +844,9 @@ export default function AdminPage() {
                     </h3>
                     <button
                       onClick={() => {
-                        const newWord = prompt("Enter new prompt suggestion:", "Design an autonomous workflow...");
-                        if (newWord) {
-                          const updated = [...(cms.hero.rotatingWords || []), newWord];
-                          updateHero({ rotatingWords: updated });
-                          showToast(`Added prompt suggestion!`);
-                        }
+                        const updated = [...(cms.hero.rotatingWords || []), "New autonomous request suggestion..."];
+                        updateHero({ rotatingWords: updated });
+                        showToast("Added new suggestion! Edit it inline below.");
                       }}
                       className="px-4 py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow"
                     >
@@ -856,22 +892,20 @@ export default function AdminPage() {
                     </h3>
                     <button
                       onClick={() => {
-                        const title = prompt("Node Title:", "New Node");
-                        if (title) {
-                          useSiteCMSStore.getState().addArchitectureNode({
-                            id: `node-${Date.now()}`,
-                            title,
-                            subtitle: "Active Service",
-                            iconName: "Cpu",
-                            color: "from-purple-500/20 to-purple-600/5",
-                            border: "border-purple-500/30 hover:border-purple-500/60",
-                            glow: "shadow-purple-500/10",
-                            badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30",
-                            badgeText: "Active Node",
-                            order: (cms.architectureNodes || []).length + 1
-                          });
-                          showToast(`Added Architecture Node [${title}]`);
-                        }
+                        const count = (cms.architectureNodes || []).length;
+                        useSiteCMSStore.getState().addArchitectureNode({
+                          id: `node-${Date.now()}`,
+                          title: `New Node ${count + 1}`,
+                          subtitle: "Active Service",
+                          iconName: "Cpu",
+                          color: "from-purple-500/20 to-purple-600/5",
+                          border: "border-purple-500/30 hover:border-purple-500/60",
+                          glow: "shadow-purple-500/10",
+                          badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30",
+                          badgeText: "Active Node",
+                          order: count + 1
+                        });
+                        showToast(`Added new architecture node! Edit details inline below.`);
                       }}
                       className="px-4 py-2 rounded-xl bg-accent-blue text-white text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer"
                     >
@@ -930,12 +964,9 @@ export default function AdminPage() {
                       </h3>
                       <button
                         onClick={() => {
-                          const text = prompt("Pill Text:", "High Speed Edge");
-                          if (text) {
-                            const updated = [...(cms.whyCriskaPills || []), { id: `w-${Date.now()}`, text, iconName: "Cpu", visible: true, order: (cms.whyCriskaPills || []).length + 1 }];
-                            useSiteCMSStore.setState({ cms: { ...cms, whyCriskaPills: updated } });
-                            showToast(`Added Why Criska pill [${text}]!`);
-                          }
+                          const updated = [...(cms.whyCriskaPills || []), { id: `w-${Date.now()}`, text: "New High Performance Node", iconName: "Cpu", visible: true, order: (cms.whyCriskaPills || []).length + 1 }];
+                          useSiteCMSStore.setState({ cms: { ...cms, whyCriskaPills: updated } });
+                          showToast("Added new placeholder pill. Edit inline below!");
                         }}
                         className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 shadow cursor-pointer"
                       >
@@ -1128,15 +1159,30 @@ export default function AdminPage() {
                     </div>
                     <div>
                       <label className="text-xs font-bold text-text-secondary block mb-1">Earth Background WebP Image URL</label>
-                      <input
-                        type="text"
-                        value={cms.earthShowcase?.earthImageUrl || ""}
-                        onChange={(e) => {
-                          useSiteCMSStore.getState().updateEarthShowcase({ earthImageUrl: e.target.value });
-                          showToast("Updated Earth background image!");
-                        }}
-                        className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono text-text-primary"
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cms.earthShowcase?.earthImageUrl || ""}
+                          onChange={(e) => {
+                            useSiteCMSStore.getState().updateEarthShowcase({ earthImageUrl: e.target.value });
+                            showToast("Updated Earth background image!");
+                          }}
+                          className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono text-text-primary"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setMediaPickerTarget({
+                            title: "Earth Background Image",
+                            onSelect: (url) => {
+                              useSiteCMSStore.getState().updateEarthShowcase({ earthImageUrl: url });
+                              showToast("Linked Earth background image!");
+                            }
+                          })}
+                          className="px-4 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs font-bold text-white transition-colors cursor-pointer"
+                        >
+                          Browse
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -1180,112 +1226,815 @@ export default function AdminPage() {
 
               {/* 9. DEVICE SHOWCASE EDITOR */}
               {activePage === "home" && homeSection === "device-showcase" && (
-                <GlassCard className="p-6 space-y-5 text-left">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                      <Smartphone className="w-4 h-4 text-emerald-400" /> Phone Mockup Cards ({(cms.deviceShowcase?.cards || []).length})
-                    </h3>
+                <GlassCard className="p-6 space-y-6 text-left">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                        <Smartphone className="w-4 h-4 text-emerald-400" /> Device Showcase Cards ({(cms.deviceShowcase?.cards || []).length})
+                      </h3>
+                      <p className="text-xs text-text-secondary mt-0.5">Configure advanced profiles, dynamic header badges, multiline copywriting, buttons, custom overlay styles, and dynamic cards blocks.</p>
+                    </div>
                     <button
                       onClick={() => {
-                        const name = prompt("Card Owner Name:", "Alex Mercer");
-                        const tag = prompt("Tag / Role:", "Architect");
-                        if (name) {
-                          useSiteCMSStore.getState().addDeviceCard({
-                            id: `card-${Date.now()}`,
-                            name,
-                            role: tag || "Founder",
-                            quote: "Building zero latency edge infrastructure.",
-                            tag: tag || "Founder",
-                            avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-                            frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
-                            accentColor: "#3B82F6"
-                          });
-                          showToast(`Added Phone Card [${name}]!`);
-                        }
+                        const id = `card-${Date.now()}`;
+                        useSiteCMSStore.getState().addDeviceCard({
+                          id,
+                          name: "New Creator",
+                          role: "Product Designer",
+                          quote: "Helping founders launch zero latency products.",
+                          tag: "Design",
+                          avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+                          frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+                          accentColor: "#3B82F6",
+                          backgroundColor: "#0C0D12",
+                          visible: true,
+                          order: (cms.deviceShowcase?.cards || []).length + 1,
+                          template: "custom",
+                          blocks: [
+                            {
+                              id: `blk-1-${Date.now()}`,
+                              type: "experience",
+                              title: "Experience",
+                              visible: true,
+                              items: [
+                                { title: "Lead Architect", subtitle: "Kiwik Studio", date: "2026 - Present", desc: "Building modular edge routers." }
+                              ]
+                            }
+                          ]
+                        });
+                        setExpandedCardId(id); // immediately expand for editing
+                        showToast("Created Phone card mockup!");
                       }}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow"
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow transition-all"
                     >
                       <Plus className="w-3.5 h-3.5" /> Add Phone Card
                     </button>
                   </div>
 
-                  <div>
-                    <label className="text-xs font-bold text-text-secondary block mb-1">Top Badge Text</label>
-                    <input
-                      type="text"
-                      value={cms.deviceShowcase?.topBadgeText || "No Credit Card Required"}
-                      onChange={(e) => {
-                        useSiteCMSStore.setState({ cms: { ...cms, deviceShowcase: { ...cms.deviceShowcase, topBadgeText: e.target.value } } });
-                        showToast("Updated top badge text!");
-                      }}
-                      className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs font-bold text-text-primary"
-                    />
-                  </div>
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <label className="text-xs font-bold text-text-secondary block mb-1">Top Badge Banner Text</label>
+                      <input
+                        type="text"
+                        value={cms.deviceShowcase?.topBadgeText || "No Credit Card Required"}
+                        onChange={(e) => {
+                          useSiteCMSStore.setState({ cms: { ...cms, deviceShowcase: { ...cms.deviceShowcase, topBadgeText: e.target.value } } });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs font-bold text-text-primary"
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {(cms.deviceShowcase?.cards || []).map((card) => (
-                      <div key={card.id} className="p-4 rounded-xl bg-bg-secondary/60 border border-glass-border space-y-3">
-                        <div className="flex items-center justify-between">
-                          <input
-                            type="text"
-                            value={card.name}
-                            onChange={(e) => {
-                              useSiteCMSStore.getState().updateDeviceCard(card.id, { name: e.target.value });
-                              showToast("Updated card name!");
-                            }}
-                            className="font-bold text-xs text-text-primary bg-transparent focus:outline-none w-full"
-                          />
-                          <button
-                            onClick={() => {
-                              useSiteCMSStore.getState().deleteDeviceCard(card.id);
-                              showToast(`Deleted card [${card.name}]`);
-                            }}
-                            className="p-1 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                    <div className="space-y-4">
+                      {(cms.deviceShowcase?.cards || []).map((card, cardIdx) => {
+                        const isExpanded = expandedCardId === card.id;
+                        return (
+                          <div key={card.id} className="p-5 rounded-2xl bg-bg-secondary/40 border border-glass-border space-y-4">
+                            {/* Card Header summary info */}
+                            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                              <div className="flex items-center gap-3">
+                                <span className="w-6 h-6 rounded-full bg-accent-blue/15 text-accent-blue text-xs font-mono font-bold flex items-center justify-center">
+                                  #{cardIdx + 1}
+                                </span>
+                                <div>
+                                  <h4 className="text-xs font-bold text-white flex items-center gap-2">
+                                    {card.name || "Unnamed Mockup"}
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-text-secondary uppercase">
+                                      {card.template || "custom"}
+                                    </span>
+                                  </h4>
+                                  <p className="text-[10px] text-text-muted mt-0.5">{card.role || "No Role Specified"}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => setExpandedCardId(isExpanded ? null : card.id)}
+                                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] font-bold text-white transition-colors cursor-pointer"
+                                >
+                                  {isExpanded ? "Collapse Specs Editor" : "Edit Specs Editor"}
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    useSiteCMSStore.getState().deleteDeviceCard(card.id);
+                                    showToast(`Deleted card [${card.name}]`);
+                                  }}
+                                  className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
 
-                        <div>
-                          <label className="text-[10px] font-bold text-text-muted block">Tag / Role</label>
-                          <input
-                            type="text"
-                            value={card.tag || card.role || ""}
-                            onChange={(e) => {
-                              useSiteCMSStore.getState().updateDeviceCard(card.id, { tag: e.target.value, role: e.target.value });
-                              showToast("Updated card tag!");
-                            }}
-                            className="w-full px-2 py-1 rounded bg-bg-primary text-xs font-semibold text-text-primary"
-                          />
-                        </div>
+                            {isExpanded && (
+                              <div className="space-y-6 pt-2">
+                                
+                                {/* GENERAL SETTINGS */}
+                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                  <span className="text-xs font-bold text-accent-blue uppercase tracking-wider block">1. General Configuration</span>
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Display Name</label>
+                                      <input
+                                        type="text"
+                                        value={card.name || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { name: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Job Title</label>
+                                      <input
+                                        type="text"
+                                        value={card.jobTitle || card.role || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { jobTitle: e.target.value, role: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Company</label>
+                                      <input
+                                        type="text"
+                                        value={card.company || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { company: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                  </div>
 
-                        <div>
-                          <label className="text-[10px] font-bold text-text-muted block">Quote / Description</label>
-                          <textarea
-                            rows={2}
-                            value={card.quote}
-                            onChange={(e) => {
-                              useSiteCMSStore.getState().updateDeviceCard(card.id, { quote: e.target.value });
-                              showToast("Updated quote!");
-                            }}
-                            className="w-full px-2 py-1 rounded bg-bg-primary text-[11px] text-text-primary"
-                          />
-                        </div>
+                                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Role Badge Text</label>
+                                      <input
+                                        type="text"
+                                        value={card.tag || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { tag: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Theme Color (Hex)</label>
+                                      <input
+                                        type="text"
+                                        value={card.themeColor || card.backgroundColor || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { themeColor: e.target.value, backgroundColor: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs font-mono"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Accent Color (Hex)</label>
+                                      <input
+                                        type="text"
+                                        value={card.accentColor || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { accentColor: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs font-mono"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Layout Template</label>
+                                      <select
+                                        value={card.template || "custom"}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { template: e.target.value as any })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                      >
+                                        <option value="custom">Custom Block Layout</option>
+                                        <option value="investor">Investor Template</option>
+                                        <option value="designer">Designer Template</option>
+                                        <option value="pm">PM Resume Template</option>
+                                        <option value="botanist">Botanist FAQ Template</option>
+                                        <option value="marketer">Marketer Form Template</option>
+                                      </select>
+                                    </div>
+                                  </div>
 
-                        <div>
-                          <label className="text-[10px] font-bold text-text-muted block">Frame Overlay Image URL</label>
-                          <input
-                            type="text"
-                            value={card.frameOverlayUrl || "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048"}
-                            onChange={(e) => {
-                              useSiteCMSStore.getState().updateDeviceCard(card.id, { frameOverlayUrl: e.target.value });
-                              showToast("Updated frame overlay URL!");
-                            }}
-                            className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] font-mono text-accent-blue"
-                          />
-                        </div>
-                      </div>
-                    ))}
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Phone Size Profile</label>
+                                      <select
+                                        value={card.phoneSize || "medium"}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { phoneSize: e.target.value as any })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                      >
+                                        <option value="small">Small (0.9x scale)</option>
+                                        <option value="medium">Medium (1.0x scale)</option>
+                                        <option value="large">Large (1.1x scale)</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Sort Display Order</label>
+                                      <input
+                                        type="number"
+                                        value={card.order || 0}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { order: parseInt(e.target.value) || 0 })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-4">
+                                      <input
+                                        type="checkbox"
+                                        checked={card.visible !== false}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { visible: e.target.checked })}
+                                        id={`vis-${card.id}`}
+                                        className="rounded accent-accent-blue"
+                                      />
+                                      <label htmlFor={`vis-${card.id}`} className="text-xs font-bold text-text-secondary cursor-pointer">Visible on Carousel</label>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* HEADER SETTINGS */}
+                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                  <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider block">2. Header Details</span>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Profile Photo (Avatar URL)</label>
+                                      <div className="flex gap-2">
+                                        <input
+                                          type="text"
+                                          value={card.avatarUrl || ""}
+                                          onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { avatarUrl: e.target.value })}
+                                          className="flex-1 px-2 py-1 rounded bg-bg-primary text-[10px] font-mono"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => setMediaPickerTarget({
+                                            title: `Avatar for ${card.name}`,
+                                            onSelect: (url) => useSiteCMSStore.getState().updateDeviceCard(card.id, { avatarUrl: url })
+                                          })}
+                                          className="px-3 rounded bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] text-white"
+                                        >
+                                          Browse
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Status Badge Text</label>
+                                      <input
+                                        type="text"
+                                        value={card.statusBadge || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { statusBadge: e.target.value })}
+                                        placeholder="e.g. Active Node / Available"
+                                        className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="flex items-center gap-2 pt-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={card.onlineBadge || false}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { onlineBadge: e.target.checked })}
+                                        id={`online-${card.id}`}
+                                        className="rounded accent-accent-blue"
+                                      />
+                                      <label htmlFor={`online-${card.id}`} className="text-xs font-bold text-text-secondary cursor-pointer">Pulsing Online Green Status Dot</label>
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Header Background (Hex/Gradient)</label>
+                                      <input
+                                        type="text"
+                                        value={card.headerBackground || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { headerBackground: e.target.value })}
+                                        className="w-full px-2.5 py-1 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* MAIN TITLE & TEXTS */}
+                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                  <span className="text-xs font-bold text-purple-400 uppercase tracking-wider block">3. Large Heading & Descriptions</span>
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Large Heading (Quote / Hook)</label>
+                                      <textarea
+                                        rows={2}
+                                        value={card.quote || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { quote: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Support Subheading</label>
+                                      <input
+                                        type="text"
+                                        value={card.supportHeading || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { supportHeading: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Card Description Copy</label>
+                                      <textarea
+                                        rows={2}
+                                        value={card.description || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { description: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Additional Body Text (Multiline)</label>
+                                      <textarea
+                                        rows={2}
+                                        value={card.bodyText || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { bodyText: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* PRIMARY & SECONDARY BUTTONS */}
+                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                  <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block">4. Action Triggers & Links</span>
+                                  
+                                  {/* Primary Button */}
+                                  <div className="space-y-3 p-3 rounded-lg bg-white/5 border border-white/5">
+                                    <span className="text-[10px] font-bold text-white uppercase tracking-wider block">Primary Button Config</span>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="text-[10px] font-bold text-text-muted block mb-1">Button Text Label</label>
+                                        <input
+                                          type="text"
+                                          value={card.ctaText || ""}
+                                          onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { ctaText: e.target.value })}
+                                          className="w-full px-2.5 py-1 rounded bg-bg-primary text-xs"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-[10px] font-bold text-text-muted block mb-1">Open Link target</label>
+                                        <div className="flex gap-2">
+                                          <select
+                                            value={(["/", "/projects", "/docs", "/admin", "/#features", "/#capabilities", "/#how-we-work"].includes(card.buttonLink || "")) ? (card.buttonLink || "") : "custom"}
+                                            onChange={(e) => {
+                                              const val = e.target.value;
+                                              if (val !== "custom") {
+                                                useSiteCMSStore.getState().updateDeviceCard(card.id, { buttonLink: val });
+                                              }
+                                            }}
+                                            className="px-2 py-1 rounded bg-bg-primary text-xs text-white"
+                                          >
+                                            <option value="/">Home (/)</option>
+                                            <option value="/projects">Projects (/projects)</option>
+                                            <option value="/docs">Docs (/docs)</option>
+                                            <option value="/admin">Admin (/admin)</option>
+                                            <option value="/#features">Features</option>
+                                            <option value="/#capabilities">Capabilities</option>
+                                            <option value="custom">Custom Url</option>
+                                          </select>
+                                          <input
+                                            type="text"
+                                            value={card.buttonLink || ""}
+                                            onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { buttonLink: e.target.value })}
+                                            className="flex-1 px-2 py-1 rounded bg-bg-primary text-[10px] font-mono"
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                      <div>
+                                        <label className="text-[10px] font-bold text-text-muted block mb-1">Button Icon</label>
+                                        <select
+                                          value={card.primaryButtonIcon || ""}
+                                          onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { primaryButtonIcon: e.target.value })}
+                                          className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                        >
+                                          <option value="">No Icon</option>
+                                          <option value="ArrowRight">ArrowRight</option>
+                                          <option value="Play">Play</option>
+                                          <option value="ExternalLink">ExternalLink</option>
+                                          <option value="Mail">Mail</option>
+                                          <option value="Briefcase">Briefcase</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="text-[10px] font-bold text-text-muted block mb-1">Button Color override</label>
+                                        <input
+                                          type="text"
+                                          value={card.primaryButtonColor || ""}
+                                          onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { primaryButtonColor: e.target.value })}
+                                          placeholder="#3B82F6"
+                                          className="w-full px-2.5 py-1 rounded bg-bg-primary text-xs font-mono"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-[10px] font-bold text-text-muted block mb-1">Button Style Shape</label>
+                                        <select
+                                          value={card.primaryButtonStyle || "solid"}
+                                          onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { primaryButtonStyle: e.target.value as any })}
+                                          className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                        >
+                                          <option value="solid">Solid Box</option>
+                                          <option value="glass">Glass Transparent</option>
+                                          <option value="outline">Border Outline</option>
+                                        </select>
+                                      </div>
+                                      <div className="flex items-center gap-2 pt-4">
+                                        <input
+                                          type="checkbox"
+                                          checked={card.primaryButtonNewTab || false}
+                                          onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { primaryButtonNewTab: e.target.checked })}
+                                          id={`new-tab-${card.id}`}
+                                          className="rounded accent-accent-blue"
+                                        />
+                                        <label htmlFor={`new-tab-${card.id}`} className="text-[10px] font-bold text-text-secondary cursor-pointer">Open New Tab</label>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Secondary Button */}
+                                  <div className="space-y-3 p-3 rounded-lg bg-white/5 border border-white/5">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-bold text-white uppercase tracking-wider">Secondary Button Config</span>
+                                      <div className="flex items-center gap-1.5">
+                                        <input
+                                          type="checkbox"
+                                          checked={card.secondaryButtonVisible || false}
+                                          onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { secondaryButtonVisible: e.target.checked })}
+                                          id={`sec-vis-${card.id}`}
+                                          className="rounded accent-accent-blue"
+                                        />
+                                        <label htmlFor={`sec-vis-${card.id}`} className="text-[10px] font-bold text-text-muted cursor-pointer">Activate Secondary</label>
+                                      </div>
+                                    </div>
+                                    
+                                    {card.secondaryButtonVisible && (
+                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        <div>
+                                          <label className="text-[10px] font-bold text-text-muted block mb-1">Button Text</label>
+                                          <input
+                                            type="text"
+                                            value={card.secondaryButtonLabel || ""}
+                                            onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { secondaryButtonLabel: e.target.value })}
+                                            className="w-full px-2.5 py-1 rounded bg-bg-primary text-xs"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="text-[10px] font-bold text-text-muted block mb-1">Action URL</label>
+                                          <input
+                                            type="text"
+                                            value={card.secondaryButtonLink || ""}
+                                            onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { secondaryButtonLink: e.target.value })}
+                                            className="w-full px-2.5 py-1 rounded bg-bg-primary text-xs font-mono"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="text-[10px] font-bold text-text-muted block mb-1">Action Icon</label>
+                                          <select
+                                            value={card.secondaryButtonIcon || ""}
+                                            onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { secondaryButtonIcon: e.target.value })}
+                                            className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                          >
+                                            <option value="">No Icon</option>
+                                            <option value="ArrowRight">ArrowRight</option>
+                                            <option value="Play">Play</option>
+                                            <option value="ExternalLink">ExternalLink</option>
+                                            <option value="Mail">Mail</option>
+                                          </select>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* BACKGROUND DETAILS */}
+                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">5. Screen Background Details</span>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Background Image URL</label>
+                                      <div className="flex gap-2">
+                                        <input
+                                          type="text"
+                                          value={card.backgroundImageUrl || ""}
+                                          onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundImageUrl: e.target.value })}
+                                          className="flex-1 px-2 py-1 rounded bg-bg-primary text-[10px] font-mono"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => setMediaPickerTarget({
+                                            title: `BG for ${card.name}`,
+                                            onSelect: (url) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundImageUrl: url })
+                                          })}
+                                          className="px-3 rounded bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] text-white"
+                                        >
+                                          Browse
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Gradient Overlay Style</label>
+                                      <input
+                                        type="text"
+                                        value={card.backgroundGradient || ""}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundGradient: e.target.value })}
+                                        placeholder="linear-gradient(to right, #000, #555)"
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Overlay Opacity ({(card.backgroundOverlayOpacity ?? 0) * 100}%)</label>
+                                      <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.05"
+                                        value={card.backgroundOverlayOpacity ?? 0}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundOverlayOpacity: parseFloat(e.target.value) })}
+                                        className="w-full"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-bold text-text-muted block mb-1">Blur Amount ({card.backgroundBlur || 0}px)</label>
+                                      <input
+                                        type="number"
+                                        value={card.backgroundBlur || 0}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundBlur: parseInt(e.target.value) || 0 })}
+                                        className="w-full px-2.5 py-1 rounded bg-bg-primary text-xs"
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-4">
+                                      <input
+                                        type="checkbox"
+                                        checked={card.backgroundNoise || false}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundNoise: e.target.checked })}
+                                        id={`noise-${card.id}`}
+                                        className="rounded accent-accent-blue"
+                                      />
+                                      <label htmlFor={`noise-${card.id}`} className="text-[10px] font-bold text-text-secondary cursor-pointer">Activate Noise Texture</label>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* PROFILE PHOTO METADATA */}
+                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-3">
+                                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">6. Profile Image Metadata</span>
+                                  <div>
+                                    <label className="text-[10px] font-bold text-text-muted block mb-1">Image Alt Text (SEO)</label>
+                                    <input
+                                      type="text"
+                                      value={card.profileAltText || ""}
+                                      onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { profileAltText: e.target.value })}
+                                      placeholder="A description of the image asset for screen readers."
+                                      className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs text-text-primary"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* DYNAMIC CONTENT BLOCKS MANAGER */}
+                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                    <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">7. Dynamic Content Blocks</span>
+                                    <select
+                                      onChange={(e) => {
+                                        const type = e.target.value;
+                                        if (!type) return;
+                                        const newBlock = {
+                                          id: `blk-${Date.now()}`,
+                                          type: type as any,
+                                          title: type.toUpperCase(),
+                                          visible: true,
+                                          items: []
+                                        };
+                                        const updated = [...(card.blocks || []), newBlock];
+                                        useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
+                                        e.target.value = "";
+                                        showToast(`Added block [${type}]`);
+                                      }}
+                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs cursor-pointer focus:outline-none"
+                                    >
+                                      <option value="">+ Add Block...</option>
+                                      <option value="resume">Resume Block</option>
+                                      <option value="experience">Experience Block</option>
+                                      <option value="projects">Projects Block</option>
+                                      <option value="testimonial">Testimonial Block</option>
+                                      <option value="faq">FAQ Block</option>
+                                      <option value="socials">Social Links</option>
+                                      <option value="form">Contact Form</option>
+                                      <option value="skills">Skills Block</option>
+                                      <option value="stats">Statistics Block</option>
+                                    </select>
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    {(card.blocks || []).map((block, bIdx) => (
+                                      <div key={block.id} className="p-4 rounded-xl bg-bg-primary/40 border border-glass-border space-y-3">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-mono uppercase bg-white/5 px-2 py-0.5 rounded text-neutral-400">{block.type}</span>
+                                            <input
+                                              type="text"
+                                              value={block.title || ""}
+                                              onChange={(e) => {
+                                                const updated = (card.blocks || []).map((b) => b.id === block.id ? { ...b, title: e.target.value } : b);
+                                                useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
+                                              }}
+                                              placeholder="Block Title"
+                                              className="text-xs font-bold text-white bg-transparent border-b border-transparent focus:border-white/20 focus:outline-none max-w-[150px]"
+                                            />
+                                          </div>
+                                          <div className="flex items-center gap-1.5">
+                                            <button
+                                              onClick={() => {
+                                                if (bIdx > 0) {
+                                                  const updated = [...(card.blocks || [])];
+                                                  const temp = updated[bIdx];
+                                                  updated[bIdx] = updated[bIdx - 1];
+                                                  updated[bIdx - 1] = temp;
+                                                  useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
+                                                }
+                                              }}
+                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-white cursor-pointer"
+                                            >
+                                              <ChevronUp className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                if (bIdx < (card.blocks || []).length - 1) {
+                                                  const updated = [...(card.blocks || [])];
+                                                  const temp = updated[bIdx];
+                                                  updated[bIdx] = updated[bIdx + 1];
+                                                  updated[bIdx + 1] = temp;
+                                                  useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
+                                                }
+                                              }}
+                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-white cursor-pointer"
+                                            >
+                                              <ChevronDown className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                const newBlock = { ...block, id: `blk-${Date.now()}` };
+                                                const updated = [...(card.blocks || []), newBlock];
+                                                useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
+                                                showToast("Duplicated block!");
+                                              }}
+                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-white cursor-pointer"
+                                            >
+                                              <Copy className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                const updated = (card.blocks || []).filter((b) => b.id !== block.id);
+                                                useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
+                                                showToast("Deleted block!");
+                                              }}
+                                              className="p-1 rounded bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 cursor-pointer"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+                                        </div>
+
+                                        {block.type !== "form" && (
+                                          <div className="space-y-2 pl-2 border-l border-white/5">
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-[10px] font-mono text-text-muted">Block Items ({(block.items || []).length})</span>
+                                              <button
+                                                onClick={() => {
+                                                  const newItem = { title: "New Sub-item", subtitle: "", desc: "", date: "" };
+                                                  const updatedItems = [...(block.items || []), newItem];
+                                                  const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
+                                                  useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
+                                                }}
+                                                className="text-[9px] font-bold text-accent-blue hover:underline cursor-pointer"
+                                              >
+                                                + Add Item
+                                              </button>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                              {(block.items || []).map((item, itemIdx) => (
+                                                <div key={itemIdx} className="p-2.5 rounded bg-bg-secondary/40 border border-white/5 space-y-1.5">
+                                                  <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                      <input
+                                                        type="text"
+                                                        value={item.title}
+                                                        placeholder="Item Title"
+                                                        onChange={(e) => {
+                                                          const updatedItems = (block.items || []).map((it, idx) => idx === itemIdx ? { ...it, title: e.target.value } : it);
+                                                          const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
+                                                          useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
+                                                        }}
+                                                        className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                      />
+                                                    </div>
+                                                    <div>
+                                                      <input
+                                                        type="text"
+                                                        value={item.subtitle || ""}
+                                                        placeholder="Subtitle / Label"
+                                                        onChange={(e) => {
+                                                          const updatedItems = (block.items || []).map((it, idx) => idx === itemIdx ? { ...it, subtitle: e.target.value } : it);
+                                                          const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
+                                                          useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
+                                                        }}
+                                                        className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                      />
+                                                    </div>
+                                                  </div>
+
+                                                  <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                      <input
+                                                        type="text"
+                                                        value={item.date || ""}
+                                                        placeholder="Date Info (e.g. 2026)"
+                                                        onChange={(e) => {
+                                                          const updatedItems = (block.items || []).map((it, idx) => idx === itemIdx ? { ...it, date: e.target.value } : it);
+                                                          const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
+                                                          useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
+                                                        }}
+                                                        className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                      />
+                                                    </div>
+                                                    {block.type === "socials" ? (
+                                                      <div>
+                                                        <select
+                                                          value={item.iconName || "Globe"}
+                                                          onChange={(e) => {
+                                                            const updatedItems = (block.items || []).map((it, idx) => idx === itemIdx ? { ...it, iconName: e.target.value } : it);
+                                                            const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
+                                                            useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
+                                                          }}
+                                                          className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white focus:outline-none"
+                                                        >
+                                                          <option value="Globe">Globe</option>
+                                                          <option value="MessageSquare">MessageSquare</option>
+                                                          <option value="Share2">Share2</option>
+                                                          <option value="Send">Send</option>
+                                                          <option value="Lock">Lock</option>
+                                                          <option value="Github">Github</option>
+                                                          <option value="Twitter">Twitter</option>
+                                                          <option value="Linkedin">Linkedin</option>
+                                                        </select>
+                                                      </div>
+                                                    ) : (
+                                                      <div>
+                                                        <input
+                                                          type="text"
+                                                          value={item.link || ""}
+                                                          placeholder="Action Link URL"
+                                                          onChange={(e) => {
+                                                            const updatedItems = (block.items || []).map((it, idx) => idx === itemIdx ? { ...it, link: e.target.value } : it);
+                                                            const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
+                                                            useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
+                                                          }}
+                                                          className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                        />
+                                                      </div>
+                                                    )}
+                                                  </div>
+
+                                                  <div>
+                                                    <textarea
+                                                      rows={1}
+                                                      value={item.desc || ""}
+                                                      placeholder="Detailed Item Copy"
+                                                      onChange={(e) => {
+                                                        const updatedItems = (block.items || []).map((it, idx) => idx === itemIdx ? { ...it, desc: e.target.value } : it);
+                                                        const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
+                                                        useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
+                                                      }}
+                                                      className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                    />
+                                                  </div>
+
+                                                  <div className="flex justify-end pt-1">
+                                                    <button
+                                                      onClick={() => {
+                                                        const updatedItems = (block.items || []).filter((_, idx) => idx !== itemIdx);
+                                                        const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
+                                                        useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
+                                                      }}
+                                                      className="text-[9px] text-rose-500 hover:underline cursor-pointer"
+                                                    >
+                                                      Delete Item
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                              </div>
+                            )}
+
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </GlassCard>
               )}
@@ -1299,13 +2048,9 @@ export default function AdminPage() {
                     </h3>
                     <button
                       onClick={() => {
-                        const title = prompt("Capability Title:", "New Feature");
-                        const desc = prompt("Capability Description:", "Enterprise grade feature.");
-                        if (title) {
-                          const updated = [...(cms.capabilities?.items || []), { id: `cap-${Date.now()}`, title, desc: desc || "", iconName: "Cpu" }];
-                          useSiteCMSStore.getState().updateCapabilities({ items: updated });
-                          showToast(`Added capability [${title}]!`);
-                        }
+                        const updated = [...(cms.capabilities?.items || []), { id: `cap-${Date.now()}`, title: "New Enterprise Capability", desc: "Configure high-throughput nodes and custom APIs instantly.", iconName: "Cpu" }];
+                        useSiteCMSStore.getState().updateCapabilities({ items: updated });
+                        showToast("Added new capability card. Edit inline below!");
                       }}
                       className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow"
                     >
@@ -1366,13 +2111,10 @@ export default function AdminPage() {
                     </h3>
                     <button
                       onClick={() => {
-                        const title = prompt("Step Title:", "Automated Testing");
-                        const desc = prompt("Step Description:", "Continuous integration testing.");
-                        if (title) {
-                          const updated = [...(cms.howWeWork?.steps || []), { id: `step-${Date.now()}`, step: String((cms.howWeWork?.steps || []).length + 1), title, desc: desc || "", duration: "Instant", iconName: "Cpu" }];
-                          useSiteCMSStore.getState().updateHowWeWork({ steps: updated });
-                          showToast(`Added workflow step [${title}]!`);
-                        }
+                        const stepNum = String((cms.howWeWork?.steps || []).length + 1);
+                        const updated = [...(cms.howWeWork?.steps || []), { id: `step-${Date.now()}`, step: stepNum, title: `Phase ${stepNum}: Development Node`, desc: "We launch standard and secure micro-services within 15 minutes of staging approval.", duration: "15 mins", iconName: "Cpu" }];
+                        useSiteCMSStore.getState().updateHowWeWork({ steps: updated });
+                        showToast("Added new timeline phase step. Edit inline below!");
                       }}
                       className="px-4 py-2 rounded-xl bg-accent-blue text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow"
                     >
@@ -1437,13 +2179,9 @@ export default function AdminPage() {
                     </h3>
                     <button
                       onClick={() => {
-                        const title = prompt("Metric Title / Value:", "100%");
-                        const desc = prompt("Description:", "Production Uptime Guaranteed");
-                        if (title) {
-                          const updated = [...(cms.trust?.items || []), { id: `t-${Date.now()}`, title, desc: desc || "", icon: "Shield" }];
-                          useSiteCMSStore.getState().updateTrust({ items: updated });
-                          showToast(`Added trust metric [${title}]!`);
-                        }
+                        const updated = [...(cms.trust?.items || []), { id: `t-${Date.now()}`, title: "100%", desc: "Production Uptime SLA", icon: "Shield" }];
+                        useSiteCMSStore.getState().updateTrust({ items: updated });
+                        showToast("Added new trust metric card. Edit inline below!");
                       }}
                       className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow"
                     >
@@ -1532,45 +2270,119 @@ export default function AdminPage() {
 
               {/* 14. FOOTER EDITOR */}
               {(homeSection === "footer" || activePage === "footer-page") && (
-                <GlassCard className="p-6 space-y-5 text-left">
+                <GlassCard className="p-6 space-y-6 text-left">
                   <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-accent-blue" /> Footer Layout & Column Links
+                    <Layers className="w-4 h-4 text-accent-blue" /> Footer Layout & Details Editor
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    {(cms.footer?.columns || []).map((col) => (
-                      <div key={col.id} className="p-4 rounded-xl bg-bg-secondary border border-glass-border space-y-3">
+                  
+                  {/* Brand logo & Copyright */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-white/5 pb-4">
+                    <div>
+                      <label className="text-xs font-bold text-text-secondary block mb-1">Footer Brand Logo Text</label>
+                      <input
+                        type="text"
+                        value={cms.footer?.logoText || "Kiwik"}
+                        onChange={(e) => {
+                          useSiteCMSStore.getState().updateFooter({ logoText: e.target.value });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs font-bold text-text-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-text-secondary block mb-1">Copyright Text Notice</label>
+                      <input
+                        type="text"
+                        value={cms.footer?.copyrightText || "© 2026 Kiwik. All rights reserved."}
+                        onChange={(e) => {
+                          useSiteCMSStore.getState().updateFooter({ copyrightText: e.target.value });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs font-semibold text-text-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-text-secondary block mb-1">Status Badge Indicator</label>
+                      <div className="flex gap-2">
                         <input
                           type="text"
-                          value={col.title}
+                          value={cms.footer?.statusBadgeText || "All Systems Operational"}
                           onChange={(e) => {
-                            const updated = (cms.footer?.columns || []).map((c) => (c.id === col.id ? { ...c, title: e.target.value } : c));
-                            useSiteCMSStore.getState().updateFooter({ columns: updated });
-                            showToast("Updated column title!");
+                            useSiteCMSStore.getState().updateFooter({ statusBadgeText: e.target.value });
                           }}
-                          className="text-xs font-bold text-text-primary bg-transparent border-b border-divider pb-1 w-full focus:outline-none"
+                          className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
                         />
-                        <div className="space-y-2">
-                          {col.links.map((lnk) => (
-                            <div key={lnk.id} className="space-y-1">
-                              <input
-                                type="text"
-                                value={lnk.label}
-                                onChange={(e) => {
-                                  const updatedCols = (cms.footer?.columns || []).map((c) => {
-                                    if (c.id !== col.id) return c;
-                                    const updatedLinks = c.links.map((l) => (l.id === lnk.id ? { ...l, label: e.target.value } : l));
-                                    return { ...c, links: updatedLinks };
-                                  });
-                                  useSiteCMSStore.getState().updateFooter({ columns: updatedCols });
-                                  showToast("Updated link label!");
-                                }}
-                                className="w-full px-2 py-1 rounded bg-bg-primary text-[11px] font-semibold text-text-primary"
-                              />
-                            </div>
-                          ))}
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="checkbox"
+                            checked={cms.footer?.statusBadgeVisible !== false}
+                            onChange={(e) => {
+                              useSiteCMSStore.getState().updateFooter({ statusBadgeVisible: e.target.checked });
+                            }}
+                            id="status-visible"
+                            className="rounded accent-accent-blue"
+                          />
+                          <label htmlFor="status-visible" className="text-[10px] font-bold text-text-muted cursor-pointer">
+                            Visible
+                          </label>
                         </div>
                       </div>
-                    ))}
+                    </div>
+                  </div>
+
+                  {/* Columns links */}
+                  <div className="space-y-3">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-text-muted block">
+                      Footer Column Links Manager
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      {(cms.footer?.columns || []).map((col) => (
+                        <div key={col.id} className="p-4 rounded-xl bg-bg-secondary border border-glass-border space-y-3">
+                          <input
+                            type="text"
+                            value={col.title}
+                            onChange={(e) => {
+                              const updated = (cms.footer?.columns || []).map((c) => (c.id === col.id ? { ...c, title: e.target.value } : c));
+                              useSiteCMSStore.getState().updateFooter({ columns: updated });
+                              showToast("Updated column title!");
+                            }}
+                            className="text-xs font-bold text-text-primary bg-transparent border-b border-divider pb-1 w-full focus:outline-none"
+                          />
+                          <div className="space-y-2">
+                            {col.links.map((lnk) => (
+                              <div key={lnk.id} className="space-y-1">
+                                <input
+                                  type="text"
+                                  value={lnk.label}
+                                  onChange={(e) => {
+                                    const updatedCols = (cms.footer?.columns || []).map((c) => {
+                                      if (c.id !== col.id) return c;
+                                      const updatedLinks = c.links.map((l) => (l.id === lnk.id ? { ...l, label: e.target.value } : l));
+                                      return { ...c, links: updatedLinks };
+                                    });
+                                    useSiteCMSStore.getState().updateFooter({ columns: updatedCols });
+                                  }}
+                                  className="w-full px-2 py-1 rounded bg-bg-primary text-[11px] font-semibold text-text-primary"
+                                />
+                                <input
+                                  type="text"
+                                  value={lnk.href}
+                                  onChange={(e) => {
+                                    const updatedCols = (cms.footer?.columns || []).map((c) => {
+                                      if (c.id !== col.id) return c;
+                                      const updatedLinks = c.links.map((l) => (l.id === lnk.id ? { ...l, href: e.target.value } : l));
+                                      return { ...c, links: updatedLinks };
+                                    });
+                                    useSiteCMSStore.getState().updateFooter({ columns: updatedCols });
+                                  }}
+                                  className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] font-mono text-text-secondary"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </GlassCard>
               )}
@@ -1640,52 +2452,116 @@ export default function AdminPage() {
                 </div>
                 <button
                   onClick={() => {
-                    const name = prompt("Asset Name:", "New Banner Asset");
-                    const url = prompt("Asset Image URL:", "/logo.png");
-                    if (name && url) {
-                      addMediaItem({
-                        id: `med-${Date.now()}`,
-                        name,
-                        url,
-                        type: "image",
-                        sizeBytes: 18400,
-                        mimeType: "image/png",
-                        folder: "General",
-                        tags: ["asset"],
-                        usedIn: ["Hero Section", "Public Navbar"],
-                        createdAt: new Date().toISOString()
-                      });
-                      showToast(`Added Asset [${name}]`);
-                    }
+                    setShowAddMediaForm(!showAddMediaForm);
                   }}
-                  className="px-5 py-2.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer transition-colors"
                 >
-                  <Plus className="w-4 h-4" /> Upload New Asset
+                  <Plus className="w-4 h-4" /> {showAddMediaForm ? "Cancel Upload" : "Upload New Asset"}
                 </button>
               </div>
 
+              {/* Inline Upload Form */}
+              {showAddMediaForm && (
+                <GlassCard className="p-5 space-y-4">
+                  <div className="text-xs font-bold text-white uppercase tracking-wider">Configure Image Metadata & Link</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-text-muted block mb-1">Asset Name</label>
+                      <input
+                        type="text"
+                        value={newMediaName}
+                        onChange={(e) => setNewMediaName(e.target.value)}
+                        placeholder="e.g. Profile Photo Leslie"
+                        className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-text-muted block mb-1">Image Asset Link / URL (Unsplash or local path)</label>
+                      <input
+                        type="text"
+                        value={newMediaUrl}
+                        onChange={(e) => setNewMediaUrl(e.target.value)}
+                        placeholder="e.g. https://images.unsplash.com/..."
+                        className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setShowAddMediaForm(false);
+                        setNewMediaName("");
+                        setNewMediaUrl("");
+                      }}
+                      className="px-4 py-1.5 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs font-bold text-white transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (newMediaName && newMediaUrl) {
+                          addMediaItem({
+                            id: `med-${Date.now()}`,
+                            name: newMediaName,
+                            url: newMediaUrl,
+                            type: "image",
+                            sizeBytes: 18400,
+                            mimeType: "image/png",
+                            folder: "General",
+                            tags: ["asset"],
+                            usedIn: ["Hero Section", "Public Navbar"],
+                            createdAt: new Date().toISOString()
+                          });
+                          showToast(`Uploaded Asset [${newMediaName}] to Library`);
+                          setNewMediaName("");
+                          setNewMediaUrl("");
+                          setShowAddMediaForm(false);
+                        } else {
+                          showToast("Please enter both Name and Image URL!");
+                        }
+                      }}
+                      className="px-4 py-1.5 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-xs font-bold text-white transition-colors cursor-pointer"
+                    >
+                      Save Asset
+                    </button>
+                  </div>
+                </GlassCard>
+              )}
+
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {cms.media.map((med) => (
-                  <GlassCard key={med.id} className="p-3 space-y-2 flex flex-col justify-between group relative">
+                  <GlassCard key={med.id} className="p-3 space-y-2.5 flex flex-col justify-between group relative">
                     <div className="h-28 w-full rounded-xl bg-black/40 overflow-hidden flex items-center justify-center border border-white/10 relative">
                       <img src={med.url} alt={med.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                     </div>
-                    <div className="text-left">
-                      <div className="text-xs font-bold text-text-primary truncate">{med.name}</div>
-                      <div className="text-[9px] font-mono text-text-muted mt-0.5">{med.mimeType}</div>
+                    <div className="text-left space-y-1">
+                      <div>
+                        <label className="text-[8px] font-bold text-text-muted block uppercase">Asset Name</label>
+                        <input
+                          type="text"
+                          value={med.name}
+                          onChange={(e) => {
+                            const updated = cms.media.map((m) => (m.id === med.id ? { ...m, name: e.target.value } : m));
+                            useSiteCMSStore.setState({ cms: { ...cms, media: updated } });
+                          }}
+                          className="w-full text-xs font-bold text-text-primary bg-transparent focus:outline-none border-b border-transparent focus:border-white/10"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-text-muted block uppercase">Image Link / URL</label>
+                        <input
+                          type="text"
+                          value={med.url}
+                          onChange={(e) => {
+                            const updated = cms.media.map((m) => (m.id === med.id ? { ...m, url: e.target.value } : m));
+                            useSiteCMSStore.setState({ cms: { ...cms, media: updated } });
+                          }}
+                          className="w-full text-[9px] font-mono text-text-muted bg-transparent focus:outline-none border-b border-transparent focus:border-white/10"
+                        />
+                      </div>
                     </div>
                     <div className="flex items-center justify-between pt-2 border-t border-divider">
-                      <button
-                        onClick={() => {
-                          const newUrl = prompt("Replace Image URL:", med.url);
-                          if (newUrl && newUrl !== med.url) {
-                            showToast("Replaced image asset!");
-                          }
-                        }}
-                        className="text-[10px] font-bold text-accent-blue hover:underline cursor-pointer"
-                      >
-                        Replace
-                      </button>
+                      <span className="text-[9px] text-text-muted">{med.mimeType.split("/")[1]}</span>
                       <button
                         onClick={() => {
                           deleteMediaItem(med.id);
@@ -1706,19 +2582,31 @@ export default function AdminPage() {
           {mainTab === "projects" && (
             <div className="space-y-6 text-left">
               <div className="flex items-center justify-between p-5 rounded-2xl bg-glass-bg border border-glass-border">
-                <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                  <Folder className="w-4 h-4 text-accent-blue" /> Central Projects Catalog ({projects.length})
-                </h3>
+                <div>
+                  <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                    <Folder className="w-4 h-4 text-accent-blue" /> Central Projects Catalog ({projects.length})
+                  </h3>
+                  <p className="text-xs text-text-secondary mt-0.5">Manage modular products, codebases, cover assets, status indicators, and deployment paths.</p>
+                </div>
                 <button
                   onClick={() => {
-                    const name = prompt("Project Name:", "New Kiwik Platform");
-                    if (name) {
-                      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-                      addProject({ ...emptyProject, id: slug, slug, name });
-                      showToast(`Added Project [${name}]`);
-                    }
+                    const slug = `project-${Date.now()}`;
+                    const newProj = {
+                      ...emptyProject,
+                      id: slug,
+                      slug,
+                      name: "New Kiwik Project",
+                      tagline: "High-performance modular service node.",
+                      description: "Detailed system architecture parameters and specifications will be updated here.",
+                      status: "in-progress" as const,
+                      category: "web" as const,
+                      lastUpdated: new Date().toISOString().split("T")[0]
+                    };
+                    addProject(newProj);
+                    setEditingProject(newProj);
+                    showToast("Created project catalog card! Opening editor specs...");
                   }}
-                  className="px-5 py-2.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
                 >
                   <Plus className="w-4 h-4" /> Add Project
                 </button>
@@ -1740,13 +2628,9 @@ export default function AdminPage() {
                     <div className="flex items-center justify-between pt-3 border-t border-divider">
                       <button
                         onClick={() => {
-                          const newName = prompt("Edit Project Name:", proj.name);
-                          if (newName) {
-                            updateProject(proj.id, { name: newName });
-                            showToast("Updated project name!");
-                          }
+                          setEditingProject(proj);
                         }}
-                        className="text-xs font-bold text-accent-blue flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-bold text-accent-blue flex items-center gap-1 cursor-pointer hover:underline"
                       >
                         <Edit className="w-3.5 h-3.5" /> Edit Specs
                       </button>
@@ -1755,7 +2639,7 @@ export default function AdminPage() {
                           deleteProject(proj.id);
                           showToast(`Deleted project [${proj.name}]`);
                         }}
-                        className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer"
+                        className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -1978,6 +2862,402 @@ export default function AdminPage() {
 
         </main>
       </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          MEDIA ASSET LIBRARY DAM PICKER MODAL (Glassmorphism Modal UI)
+         ───────────────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {mediaPickerTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="w-full max-w-4xl bg-[#0d0f13] border border-white/10 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] shadow-2xl text-left"
+            >
+              {/* Modal Header */}
+              <div className="p-5 border-b border-white/10 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-accent-blue animate-pulse-slow" /> Media Library Assets DAM Picker
+                  </h3>
+                  <p className="text-[10px] text-text-secondary mt-0.5">
+                    Selecting asset link for: <span className="text-accent-blue font-bold">{mediaPickerTarget.title}</span>
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setMediaPickerTarget(null)}
+                  className="p-1.5 rounded-full hover:bg-white/10 text-text-muted hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Subheader: Search, Folders & Quick Add */}
+              <div className="p-4 bg-black/20 border-b border-white/5 space-y-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 justify-between">
+                  {/* Search Bar */}
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted" />
+                    <input 
+                      type="text"
+                      placeholder="Search assets by name..."
+                      value={pickerSearch}
+                      onChange={(e) => setPickerSearch(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white placeholder-text-muted focus:outline-none focus:border-accent-blue"
+                    />
+                  </div>
+
+                  {/* Quick Add Asset Option */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowPickerAddForm(!showPickerAddForm)}
+                      className="px-4 py-2 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> {showPickerAddForm ? "Cancel Add" : "Upload File"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Inline form inside picker */}
+                {showPickerAddForm && (
+                  <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                    <div className="grid grid-cols-2 gap-3 text-left">
+                      <div>
+                        <label className="text-[10px] font-bold text-text-secondary block mb-1">Asset Name</label>
+                        <input
+                          type="text"
+                          value={newPickerAssetName}
+                          onChange={(e) => setNewPickerAssetName(e.target.value)}
+                          placeholder="e.g. Logo Icon"
+                          className="w-full px-2.5 py-1.5 rounded bg-bg-primary border border-glass-border text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-text-secondary block mb-1">Image Link / URL</label>
+                        <input
+                          type="text"
+                          value={newPickerAssetUrl}
+                          onChange={(e) => setNewPickerAssetUrl(e.target.value)}
+                          placeholder="e.g. /logo.png"
+                          className="w-full px-2.5 py-1.5 rounded bg-bg-primary border border-glass-border text-xs text-white font-mono"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => {
+                          if (newPickerAssetName && newPickerAssetUrl) {
+                            addMediaItem({
+                              id: `med-${Date.now()}`,
+                              name: newPickerAssetName,
+                              url: newPickerAssetUrl,
+                              type: "image",
+                              sizeBytes: 15400,
+                              mimeType: "image/png",
+                              folder: "General",
+                              tags: ["uploaded"],
+                              usedIn: ["Media Picker"],
+                              createdAt: new Date().toISOString()
+                            });
+                            showToast(`Uploaded Asset [${newPickerAssetName}] to Library`);
+                            setNewPickerAssetName("");
+                            setNewPickerAssetUrl("");
+                            setShowPickerAddForm(false);
+                          } else {
+                            showToast("Please fill in both Name and URL fields.");
+                          }
+                        }}
+                        className="px-4 py-1.5 rounded-xl bg-accent-blue text-xs text-white font-bold cursor-pointer"
+                      >
+                        Save Asset
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Folder filter chips */}
+                <div className="flex flex-wrap gap-1.5">
+                  {["all", "Avatars", "Logos", "Banners", "General"].map((folder) => (
+                    <button
+                      key={folder}
+                      onClick={() => setPickerFolder(folder)}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer",
+                        pickerFolder === folder
+                          ? "bg-accent-blue text-white"
+                          : "bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white"
+                      )}
+                    >
+                      {folder}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Grid of assets */}
+              <div className="flex-1 overflow-y-auto p-5 no-scrollbar min-h-[300px]">
+                {(() => {
+                  const items = (cms.media || []).filter((med) => {
+                    const matchesSearch = med.name.toLowerCase().includes(pickerSearch.toLowerCase());
+                    const matchesFolder = pickerFolder === "all" || med.folder === pickerFolder;
+                    return matchesSearch && matchesFolder;
+                  });
+
+                  if (items.length === 0) {
+                    return (
+                      <div className="h-48 flex flex-col items-center justify-center text-text-muted space-y-2">
+                        <ImageIcon className="w-8 h-8 opacity-40 animate-pulse-slow" />
+                        <span className="text-xs font-bold">No assets found in library</span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                      {items.map((med) => (
+                        <div 
+                          key={med.id}
+                          onClick={() => {
+                            mediaPickerTarget.onSelect(med.url);
+                            setMediaPickerTarget(null);
+                            showToast(`Linked image to [${med.name}]`);
+                          }}
+                          className="p-2 bg-white/5 border border-white/10 hover:border-accent-blue/60 rounded-2xl cursor-pointer group flex flex-col justify-between space-y-2 transition-all hover:bg-white/[0.08]"
+                        >
+                          <div className="h-20 w-full rounded-xl bg-black/40 overflow-hidden flex items-center justify-center border border-white/5 relative">
+                            <img 
+                              src={med.url} 
+                              alt={med.name} 
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                            />
+                            <div className="absolute inset-0 bg-accent-blue/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Check className="w-5 h-5 text-white" />
+                            </div>
+                          </div>
+                          <div className="text-left">
+                            <div className="text-[10px] font-bold text-white truncate group-hover:text-accent-blue transition-colors">
+                              {med.name}
+                            </div>
+                            <div className="text-[8px] font-mono text-text-muted truncate">
+                              {med.folder} • {med.mimeType.split("/")[1]}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-black/25 border-t border-white/10 flex items-center justify-between">
+                <span className="text-[10px] text-text-muted font-mono">
+                  Double-click or click to insert.
+                </span>
+                <button
+                  onClick={() => setMediaPickerTarget(null)}
+                  className="px-4 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* PROJECT SPECS DIALOG MODAL */}
+      <AnimatePresence>
+        {editingProject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-xl bg-[#0d0f13] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] text-left"
+            >
+              {/* Header */}
+              <div className="p-5 bg-black/20 border-b border-white/10 flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-white">Project Catalog Specifications</h4>
+                  <p className="text-[10px] text-text-muted mt-0.5">ID: {editingProject.id}</p>
+                </div>
+                <button
+                  onClick={() => setEditingProject(null)}
+                  className="p-1.5 rounded-full hover:bg-white/10 text-white cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Content Form */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-text-muted block mb-1">Project Name</label>
+                    <input
+                      type="text"
+                      value={editingProject.name}
+                      onChange={(e) => {
+                        const updated = { ...editingProject, name: e.target.value };
+                        setEditingProject(updated);
+                        updateProject(editingProject.id, updated);
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-text-muted block mb-1">Project Slug</label>
+                    <input
+                      type="text"
+                      value={editingProject.slug}
+                      onChange={(e) => {
+                        const updated = { ...editingProject, slug: e.target.value };
+                        setEditingProject(updated);
+                        updateProject(editingProject.id, updated);
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-text-muted block mb-1">Tagline</label>
+                  <input
+                    type="text"
+                    value={editingProject.tagline || ""}
+                    onChange={(e) => {
+                      const updated = { ...editingProject, tagline: e.target.value };
+                      setEditingProject(updated);
+                      updateProject(editingProject.id, updated);
+                    }}
+                    className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-text-muted block mb-1">Description</label>
+                  <textarea
+                    rows={3}
+                    value={editingProject.description || ""}
+                    onChange={(e) => {
+                      const updated = { ...editingProject, description: e.target.value };
+                      setEditingProject(updated);
+                      updateProject(editingProject.id, updated);
+                    }}
+                    className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-text-muted block mb-1">Status</label>
+                    <select
+                      value={editingProject.status}
+                      onChange={(e) => {
+                        const updated = { ...editingProject, status: e.target.value as any };
+                        setEditingProject(updated);
+                        updateProject(editingProject.id, updated);
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-[#111318] border border-glass-border text-xs text-white"
+                    >
+                      <option value="active">Active / Operational</option>
+                      <option value="in-progress">In Development</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-text-muted block mb-1">Category</label>
+                    <select
+                      value={editingProject.category}
+                      onChange={(e) => {
+                        const updated = { ...editingProject, category: e.target.value as any };
+                        setEditingProject(updated);
+                        updateProject(editingProject.id, updated);
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-[#111318] border border-glass-border text-xs text-white"
+                    >
+                      <option value="web">Web Application</option>
+                      <option value="mobile">Mobile App</option>
+                      <option value="infrastructure">Infrastructure</option>
+                      <option value="design">Design Brand</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-text-muted block mb-1">Project Icon (Lucide)</label>
+                    <input
+                      type="text"
+                      value={editingProject.icon || ""}
+                      onChange={(e) => {
+                        const updated = { ...editingProject, icon: e.target.value };
+                        setEditingProject(updated);
+                        updateProject(editingProject.id, updated);
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-text-muted block mb-1">Cover Image URL</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={editingProject.coverImage || ""}
+                        onChange={(e) => {
+                          const updated = { ...editingProject, coverImage: e.target.value };
+                          setEditingProject(updated);
+                          updateProject(editingProject.id, updated);
+                        }}
+                        className="flex-1 px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setMediaPickerTarget({
+                          title: `Cover for ${editingProject.name}`,
+                          onSelect: (url) => {
+                            const updated = { ...editingProject, coverImage: url };
+                            setEditingProject(updated);
+                            updateProject(editingProject.id, updated);
+                          }
+                        })}
+                        className="px-3 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs text-white font-bold cursor-pointer"
+                      >
+                        Browse
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-black/20 border-t border-white/10 flex justify-end">
+                <button
+                  onClick={() => {
+                    setEditingProject(null);
+                    showToast("Saved project specifications!");
+                  }}
+                  className="px-5 py-2 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-white font-bold text-xs cursor-pointer shadow-md transition-all"
+                >
+                  Save & Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

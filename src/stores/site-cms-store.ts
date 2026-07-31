@@ -41,6 +41,8 @@ const defaultCMSData: SiteCMSData = {
   },
   hero: {
     versionBadge: "Kiwik.1 v1.0.0-beta",
+    badgeVisible: true,
+    badgeLink: "/projects",
     headlinePrefix: "The Operating System",
     headlineHighlightWord: "for",
     rotatingWords: [
@@ -92,7 +94,35 @@ const defaultCMSData: SiteCMSData = {
       { id: "g8", url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?q=80&w=600&auto=format&fit=crop", title: "Luminous Jellyfish", linkUrl: "/projects" },
       { id: "g9", url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=600&auto=format&fit=crop", title: "Emerald Canopy", linkUrl: "/projects" },
       { id: "g10", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", title: "Fluid 3D Prism", linkUrl: "/projects" }
-    ]
+    ],
+    gallerySpeed: 0.075,
+    gallerySpacing: 7,
+    galleryPerspective: 0.28,
+    galleryOpacity: 0.85,
+    galleryBlur: 0,
+    galleryScale: 1.35
+  },
+  promptBar: {
+    placeholder: "Brief our AI agent...",
+    buttonLabel: "Submit Prompt",
+    gradientStart: "#fb923c",
+    gradientMiddle: "#ec4899",
+    gradientEnd: "#818cf8",
+    rotatingWords: [
+      "Design a product launch campaign for a new sneaker drop...",
+      "Build an autonomous AI agent workflow for customer onboarding...",
+      "Generate a 3D glassmorphic dashboard design system...",
+      "Architect a zero-latency serverless cloud infrastructure..."
+    ],
+    suggestionChips: [
+      "Launch campaign",
+      "AI onboarding",
+      "Glassmorphic design",
+      "Cloud architecture"
+    ],
+    iconName: "Sparkles",
+    buttonIcon: "ArrowRight",
+    buttonLink: "/projects"
   },
   navigation: {
     logoText: "Kiwik.1",
@@ -183,7 +213,22 @@ const defaultCMSData: SiteCMSData = {
     newsletterHeadline: "Stay Updated with Kiwik Releases",
     newsletterDescription: "Subscribe for new project updates, AI telemetry enhancements, and OS features.",
     newsletterButtonText: "Subscribe",
-    policyBadges: ["SOC 2 TYPE II CERTIFIED", "256-BIT ENCRYPTION", "EDGE ACCELERATED"]
+    policyBadges: ["SOC 2 TYPE II CERTIFIED", "256-BIT ENCRYPTION", "EDGE ACCELERATED"],
+    logoText: "Kiwik",
+    logoUrl: "/logo.png",
+    statusBadgeText: "All Systems Operational",
+    statusBadgeVisible: true,
+    contactEmail: "hello@kiwik.dev",
+    contactPhone: "+1 (800) 555-KIWIK",
+    address: "Internet, Everywhere",
+    bottomLinks: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" }
+    ],
+    newsletterPlaceholder: "Enter your email",
+    newsletterApiEndpoint: "/api/subscribe",
+    newsletterSuccessMessage: "Subscribed successfully!",
+    newsletterFailureMessage: "Subscription failed, try again."
   },
   pages: [
     {
@@ -264,11 +309,164 @@ const defaultCMSData: SiteCMSData = {
   deviceShowcase: {
     topBadgeText: "No Credit Card Required",
     cards: [
-      { id: "dev-1", name: "John Richardson", role: "Co-Founder", quote: "We scale high throughput products fast.", tag: "Founder", avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150", frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048", accentColor: "#3b82f6" },
-      { id: "dev-2", name: "Sarah Lin", role: "Product Designer", quote: "Crafting modern UI and motion interaction.", tag: "Design", avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150", frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048", accentColor: "#a855f7" },
-      { id: "dev-3", name: "Alex Mercer", role: "Lead Systems Architect", quote: "High availability, 14ms latency, global edge.", tag: "Engineering", avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150", frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048", accentColor: "#06b6d4" },
-      { id: "dev-4", name: "Elena Rostova", role: "Head of AI Research", quote: "Autonomous multi-agent orchestration engines.", tag: "AI & ML", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150", frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048", accentColor: "#ec4899" },
-      { id: "dev-5", name: "Jason Markus", role: "Viral Marketer", quote: "Helping founders grow apps through strategy.", tag: "Growth", avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150", frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048", accentColor: "#65a30d" }
+      {
+        id: "dev-1",
+        name: "John Richardson",
+        role: "Co-Founder",
+        quote: "Angel investor in San Antonio, TX",
+        tag: "Founder",
+        avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+        accentColor: "#3b82f6",
+        description: "Investing in web3 companies focused on DeFi systems and infrastructure.",
+        backgroundColor: "#ffffff",
+        visible: true,
+        order: 1,
+        template: "investor",
+        subitems: [
+          { title: "Cooperative", subtitle: "Project description here." },
+          { title: "Ikigai Labs", subtitle: "Project description here." }
+        ],
+        blocks: [
+          {
+            id: "blk-1",
+            type: "projects",
+            title: "Projects Funded",
+            visible: true,
+            items: [
+              { title: "Cooperative", subtitle: "Project description here." },
+              { title: "Ikigai Labs", subtitle: "Project description here." }
+            ]
+          }
+        ]
+      },
+      {
+        id: "dev-2",
+        name: "Jet Hawken",
+        role: "Product Designer",
+        quote: "Product Designer & UI UX Expert",
+        tag: "Design",
+        avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+        accentColor: "#2563eb",
+        description: "A seasoned designer with 15 years experience specializing in product design and UI/UX. Known for creating impactful experiences.",
+        backgroundColor: "#EBF2FE",
+        visible: true,
+        order: 2,
+        template: "designer",
+        subitems: [
+          { title: "John Richardson", subtitle: "\"Jet helped us build an incredible platform from start to finish\"" },
+          { title: "Leslie Putnam", subtitle: "\"Is so talented and designs so fast, we beat every deadline...\"" }
+        ],
+        blocks: [
+          {
+            id: "blk-2",
+            type: "testimonial",
+            title: "Testimonials",
+            visible: true,
+            items: [
+              { title: "John Richardson", subtitle: "\"Jet helped us build an incredible platform from start to finish\"" },
+              { title: "Leslie Putnam", subtitle: "\"Is so talented and designs so fast, we beat every deadline...\"" }
+            ]
+          }
+        ]
+      },
+      {
+        id: "dev-3",
+        name: "Leslie Putnam",
+        role: "Lead Systems Architect",
+        quote: "Product Manager with 15 years of experience.",
+        tag: "Engineering",
+        avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
+        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+        accentColor: "#3b82f6",
+        description: "Leslie Putnam is a Senior PM helping teams of designers, developers and stakeholders hit deadlines and build incredible things.",
+        backgroundColor: "#0C0D12",
+        visible: true,
+        order: 3,
+        template: "pm",
+        subitems: [
+          { title: "Senior Product Manager", subtitle: "Apple", date: "Jan, 2023 - Present" },
+          { title: "Product Manager", subtitle: "Meta Platforms", date: "Aug, 2021 - Jan, 2023" }
+        ],
+        blocks: [
+          {
+            id: "blk-3",
+            type: "experience",
+            title: "Experience",
+            visible: true,
+            items: [
+              { title: "Senior Product Manager", subtitle: "Apple", date: "Jan, 2023 - Present" },
+              { title: "Product Manager", subtitle: "Meta Platforms", date: "Aug, 2021 - Jan, 2023" }
+            ]
+          }
+        ]
+      },
+      {
+        id: "dev-4",
+        name: "Taylor Brown",
+        role: "Head of AI Research",
+        quote: "Professional botanist sharing plant tips.",
+        tag: "AI & ML",
+        avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+        accentColor: "#047857",
+        description: "Passionate about plants and sustainability. Through social media, I share expert plant tips and advice.",
+        backgroundColor: "#0E1F18",
+        visible: true,
+        order: 4,
+        template: "botanist",
+        subitems: [
+          { title: "How long have you been a botanist?", subtitle: "I've been passionate about plants for over 8 years." }
+        ],
+        blocks: [
+          {
+            id: "blk-4-socials",
+            type: "socials",
+            visible: true,
+            items: [
+              { title: "Globe", iconName: "Globe", link: "#" },
+              { title: "MessageSquare", iconName: "MessageSquare", link: "#" },
+              { title: "Share2", iconName: "Share2", link: "#" },
+              { title: "Send", iconName: "Send", link: "#" },
+              { title: "Lock", iconName: "Lock", link: "#" }
+            ]
+          },
+          {
+            id: "blk-4-faq",
+            type: "faq",
+            title: "FAQ",
+            visible: true,
+            items: [
+              { title: "How long have you been a botanist?", subtitle: "I've been passionate about plants for over 8 years." }
+            ]
+          }
+        ]
+      },
+      {
+        id: "dev-5",
+        name: "Jason Markus",
+        role: "Viral Marketer",
+        quote: "Viral marketer, helping founders grow their apps.",
+        tag: "Growth",
+        avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
+        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+        accentColor: "#65a30d",
+        description: "I am Jason Markus, a viral marketer specializing in helping founders grow their apps through innovative strategies and modern marketing techniques.",
+        backgroundColor: "#0D150B",
+        visible: true,
+        order: 5,
+        template: "marketer",
+        subitems: [],
+        blocks: [
+          {
+            id: "blk-5",
+            type: "form",
+            title: "Contact Jason Markus",
+            visible: true
+          }
+        ]
+      }
     ]
   },
   earthShowcase: {
@@ -280,26 +478,40 @@ const defaultCMSData: SiteCMSData = {
       { id: "st-2", value: "14ms", label: "Edge Latency", description: "Average edge request roundtrip latency." },
       { id: "st-3", value: "24/7", label: "Monitoring", description: "Operational intelligence and telemetry monitoring." },
       { id: "st-4", value: "3M+", label: "Daily Events", description: "Daily edge events processed and synced." }
-    ]
+    ],
+    cta1Text: "Book a demo",
+    cta1Href: "/docs",
+    cta2Text: "Telemetry integration",
+    cta2Href: "/projects",
+    overlayOpacity: 0.7,
+    blurPx: 0
   },
   architectureNodes: [
-    { id: "criska-ai", title: "CriskaAI", subtitle: "Enterprise Intelligence", iconName: "Cpu", color: "from-purple-500/20 to-purple-600/5", border: "border-purple-500/30 hover:border-purple-500/60", glow: "shadow-purple-500/10", badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30", badgeText: "Active Node", order: 1 },
-    { id: "kiwik", title: "Kiwik", subtitle: "Product & Knowledge Hub", iconName: "Layers", color: "from-cyan-500/20 to-blue-600/5", border: "border-cyan-500/30 hover:border-cyan-500/60", glow: "shadow-cyan-500/10", badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30", badgeText: "Active Node", order: 2 },
-    { id: "criska-cloud", title: "CriskaCloud", subtitle: "Cloud & Infrastructure Platform", iconName: "Cloud", color: "from-blue-500/20 to-indigo-600/5", border: "border-blue-500/30 hover:border-blue-500/60", glow: "shadow-blue-500/10", badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30", badgeText: "Active Node", order: 3 },
-    { id: "security-identity", title: "Security & Identity", subtitle: "Secure Access & Governance", iconName: "Shield", color: "from-emerald-500/20 to-teal-600/5", border: "border-emerald-500/30 hover:border-emerald-500/60", glow: "shadow-emerald-500/10", badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30", badgeText: "Active Node", order: 4 }
+    { id: "criska-ai", title: "CriskaAI", subtitle: "Enterprise Intelligence", iconName: "Cpu", color: "from-purple-500/20 to-purple-600/5", border: "border-purple-500/30 hover:border-purple-500/60", glow: "shadow-purple-500/10", badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30", badgeText: "Active Node", order: 1, visible: true },
+    { id: "kiwik", title: "Kiwik", subtitle: "Product & Knowledge Hub", iconName: "Layers", color: "from-cyan-500/20 to-blue-600/5", border: "border-cyan-500/30 hover:border-cyan-500/60", glow: "shadow-cyan-500/10", badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30", badgeText: "Active Node", order: 2, visible: true },
+    { id: "criska-cloud", title: "CriskaCloud", subtitle: "Cloud & Infrastructure Platform", iconName: "Cloud", color: "from-blue-500/20 to-indigo-600/5", border: "border-blue-500/30 hover:border-blue-500/60", glow: "shadow-blue-500/10", badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30", badgeText: "Active Node", order: 3, visible: true },
+    { id: "security-identity", title: "Security & Identity", subtitle: "Secure Access & Governance", iconName: "Shield", color: "from-emerald-500/20 to-teal-600/5", border: "border-emerald-500/30 hover:border-emerald-500/60", glow: "shadow-emerald-500/10", badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30", badgeText: "Active Node", order: 4, visible: true }
   ],
   whyCriskaPills: [
-    { id: "w-1", text: "AI-Powered Intelligence", iconName: "Cpu", order: 1, visible: true },
-    { id: "w-2", text: "Security First", iconName: "Shield", order: 2, visible: true },
-    { id: "w-3", text: "Enterprise Ready", iconName: "Layers", order: 3, visible: true },
-    { id: "w-4", text: "Cloud Native", iconName: "Cloud", order: 4, visible: true },
-    { id: "w-5", text: "Scalable by Design", iconName: "Sparkles", order: 5, visible: true }
+    { id: "w-1", text: "AI-Powered Intelligence", iconName: "Cpu", order: 1, visible: true, color: "text-purple-400" },
+    { id: "w-2", text: "Security First", iconName: "Shield", order: 2, visible: true, color: "text-emerald-400" },
+    { id: "w-3", text: "Enterprise Ready", iconName: "Layers", order: 3, visible: true, color: "text-amber-400" },
+    { id: "w-4", text: "Cloud Native", iconName: "Cloud", order: 4, visible: true, color: "text-accent-blue" },
+    { id: "w-5", text: "Scalable by Design", iconName: "Sparkles", order: 5, visible: true, color: "text-pink-400" }
   ],
   dashboardShowcase: {
     sectionTitle: "KIWIK OS Kernel",
     searchPlaceholder: "Search projects, docs, commands...",
     kernelStatusText: "OS Kernel Active",
-    systemCoreTechs: ["Next.js", "React", "TS TypeScript", "Tailwind CSS", "Prisma", "PostgreSQL", "Vercel"]
+    systemCoreTechs: ["Next.js", "React", "TS TypeScript", "Tailwind CSS", "Prisma", "PostgreSQL", "Vercel"],
+    sectionSubtitle: "Unified Control & Edge Telemetry Console",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
+    rightPanelImageUrl: "/logo.png",
+    dashboardImageUrl: "/logo.png",
+    backgroundImageUrl: "",
+    labels: ["Kiwik OS", "Telemetry Status", "OS Kernel Active", "System Core:"],
+    badges: ["Ready", "Thinking...", "Choose Another Action"],
+    cards: []
   },
   aiKnowledge: {
     articles: [
@@ -347,6 +559,7 @@ interface SiteCMSStoreState {
   // Mutator functions
   updateSettings: (settings: Partial<WebsiteSettings>) => void;
   updateHero: (hero: Partial<HeroCMS>) => void;
+  updatePromptBar: (promptBar: Partial<import("@/types/site-cms-types").PromptBarCMS>) => void;
   updateHeroRotatingWords: (words: string[]) => void;
   updateHeroMetric: (id: string, metric: Partial<HeroMetric>) => void;
   
@@ -436,6 +649,13 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
           cms: { ...state.cms, hero: { ...state.cms.hero, ...partialHero } }
         }));
         get().addAuditLog("UPDATE_HERO", "Hero Section", "Updated Hero headlines, buttons, or parameters");
+      },
+
+      updatePromptBar: (partialPromptBar) => {
+        set((state) => ({
+          cms: { ...state.cms, promptBar: { ...state.cms.promptBar, ...partialPromptBar } }
+        }));
+        get().addAuditLog("UPDATE_PROMPT_BAR", "Prompt Bar", "Updated prompt bar settings");
       },
 
       updateHeroRotatingWords: (words) => {

@@ -48,53 +48,13 @@ const DEFAULT_COLOR = {
 };
 
 export function AppleCoverflowCarousel() {
-  const projects = useProjects();
+  const rawProjects = useProjects();
+  const featuredProjects = rawProjects.filter(p => p.featured === true);
+  const displayProjects = featuredProjects.length > 0 ? featuredProjects : rawProjects;
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const displayProjects = projects.length > 0 ? projects : [
-    {
-      id: "criska-ai",
-      slug: "criska-ai",
-      name: "CriskaAI",
-      category: "ai",
-      status: "private-beta",
-      tagline: "Autonomous knowledge assistant and operational intelligence engine.",
-      description: "AI knowledge assistant for support and operations teams.",
-      techStack: [{ name: "Next.js" }, { name: "Python" }, { name: "PyTorch" }],
-    },
-    {
-      id: "criska-cloud",
-      slug: "criska-cloud",
-      name: "CriskaCloud",
-      category: "cloud",
-      status: "pilot",
-      tagline: "Managed cloud infrastructure, telemetry, and automated deployment platform.",
-      description: "Managed infrastructure and deployment platform.",
-      techStack: [{ name: "Kubernetes" }, { name: "Go" }, { name: "Docker" }],
-    },
-    {
-      id: "criska-pay",
-      slug: "criska-pay",
-      name: "CriskaPay",
-      category: "payments",
-      status: "prototype",
-      tagline: "Encrypted instant settlement, billing engine, and automated digital ledger.",
-      description: "Secure payment and billing for digital businesses.",
-      techStack: [{ name: "Stripe" }, { name: "PostgreSQL" }, { name: "Rust" }],
-    },
-    {
-      id: "kiwik",
-      slug: "kiwik-1",
-      name: "Kiwik Hub",
-      category: "automation",
-      status: "live",
-      tagline: "Central command hub, live documentation, and real-time edge telemetry engine.",
-      description: "Central hub for products, documentation and demos.",
-      techStack: [{ name: "React" }, { name: "TypeScript" }, { name: "Tailwind" }],
-    },
-  ];
 
   const total = displayProjects.length;
 
