@@ -8,6 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { ProjectImage } from "@/components/ui/project-image";
+import * as LucideIcons from "lucide-react";
 import { 
   ExternalLink, 
   Star, 
@@ -32,22 +33,24 @@ import { GlassCard } from "@/components/glass/glass-card";
 import { GlassButton } from "@/components/glass/glass-button";
 import { useHistoryStore } from "@/stores/history-store";
 import { cn } from "@/lib/utils";
+import type { Project } from "@/types";
 
-export default function ProjectDetailPage() {
+export default function ProjectDetailPage({ projectOverride }: { projectOverride?: Project }) {
   const projects = useProjects();
   const params = useParams();
   const slug = params?.slug as string;
-  const project = projects.find(p => p.slug === slug);
+  const project = projectOverride || projects.find(p => p.slug === slug);
   const { addToHistory } = useHistoryStore();
   const [activeTab, setActiveTab] = useState("overview");
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [copied, setCopied] = useState(false);
   
   useEffect(() => {
-    if (project) {
+    if (project && !projectOverride) {
       addToHistory(project.id);
     }
-  }, [project, addToHistory]);
+  }, [project, addToHistory, projectOverride]);
 
   // Handle reading progress bar tracking
   useEffect(() => {
@@ -62,13 +65,16 @@ export default function ProjectDetailPage() {
   }, []);
 
   if (!project) {
+    if (projectOverride) return <div className="text-white text-xs p-4">Loading project details preview...</div>;
     notFound();
   }
 
   // Calculate word count and estimated reading time
   const docsText = `${project.longDescription || ""} ${project.readme || ""} ${project.features?.map(f => `${f.title} ${f.description}`).join(" ") || ""}`;
   const wordCount = docsText.trim().split(/\s+/).filter(Boolean).length;
-  const readTimeMins = Math.max(1, Math.ceil(wordCount / 200));
+  const readTimeMins = project.telemetryReadingTime 
+    ? parseInt(project.telemetryReadingTime) 
+    : Math.max(1, Math.ceil(wordCount / 200));
 
   const sections = [
     { id: "overview", label: "Overview", icon: <BookOpen className="w-3.5 h-3.5" /> },
@@ -85,7 +91,7 @@ export default function ProjectDetailPage() {
     web: "from-blue-500/10 via-cyan-500/5 to-transparent",
     mobile: "from-emerald-500/10 via-teal-500/5 to-transparent",
   };
-  const gradient = categoryGradients[project.category] || "from-gray-500/10 via-slate-500/5 to-transparent";
+  const gradient = project.heroGradient || project.brandingGradient || categoryGradients[project.category] || "from-gray-500/10 via-slate-500/5 to-transparent";
 
   const handleSectionScroll = (id: string) => {
     setActiveTab(id);
@@ -98,7 +104,10 @@ export default function ProjectDetailPage() {
   };
 
   return (
-    <div className="min-h-screen pb-32 bg-bg-primary/30 relative">
+    <div 
+      className="min-h-screen pb-32 bg-bg-primary/30 relative text-left"
+      style={{ backgroundColor: project.themeColor ? `${project.themeColor}33` : undefined }}
+    >
       {/* Absolute top linear reading progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-neutral-800/40 z-[60]">
         <motion.div 
@@ -109,10 +118,16 @@ export default function ProjectDetailPage() {
 
       {/* Hero Header Area */}
       <div className={cn("relative pt-32 pb-16 px-4 sm:px-6 md:px-8 bg-gradient-to-b", gradient)}>
-        <div className="absolute inset-0 bg-bg-primary/90 opacity-95 -z-10" />
+        {project.heroBgImage && (
+          <div className="absolute inset-0 bg-cover bg-center -z-20" style={{ backgroundImage: `url(${project.heroBgImage})` }} />
+        )}
+        <div 
+          className="absolute inset-0 bg-bg-primary/90 -z-10" 
+          style={{ opacity: project.heroBgOpacity !== undefined ? project.heroBgOpacity : 0.95 }}
+        />
         <div className="max-w-[1400px] mx-auto">
           <Link href="/projects" className="inline-flex items-center gap-2 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors mb-6 uppercase tracking-wider">
-            <ArrowLeft className="w-3 h-3" /> Back to systems
+            <ArrowLeft className="w-3 h-3" /> {project.heroBackButtonLabel || "Back to systems"}
           </Link>
           
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -124,35 +139,68 @@ export default function ProjectDetailPage() {
                     "bg-amber-500 animate-pulse": project.status === "in-progress",
                     "bg-rose-500": project.status === "archived",
                   })} />
-                  <span className="text-[10px] font-mono font-bold capitalize text-text-primary">{project.status.replace('-', ' ')}</span>
+                  <span className="text-[10px] font-mono font-bold capitalize text-text-primary">
+                    {project.heroStatusBadge || project.status.replace('-', ' ')}
+                  </span>
                 </div>
                 {project.version && (
                   <div className="px-2.5 py-1 rounded-full bg-glass-bg border border-glass-border text-[10px] font-mono font-medium text-text-secondary">
-                    {project.version}
+                    {project.heroVersionBadge || project.version}
                   </div>
                 )}
                 <div className="px-2.5 py-1 rounded-full bg-accent-blue/10 border border-accent-blue/20 text-[10px] font-mono font-bold text-accent-blue uppercase tracking-wider">
-                  {project.category}
+                  {project.heroCategoryBadge || project.category}
                 </div>
               </div>
               
               <h1 className="text-4xl md:text-5xl font-serif font-bold text-text-primary mb-3 tracking-tight">
-                {project.name}
+                {project.heroTitle || project.name}
               </h1>
               <p className="text-base text-text-secondary max-w-2xl font-medium leading-relaxed">
-                {project.tagline}
+                {project.heroSubtitle || project.tagline}
               </p>
+              {(project.heroDescription || project.description) && (
+                <p className="text-xs text-text-muted max-w-2xl mt-2 leading-relaxed">
+                  {project.heroDescription || project.description}
+                </p>
+              )}
             </div>
             
             <div className="flex items-center gap-3 relative z-10">
-              {project.githubUrl && (
-                <GlassButton variant="secondary" size="sm" className="gap-2 text-xs font-semibold border-glass-border" onClick={() => window.open(project.githubUrl, '_blank')}>
-                  <Code className="w-3.5 h-3.5" /> Source Code
+              {(project.heroCta2Text || project.githubUrl) && (
+                <GlassButton 
+                  variant="secondary" 
+                  size="sm" 
+                  className="gap-2 text-xs font-semibold border-glass-border" 
+                  onClick={() => {
+                    if (!projectOverride) {
+                      window.open(project.heroCta2Link || project.githubUrl, project.heroCta2NewTab !== false ? '_blank' : '_self');
+                    }
+                  }}
+                >
+                  {project.heroCta2Icon && (() => {
+                    const Icon = (LucideIcons as any)[project.heroCta2Icon];
+                    return Icon ? <Icon className="w-3.5 h-3.5" /> : null;
+                  })() || <Code className="w-3.5 h-3.5" />}
+                  {project.heroCta2Text || "Source Code"}
                 </GlassButton>
               )}
-              {project.liveUrl && (
-                <GlassButton variant="primary" size="sm" className="gap-2 text-xs font-semibold" onClick={() => window.open(project.liveUrl, '_blank')}>
-                  <ExternalLink className="w-3.5 h-3.5" /> Live Deploy
+              {(project.heroCta1Text || project.liveUrl) && (
+                <GlassButton 
+                  variant="primary" 
+                  size="sm" 
+                  className="gap-2 text-xs font-semibold" 
+                  onClick={() => {
+                    if (!projectOverride) {
+                      window.open(project.heroCta1Link || project.liveUrl, project.heroCta1NewTab !== false ? '_blank' : '_self');
+                    }
+                  }}
+                >
+                  {project.heroCta1Icon && (() => {
+                    const Icon = (LucideIcons as any)[project.heroCta1Icon];
+                    return Icon ? <Icon className="w-3.5 h-3.5" /> : null;
+                  })() || <ExternalLink className="w-3.5 h-3.5" />}
+                  {project.heroCta1Text || "Live Deploy"}
                 </GlassButton>
               )}
             </div>
@@ -198,12 +246,61 @@ export default function ProjectDetailPage() {
             <section id="overview" className="scroll-mt-28">
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-serif font-bold text-text-primary tracking-tight">Overview</h2>
+                  <h2 className="text-xl font-serif font-bold text-text-primary tracking-tight">
+                    {project.overviewHeading || "Overview"}
+                  </h2>
                 </div>
-                <GlassCard className="p-6 sm:p-8 bg-glass-bg border border-glass-border [box-shadow:inset_0_1px_0_rgba(255,255,255,0.05)]">
-                  <div className="text-text-secondary leading-relaxed text-sm font-medium whitespace-pre-line">
-                    {project.longDescription}
-                  </div>
+                <GlassCard className="p-6 sm:p-8 bg-glass-bg border border-glass-border [box-shadow:inset_0_1px_0_rgba(255,255,255,0.05)] space-y-4">
+                  {project.overviewParagraph && (
+                    <div className="text-text-secondary leading-relaxed text-sm font-medium whitespace-pre-line">
+                      {project.overviewParagraph}
+                    </div>
+                  )}
+                  {!project.overviewParagraph && project.longDescription && (
+                    <div className="text-text-secondary leading-relaxed text-sm font-medium whitespace-pre-line">
+                      {project.longDescription}
+                    </div>
+                  )}
+
+                  {project.overviewRichText && (
+                    <div className="text-text-secondary leading-relaxed text-sm font-medium whitespace-pre-line mt-4">
+                      {project.overviewRichText}
+                    </div>
+                  )}
+
+                  {project.overviewQuote && (
+                    <blockquote className="border-l-4 border-accent-blue pl-4 py-1 italic text-text-primary bg-white/5 rounded-r-xl pr-4 my-4">
+                      "{project.overviewQuote}"
+                    </blockquote>
+                  )}
+
+                  {project.overviewImage && (
+                    <img 
+                      src={project.overviewImage} 
+                      alt="Overview asset" 
+                      className="w-full h-auto rounded-xl border border-white/10 my-4" 
+                    />
+                  )}
+
+                  {project.overviewCallout && (
+                    <div className="p-4 rounded-xl bg-accent-blue/5 border border-accent-blue/20 text-xs text-text-secondary">
+                      {project.overviewCallout}
+                    </div>
+                  )}
+
+                  {project.overviewHighlights && project.overviewHighlights.length > 0 && (
+                    <div className="pt-2 space-y-2">
+                      <span className="text-[10px] font-bold text-text-muted uppercase">Core Pillars</span>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {project.overviewHighlights.map((hl, hlIdx) => (
+                          <li key={hlIdx} className="flex items-center gap-2 text-xs text-text-secondary">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent-blue" />
+                            {hl}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </GlassCard>
               </motion.div>
             </section>
@@ -214,10 +311,24 @@ export default function ProjectDetailPage() {
                 <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}>
                   <h2 className="text-xl font-serif font-bold text-text-primary tracking-tight mb-4">Key Features</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {project.features.map((feature, i) => (
-                      <GlassCard key={i} className="p-5 flex flex-col gap-1 border border-glass-border hover:border-glass-border-hover">
-                        <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-text-primary">{feature.title}</h3>
-                        <p className="text-xs text-text-secondary leading-relaxed mt-1 font-medium">{feature.description}</p>
+                    {project.features.filter(f => f.visible !== false).sort((a,b) => (a.order || 0) - (b.order || 0)).map((feature, i) => (
+                      <GlassCard 
+                        key={feature.id || i} 
+                        style={{ backgroundColor: feature.background, borderColor: feature.accent }}
+                        className="p-5 flex flex-col gap-1 border border-glass-border hover:border-glass-border-hover transition-all"
+                      >
+                        <div className="flex items-center gap-2">
+                          {feature.icon && (() => {
+                            const Icon = (LucideIcons as any)[feature.icon];
+                            return Icon ? <Icon className="w-4 h-4 text-accent-blue" style={{ color: feature.accent }} /> : null;
+                          })()}
+                          <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-text-primary">{feature.title}</h3>
+                        </div>
+                        {feature.subtitle && <p className="text-[10px] text-text-muted mt-0.5">{feature.subtitle}</p>}
+                        <p className="text-xs text-text-secondary leading-relaxed mt-1.5 font-medium">{feature.description}</p>
+                        {feature.image && (
+                          <img src={feature.image} alt={feature.title} className="w-full h-32 object-cover rounded-lg mt-3 border border-white/10" />
+                        )}
                       </GlassCard>
                     ))}
                   </div>
@@ -231,11 +342,23 @@ export default function ProjectDetailPage() {
                 <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}>
                   <h2 className="text-xl font-serif font-bold text-text-primary tracking-tight mb-4">Tech Stack</h2>
                   <GlassCard className="p-6 border border-glass-border">
-                    <div className="flex flex-wrap gap-2">
-                      {project.techStack.map((tech, i) => (
-                        <div key={i} className="px-3 py-1.5 rounded-lg bg-glass-bg border border-glass-border text-xs font-mono font-semibold text-text-primary hover:border-glass-border-hover transition-colors select-none">
-                          {tech.name}
-                        </div>
+                    <div className="flex flex-wrap gap-2.5">
+                      {project.techStack.sort((a,b) => (a.order || 0) - (b.order || 0)).map((tech, i) => (
+                        <a 
+                          key={i} 
+                          href={tech.website || tech.docUrl || "#"} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          title={tech.tooltip || `${tech.name} ${tech.version || ""}`}
+                          className="px-3 py-1.5 rounded-lg bg-glass-bg border border-glass-border text-xs font-mono font-semibold text-text-primary hover:border-glass-border-hover transition-colors flex items-center gap-2 select-none"
+                          style={{ borderColor: tech.accentColor }}
+                        >
+                          {tech.logo && (
+                            <img src={tech.logo} alt={tech.name} className="w-4 h-4 object-contain rounded" />
+                          )}
+                          <span>{tech.name}</span>
+                          {tech.version && <span className="text-[8.5px] opacity-60 font-mono">v{tech.version}</span>}
+                        </a>
                       ))}
                     </div>
                   </GlassCard>
@@ -255,11 +378,12 @@ export default function ProjectDetailPage() {
                     <button 
                       onClick={() => {
                         navigator.clipboard.writeText(project.readme || "");
-                        alert("README Markdown copied to clipboard!");
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
                       }}
-                      className="absolute top-4 right-4 px-2.5 py-1 rounded bg-bg-secondary hover:bg-glass-bg border border-glass-border text-[10px] font-mono font-bold text-text-secondary hover:text-text-primary transition-colors"
+                      className="absolute top-4 right-4 px-2.5 py-1 rounded bg-bg-secondary hover:bg-glass-bg border border-glass-border text-[10px] font-mono font-bold text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                     >
-                      Copy Raw
+                      {copied ? "Copied!" : "Copy Raw"}
                     </button>
                     <div className="markdown-body text-sm font-medium leading-relaxed max-w-full">
                       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
@@ -277,11 +401,18 @@ export default function ProjectDetailPage() {
                 <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}>
                   <h2 className="text-xl font-serif font-bold text-text-primary tracking-tight mb-4">System Previews</h2>
                   <div className="grid grid-cols-2 gap-4">
-                    {project.images.map((img, i) => (
+                    {project.images.sort((a,b) => (a.order || 0) - (b.order || 0)).map((img, i) => (
                       <div 
                         key={i} 
                         className="aspect-video relative rounded-xl overflow-hidden cursor-zoom-in bg-glass-bg border border-glass-border group" 
-                        onClick={() => setLightboxImage(img.src)}
+                        onClick={() => {
+                          if (img.mediaType === "video" || img.isVideo) {
+                            // Video action or lightbox
+                            setLightboxImage(img.videoUrl || img.src);
+                          } else {
+                            setLightboxImage(img.src);
+                          }
+                        }}
                       >
                         <ProjectImage 
                           src={img.src} 
@@ -289,6 +420,16 @@ export default function ProjectDetailPage() {
                           category={project.category}
                           className="w-full h-full object-cover opacity-70 group-hover:scale-102 group-hover:opacity-95 transition-all duration-500" 
                         />
+                        {img.caption && (
+                          <div className="absolute bottom-2 left-2 right-2 bg-black/75 px-2.5 py-1.5 rounded-lg text-[9px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            {img.caption}
+                          </div>
+                        )}
+                        {(img.isVideo || img.mediaType === "video" || img.mediaType === "youtube") && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                            <LucideIcons.Play className="w-8 h-8 text-white filter drop-shadow-md" />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -302,12 +443,33 @@ export default function ProjectDetailPage() {
                 <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}>
                   <h2 className="text-xl font-serif font-bold text-text-primary tracking-tight mb-4">Timeline</h2>
                   <div className="relative pl-6 border-l border-divider/60 ml-2 space-y-6">
-                    {project.timeline.map((item, i) => (
+                    {project.timeline.sort((a,b) => (a.order || 0) - (b.order || 0)).map((item, i) => (
                       <div key={i} className="relative">
                         <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-bg-primary border-2 border-accent-blue" />
-                        <div className="text-[10px] font-mono text-text-muted font-bold uppercase">{new Date(item.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-[10px] font-mono text-text-muted font-bold uppercase">
+                            {new Date(item.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                          </div>
+                          {item.badge && (
+                            <span className="text-[8px] px-1.5 py-0.5 rounded bg-white/5 text-text-muted uppercase border border-white/10 font-bold">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
                         <h3 className="text-sm font-bold text-text-primary mt-0.5">{item.title}</h3>
                         <p className="text-xs text-text-secondary mt-1 leading-relaxed">{item.description}</p>
+                        {item.image && (
+                          <img src={item.image} alt={item.title} className="w-48 h-28 object-cover rounded-xl mt-2 border border-white/10" />
+                        )}
+                        {item.links && item.links.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {item.links.map((link, lIdx) => (
+                              <a key={lIdx} href={link.url} target="_blank" rel="noopener noreferrer" className="text-[9px] text-accent-blue hover:underline">
+                                {link.label}
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -321,16 +483,36 @@ export default function ProjectDetailPage() {
                 <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}>
                   <h2 className="text-xl font-serif font-bold text-text-primary tracking-tight mb-4">Contributors</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {project.contributors.map((user, i) => (
-                      <div key={i} className="p-3.5 rounded-xl bg-glass-bg border border-glass-border flex items-center gap-3">
-                        <img 
-                          src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0b0f19&color=fff`} 
-                          alt={user.name} 
-                          className="w-10 h-10 rounded-full border border-divider" 
-                        />
-                        <div>
-                          <div className="text-xs font-bold text-text-primary">{user.name}</div>
-                          <div className="text-[10px] font-mono text-text-secondary mt-0.5 uppercase tracking-wider">{user.role}</div>
+                    {project.contributors.sort((a,b) => (a.order || 0) - (b.order || 0)).map((user, i) => (
+                      <div key={i} className="p-3.5 rounded-xl bg-glass-bg border border-glass-border flex flex-col gap-2">
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0b0f19&color=fff`} 
+                            alt={user.name} 
+                            className="w-10 h-10 rounded-full border border-divider" 
+                          />
+                          <div>
+                            <div className="text-xs font-bold text-text-primary">{user.name}</div>
+                            <div className="text-[10px] font-mono text-text-secondary mt-0.5 uppercase tracking-wider">{user.role}</div>
+                          </div>
+                        </div>
+                        {user.bio && <p className="text-[10px] text-text-secondary leading-relaxed italic">{user.bio}</p>}
+                        {user.contributionPercent !== undefined && (
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-mono font-bold text-text-secondary">
+                              <span>Contribution</span>
+                              <span>{user.contributionPercent}%</span>
+                            </div>
+                            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                              <div className="h-full bg-accent-blue rounded-full" style={{ width: `${user.contributionPercent}%` }} />
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex gap-2 pt-1 border-t border-white/5 mt-1">
+                          {user.github && <a href={user.github} target="_blank" rel="noreferrer" className="text-[9px] text-text-muted hover:text-white">GitHub</a>}
+                          {user.linkedin && <a href={user.linkedin} target="_blank" rel="noreferrer" className="text-[9px] text-text-muted hover:text-white">LinkedIn</a>}
+                          {user.twitter && <a href={user.twitter} target="_blank" rel="noreferrer" className="text-[9px] text-text-muted hover:text-white">Twitter</a>}
+                          {user.website && <a href={user.website} target="_blank" rel="noreferrer" className="text-[9px] text-text-muted hover:text-white">Website</a>}
                         </div>
                       </div>
                     ))}
@@ -371,28 +553,84 @@ export default function ProjectDetailPage() {
                   <span className="text-text-secondary flex items-center gap-1.5"><Eye className="w-3.5 h-3.5 text-accent-cyan" /> Views</span>
                   <span className="font-bold text-text-primary">{project.views || 0}</span>
                 </div>
+                {project.telemetryDownloads !== undefined && (
+                  <div className="flex justify-between items-center text-xs font-medium">
+                    <span className="text-text-secondary flex items-center gap-1.5"><LucideIcons.Download className="w-3.5 h-3.5 text-accent-blue" /> Downloads</span>
+                    <span className="font-bold text-text-primary">{project.telemetryDownloads}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-xs font-medium">
                   <span className="text-text-secondary flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Completion</span>
                   <span className="font-mono font-bold text-emerald-400">{project.completionPercent}%</span>
                 </div>
               </div>
+
+              {project.telemetryHealthStatus && (
+                <div className="pt-2 border-t border-divider/40 space-y-1">
+                  <div className="flex justify-between text-[10px] text-text-secondary font-bold">
+                    <span>System Health</span>
+                    <span style={{ color: project.telemetryStatusColor }}>{project.telemetryHealthStatus}</span>
+                  </div>
+                  {project.telemetryProgress !== undefined && (
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full" 
+                        style={{ width: `${project.telemetryProgress}%`, backgroundColor: project.telemetryStatusColor || '#3b82f6' }} 
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {project.telemetryBadges && project.telemetryBadges.length > 0 && (
+                <div className="pt-2 border-t border-divider/40 flex flex-wrap gap-1">
+                  {project.telemetryBadges.map((badge, bIdx) => (
+                    <span key={bIdx} className="text-[8px] font-mono px-2 py-0.5 bg-white/5 rounded border border-white/10 text-text-muted">
+                      {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
             </GlassCard>
 
             {/* Platform Quick links */}
             <div className="p-4 rounded-xl bg-bg-secondary/40 border border-glass-border space-y-2">
               <p className="text-[10px] font-mono text-text-muted uppercase tracking-widest select-none font-bold">Quick Actions</p>
               <div className="flex flex-col gap-1.5 pt-1">
-                {project.githubUrl && (
-                  <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-text-secondary hover:text-accent-blue transition-colors flex items-center justify-between py-1 border-b border-divider/40">
-                    <span>Inspect Codebase</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </a>
-                )}
-                {project.liveUrl && (
-                  <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-text-secondary hover:text-accent-blue transition-colors flex items-center justify-between py-1 border-b border-divider/40">
-                    <span>Monitor Operations</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </a>
+                {project.quickActions && project.quickActions.length > 0 ? (
+                  project.quickActions.filter(a => a.visible !== false).sort((a,b) => a.order - b.order).map((action, aIdx) => (
+                    <a 
+                      key={aIdx} 
+                      href={action.externalUrl || action.route || "#"} 
+                      target={action.newTab ? "_blank" : "_self"} 
+                      rel="noopener noreferrer" 
+                      className="text-xs font-semibold text-text-secondary hover:text-accent-blue transition-colors flex items-center justify-between py-1 border-b border-divider/40"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        {action.icon && (() => {
+                          const Icon = (LucideIcons as any)[action.icon];
+                          return Icon ? <Icon className="w-3.5 h-3.5 text-accent-blue" /> : null;
+                        })()}
+                        {action.label}
+                      </span>
+                      <ChevronRight className="w-3 h-3" />
+                    </a>
+                  ))
+                ) : (
+                  <>
+                    {project.githubUrl && (
+                      <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-text-secondary hover:text-accent-blue transition-colors flex items-center justify-between py-1 border-b border-divider/40">
+                        <span>Inspect Codebase</span>
+                        <ChevronRight className="w-3 h-3" />
+                      </a>
+                    )}
+                    {project.liveUrl && (
+                      <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-text-secondary hover:text-accent-blue transition-colors flex items-center justify-between py-1 border-b border-divider/40">
+                        <span>Monitor Operations</span>
+                        <ChevronRight className="w-3 h-3" />
+                      </a>
+                    )}
+                  </>
                 )}
               </div>
             </div>

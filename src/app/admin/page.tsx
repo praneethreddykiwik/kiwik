@@ -1,5 +1,6 @@
 "use client";
 
+import * as LucideIcons from "lucide-react";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -74,6 +75,7 @@ import {
 import { useProjectsStore, useProjects } from "@/stores/projects-store";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
 import { useDocsStore } from "@/stores/docs-store";
+import ProjectDetailPage from "@/app/projects/[slug]/page";
 import { GlassCard } from "@/components/glass/glass-card";
 import type {
   Project,
@@ -214,6 +216,23 @@ export default function AdminPage() {
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [editingProject, setEditingProject] = useState<any | null>(null);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const [activeEditorTab, setActiveEditorTab] = useState<string>("general");
+
+  const editorTabs = [
+    { id: "general", label: "General Specs", icon: <LucideIcons.Settings className="w-3.5 h-3.5" /> },
+    { id: "branding", label: "Branding/Identity", icon: <LucideIcons.Layers className="w-3.5 h-3.5" /> },
+    { id: "hero", label: "Hero Showcase", icon: <LucideIcons.Layout className="w-3.5 h-3.5" /> },
+    { id: "overview", label: "Overview Panel", icon: <LucideIcons.BookOpen className="w-3.5 h-3.5" /> },
+    { id: "telemetry", label: "Telemetry & Logs", icon: <LucideIcons.Activity className="w-3.5 h-3.5" /> },
+    { id: "quick", label: "Quick Actions", icon: <LucideIcons.Plus className="w-3.5 h-3.5" /> },
+    { id: "features", label: "Feature Cards", icon: <LucideIcons.Sparkles className="w-3.5 h-3.5" /> },
+    { id: "tech", label: "Tech Stack", icon: <LucideIcons.Cpu className="w-3.5 h-3.5" /> },
+    { id: "readme", label: "Documentation", icon: <LucideIcons.FileText className="w-3.5 h-3.5" /> },
+    { id: "gallery", label: "Gallery Assets", icon: <LucideIcons.Image className="w-3.5 h-3.5" /> },
+    { id: "timeline", label: "Timeline Nodes", icon: <LucideIcons.Calendar className="w-3.5 h-3.5" /> },
+    { id: "contributors", label: "Contributors", icon: <LucideIcons.Users className="w-3.5 h-3.5" /> },
+    { id: "seo", label: "SEO Config", icon: <LucideIcons.Globe className="w-3.5 h-3.5" /> }
+  ];
 
   // Prompt-less Media additions
   const [showAddMediaForm, setShowAddMediaForm] = useState(false);
@@ -223,6 +242,22 @@ export default function AdminPage() {
   const [newPickerAssetName, setNewPickerAssetName] = useState("");
   const [newPickerAssetUrl, setNewPickerAssetUrl] = useState("");
 
+  const updateProjField = (updatedFields: Partial<Project>) => {
+    if (!editingProject) return;
+    const nameChanged = updatedFields.name !== undefined;
+    let newSlug = updatedFields.slug;
+    if (nameChanged && updatedFields.name) {
+      newSlug = updatedFields.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    }
+    const updated = {
+      ...editingProject,
+      ...updatedFields,
+      ...(nameChanged && newSlug ? { slug: newSlug } : {})
+    };
+    setEditingProject(updated);
+    updateProject(editingProject.id, updated);
+  };
+
   const filteredProjects = projects.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(projectSearch.toLowerCase()) ||
@@ -231,6 +266,1722 @@ export default function AdminPage() {
       projectStatusFilter === "all" || p.status === projectStatusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // CMS Section Renderers
+  const renderGeneralSection = () => {
+    if (!editingProject) return null;
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Project Name</label>
+            <input
+              type="text"
+              value={editingProject.name || ""}
+              onChange={(e) => updateProjField({ name: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Project Slug</label>
+            <input
+              type="text"
+              value={editingProject.slug || ""}
+              onChange={(e) => updateProjField({ slug: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Short Description (Tagline)</label>
+          <input
+            type="text"
+            value={editingProject.tagline || ""}
+            onChange={(e) => updateProjField({ tagline: e.target.value })}
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Long Description</label>
+          <textarea
+            rows={3}
+            value={editingProject.longDescription || ""}
+            onChange={(e) => updateProjField({ longDescription: e.target.value })}
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Status</label>
+            <select
+              value={editingProject.status || "in-progress"}
+              onChange={(e) => updateProjField({ status: e.target.value as any })}
+              className="w-full px-3 py-2 rounded-xl bg-[#111318] border border-glass-border text-xs text-white"
+            >
+              <option value="active">Active</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="archived">Archived</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Category</label>
+            <select
+              value={editingProject.category || "web"}
+              onChange={(e) => updateProjField({ category: e.target.value as any })}
+              className="w-full px-3 py-2 rounded-xl bg-[#111318] border border-glass-border text-xs text-white"
+            >
+              <option value="ai">AI / Machine Learning</option>
+              <option value="web">Web App / Portal</option>
+              <option value="mobile">Mobile Application</option>
+              <option value="automation">Automation Pipeline</option>
+              <option value="blockchain">Blockchain Ledger</option>
+              <option value="ml">Machine Learning</option>
+              <option value="devops">DevOps & Cloud</option>
+              <option value="research">Academic Research</option>
+              <option value="saas">SaaS Portal</option>
+              <option value="open-source">Open Source Utility</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Version</label>
+            <input
+              type="text"
+              value={editingProject.version || ""}
+              onChange={(e) => updateProjField({ version: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Sort Order</label>
+            <input
+              type="number"
+              value={editingProject.sortOrder || 0}
+              onChange={(e) => updateProjField({ sortOrder: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Priority</label>
+            <input
+              type="number"
+              value={editingProject.priority || 0}
+              onChange={(e) => updateProjField({ priority: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div className="flex items-center pt-5 gap-2">
+            <input
+              type="checkbox"
+              id="proj-featured"
+              checked={editingProject.featured || false}
+              onChange={(e) => updateProjField({ featured: e.target.checked })}
+              className="w-4 h-4 rounded bg-bg-secondary border-glass-border"
+            />
+            <label htmlFor="proj-featured" className="text-xs font-semibold text-text-secondary">Featured</label>
+          </div>
+          <div className="flex items-center pt-5 gap-2">
+            <input
+              type="checkbox"
+              id="proj-visible"
+              checked={editingProject.visible !== false}
+              onChange={(e) => updateProjField({ visible: e.target.checked })}
+              className="w-4 h-4 rounded bg-bg-secondary border-glass-border"
+            />
+            <label htmlFor="proj-visible" className="text-xs font-semibold text-text-secondary">Visible</label>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Created Date</label>
+            <input
+              type="text"
+              value={editingProject.createdAt || ""}
+              onChange={(e) => updateProjField({ createdAt: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Publish Date</label>
+            <input
+              type="text"
+              value={editingProject.publishDate || ""}
+              onChange={(e) => updateProjField({ publishDate: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderBrandingSection = () => {
+    if (!editingProject) return null;
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Dark Logo</label>
+            <div className="flex gap-2">
+              <input type="text" value={editingProject.logoDark || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <button
+                type="button"
+                onClick={() => setMediaPickerTarget({ title: "Dark Logo Asset", onSelect: (url) => updateProjField({ logoDark: url }) })}
+                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+              >
+                Browse
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Light Logo</label>
+            <div className="flex gap-2">
+              <input type="text" value={editingProject.logoLight || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <button
+                type="button"
+                onClick={() => setMediaPickerTarget({ title: "Light Logo Asset", onSelect: (url) => updateProjField({ logoLight: url }) })}
+                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+              >
+                Browse
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Project Icon</label>
+            <div className="flex gap-2">
+              <input type="text" value={editingProject.logo || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <button
+                type="button"
+                onClick={() => setMediaPickerTarget({ title: "Project Icon", onSelect: (url) => updateProjField({ logo: url }) })}
+                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+              >
+                Browse
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Favicon Asset</label>
+            <div className="flex gap-2">
+              <input type="text" value={editingProject.favicon || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <button
+                type="button"
+                onClick={() => setMediaPickerTarget({ title: "Favicon", onSelect: (url) => updateProjField({ favicon: url }) })}
+                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+              >
+                Browse
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Accent Hex Color</label>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={editingProject.accentColor || "#3b82f6"}
+                onChange={(e) => updateProjField({ accentColor: e.target.value })}
+                className="w-10 h-8 rounded border-0 bg-transparent cursor-pointer"
+              />
+              <input
+                type="text"
+                value={editingProject.accentColor || ""}
+                onChange={(e) => updateProjField({ accentColor: e.target.value })}
+                className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Theme Color</label>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={editingProject.themeColor || "#0b0f19"}
+                onChange={(e) => updateProjField({ themeColor: e.target.value })}
+                className="w-10 h-8 rounded border-0 bg-transparent cursor-pointer"
+              />
+              <input
+                type="text"
+                value={editingProject.themeColor || ""}
+                onChange={(e) => updateProjField({ themeColor: e.target.value })}
+                className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Cover Image</label>
+            <div className="flex gap-2">
+              <input type="text" value={editingProject.coverImage || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <button
+                type="button"
+                onClick={() => setMediaPickerTarget({ title: "Cover Image", onSelect: (url) => updateProjField({ coverImage: url }) })}
+                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+              >
+                Browse
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Background Gradient</label>
+            <input
+              type="text"
+              value={editingProject.brandingGradient || ""}
+              onChange={(e) => updateProjField({ brandingGradient: e.target.value })}
+              placeholder="e.g. from-blue-500/10 to-transparent"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Thumbnail</label>
+            <div className="flex gap-2">
+              <input type="text" value={editingProject.thumbnail || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <button
+                type="button"
+                onClick={() => setMediaPickerTarget({ title: "Thumbnail Image", onSelect: (url) => updateProjField({ thumbnail: url }) })}
+                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+              >
+                Browse
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Card Image</label>
+            <div className="flex gap-2">
+              <input type="text" value={editingProject.cardImage || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <button
+                type="button"
+                onClick={() => setMediaPickerTarget({ title: "Card Image Showcase", onSelect: (url) => updateProjField({ cardImage: url }) })}
+                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+              >
+                Browse
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderHeroSection = () => {
+    if (!editingProject) return null;
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Back Button Label</label>
+            <input
+              type="text"
+              value={editingProject.heroBackButtonLabel || ""}
+              onChange={(e) => updateProjField({ heroBackButtonLabel: e.target.value })}
+              placeholder="Back to systems"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Status Badge Text</label>
+            <input
+              type="text"
+              value={editingProject.heroStatusBadge || ""}
+              onChange={(e) => updateProjField({ heroStatusBadge: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Hero Title</label>
+            <input
+              type="text"
+              value={editingProject.heroTitle || ""}
+              onChange={(e) => updateProjField({ heroTitle: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Hero Subtitle</label>
+            <input
+              type="text"
+              value={editingProject.heroSubtitle || ""}
+              onChange={(e) => updateProjField({ heroSubtitle: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Hero Description</label>
+          <textarea
+            rows={2}
+            value={editingProject.heroDescription || ""}
+            onChange={(e) => updateProjField({ heroDescription: e.target.value })}
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        {/* CTA 1 */}
+        <div className="p-3 rounded-xl bg-black/20 border border-white/5 space-y-3">
+          <span className="text-[9px] font-mono font-bold text-accent-blue uppercase block">Primary CTA Button</span>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[9px] text-text-secondary block mb-0.5">Label</label>
+              <input
+                type="text"
+                value={editingProject.heroCta1Text || ""}
+                onChange={(e) => updateProjField({ heroCta1Text: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded bg-bg-secondary text-xs"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] text-text-secondary block mb-0.5">Target Link / URL</label>
+              <input
+                type="text"
+                value={editingProject.heroCta1Link || ""}
+                onChange={(e) => updateProjField({ heroCta1Link: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded bg-bg-secondary text-xs font-mono"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[9px] text-text-secondary block mb-0.5">Icon (Lucide name)</label>
+              <input
+                type="text"
+                value={editingProject.heroCta1Icon || ""}
+                onChange={(e) => updateProjField({ heroCta1Icon: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded bg-bg-secondary text-xs font-mono"
+              />
+            </div>
+            <div className="flex items-center pt-4 gap-2">
+              <input
+                type="checkbox"
+                id="cta1-newtab"
+                checked={editingProject.heroCta1NewTab !== false}
+                onChange={(e) => updateProjField({ heroCta1NewTab: e.target.checked })}
+                className="w-4 h-4 rounded"
+              />
+              <label htmlFor="cta1-newtab" className="text-[10px] text-text-secondary">Open in New Tab</label>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA 2 */}
+        <div className="p-3 rounded-xl bg-black/20 border border-white/5 space-y-3">
+          <span className="text-[9px] font-mono font-bold text-text-muted uppercase block">Secondary CTA Button</span>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[9px] text-text-secondary block mb-0.5">Label</label>
+              <input
+                type="text"
+                value={editingProject.heroCta2Text || ""}
+                onChange={(e) => updateProjField({ heroCta2Text: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded bg-bg-secondary text-xs"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] text-text-secondary block mb-0.5">Target Link</label>
+              <input
+                type="text"
+                value={editingProject.heroCta2Link || ""}
+                onChange={(e) => updateProjField({ heroCta2Link: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded bg-bg-secondary text-xs font-mono"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[9px] text-text-secondary block mb-0.5">Icon (Lucide name)</label>
+              <input
+                type="text"
+                value={editingProject.heroCta2Icon || ""}
+                onChange={(e) => updateProjField({ heroCta2Icon: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded bg-bg-secondary text-xs font-mono"
+              />
+            </div>
+            <div className="flex items-center pt-4 gap-2">
+              <input
+                type="checkbox"
+                id="cta2-newtab"
+                checked={editingProject.heroCta2NewTab !== false}
+                onChange={(e) => updateProjField({ heroCta2NewTab: e.target.checked })}
+                className="w-4 h-4 rounded"
+              />
+              <label htmlFor="cta2-newtab" className="text-[10px] text-text-secondary">Open in New Tab</label>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">GitHub Codebase link</label>
+            <input
+              type="text"
+              value={editingProject.githubUrl || ""}
+              onChange={(e) => updateProjField({ githubUrl: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Live URL link</label>
+            <input
+              type="text"
+              value={editingProject.liveUrl || ""}
+              onChange={(e) => updateProjField({ liveUrl: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Hero Background Image</label>
+            <div className="flex gap-2">
+              <input type="text" value={editingProject.heroBgImage || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <button
+                type="button"
+                onClick={() => setMediaPickerTarget({ title: "Hero background image", onSelect: (url) => updateProjField({ heroBgImage: url }) })}
+                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+              >
+                Browse
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Overlay Opacity (0 to 1)</label>
+            <input
+              type="number"
+              step="0.05"
+              min="0"
+              max="1"
+              value={editingProject.heroBgOpacity !== undefined ? editingProject.heroBgOpacity : 0.95}
+              onChange={(e) => updateProjField({ heroBgOpacity: parseFloat(e.target.value) || 0.95 })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderOverviewSection = () => {
+    if (!editingProject) return null;
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Overview Title / Heading</label>
+          <input
+            type="text"
+            value={editingProject.overviewHeading || ""}
+            onChange={(e) => updateProjField({ overviewHeading: e.target.value })}
+            placeholder="Overview"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Overview Description Paragraph</label>
+          <textarea
+            rows={4}
+            value={editingProject.overviewParagraph || ""}
+            onChange={(e) => updateProjField({ overviewParagraph: e.target.value })}
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Rich Text Override</label>
+          <textarea
+            rows={3}
+            value={editingProject.overviewRichText || ""}
+            onChange={(e) => updateProjField({ overviewRichText: e.target.value })}
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Key Quote / Callout Block</label>
+          <input
+            type="text"
+            value={editingProject.overviewQuote || ""}
+            onChange={(e) => updateProjField({ overviewQuote: e.target.value })}
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Callout Info Box Text</label>
+          <input
+            type="text"
+            value={editingProject.overviewCallout || ""}
+            onChange={(e) => updateProjField({ overviewCallout: e.target.value })}
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Featured Overview Image</label>
+          <div className="flex gap-2">
+            <input type="text" value={editingProject.overviewImage || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+            <button
+              type="button"
+              onClick={() => setMediaPickerTarget({ title: "Overview asset image", onSelect: (url) => updateProjField({ overviewImage: url }) })}
+              className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+            >
+              Browse
+            </button>
+          </div>
+        </div>
+
+        {/* Highlights bullets manager */}
+        <div className="p-4 rounded-xl bg-black/25 border border-white/5 space-y-3 text-left">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-accent-blue uppercase">Core Pillars / Highlights</span>
+            <button
+              type="button"
+              onClick={() => {
+                const hl = editingProject.overviewHighlights || [];
+                updateProjField({ overviewHighlights: [...hl, "New Pillar Target"] });
+              }}
+              className="text-[9px] font-bold text-white px-2 py-0.5 rounded bg-white/10"
+            >
+              Add Bullet
+            </button>
+          </div>
+          <div className="space-y-2">
+            {(editingProject.overviewHighlights || []).map((bullet: string, bIdx: number) => (
+              <div key={bIdx} className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={bullet}
+                  onChange={(e) => {
+                    const hl = [...(editingProject.overviewHighlights || [])];
+                    hl[bIdx] = e.target.value;
+                    updateProjField({ overviewHighlights: hl });
+                  }}
+                  className="flex-1 px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const hl = (editingProject.overviewHighlights || []).filter((_: any, idx: number) => idx !== bIdx);
+                    updateProjField({ overviewHighlights: hl });
+                  }}
+                  className="p-1 text-rose-500 rounded hover:bg-rose-500/10"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTelemetrySection = () => {
+    if (!editingProject) return null;
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Stars Count</label>
+            <input
+              type="number"
+              value={editingProject.stars || 0}
+              onChange={(e) => updateProjField({ stars: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Forks Count</label>
+            <input
+              type="number"
+              value={editingProject.forks || 0}
+              onChange={(e) => updateProjField({ forks: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Views Count</label>
+            <input
+              type="number"
+              value={editingProject.views || 0}
+              onChange={(e) => updateProjField({ views: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Downloads</label>
+            <input
+              type="number"
+              value={editingProject.telemetryDownloads || 0}
+              onChange={(e) => updateProjField({ telemetryDownloads: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Completion %</label>
+            <input
+              type="number"
+              value={editingProject.completionPercent || 0}
+              onChange={(e) => updateProjField({ completionPercent: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Reading Time (Mins)</label>
+            <input
+              type="text"
+              value={editingProject.telemetryReadingTime || ""}
+              onChange={(e) => updateProjField({ telemetryReadingTime: e.target.value })}
+              placeholder="e.g. 5 min read"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Last Updated String</label>
+            <input
+              type="text"
+              value={editingProject.lastUpdated || ""}
+              onChange={(e) => updateProjField({ lastUpdated: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-2">
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Health Status</label>
+            <input
+              type="text"
+              value={editingProject.telemetryHealthStatus || ""}
+              onChange={(e) => updateProjField({ telemetryHealthStatus: e.target.value })}
+              placeholder="e.g. Operational (Audited)"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Status Color</label>
+            <input
+              type="text"
+              value={editingProject.telemetryStatusColor || ""}
+              onChange={(e) => updateProjField({ telemetryStatusColor: e.target.value })}
+              placeholder="#10B981"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+        </div>
+
+        {/* Telemetry Badges tags list */}
+        <div className="p-4 rounded-xl bg-black/25 border border-white/5 space-y-3 text-left">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-accent-blue uppercase">Telemetry Badges / Tags</span>
+            <button
+              type="button"
+              onClick={() => {
+                const bg = editingProject.telemetryBadges || [];
+                updateProjField({ telemetryBadges: [...bg, "Stable v2"] });
+              }}
+              className="text-[9px] font-bold text-white px-2 py-0.5 rounded bg-white/10 animate-pulse-slow"
+            >
+              Add Badge Tag
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(editingProject.telemetryBadges || []).map((badge: string, bIdx: number) => (
+              <div key={bIdx} className="flex gap-1.5 items-center bg-white/5 px-2 py-1 rounded-xl border border-white/5">
+                <input
+                  type="text"
+                  value={badge}
+                  onChange={(e) => {
+                    const bg = [...(editingProject.telemetryBadges || [])];
+                    bg[bIdx] = e.target.value;
+                    updateProjField({ telemetryBadges: bg });
+                  }}
+                  className="w-20 px-1 py-0.5 bg-transparent border-0 text-[10px] font-bold text-white text-center focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const bg = (editingProject.telemetryBadges || []).filter((_: any, idx: number) => idx !== bIdx);
+                    updateProjField({ telemetryBadges: bg });
+                  }}
+                  className="text-rose-500 hover:text-rose-400"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderQuickActionsSection = () => {
+    if (!editingProject) return null;
+    const actions = editingProject.quickActions || [];
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-xs font-bold text-white uppercase">Quick Link Buttons ({actions.length})</span>
+          <button
+            type="button"
+            onClick={() => {
+              const newAct: QuickAction = {
+                label: "Inspect Deployment",
+                icon: "ExternalLink",
+                route: "/projects",
+                externalUrl: "https://kiwik.space",
+                newTab: true,
+                visible: true,
+                order: actions.length + 1
+              };
+              updateProjField({ quickActions: [...actions, newAct] });
+            }}
+            className="px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
+          >
+            Add Action
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {actions.sort((a: any,b: any) => a.order - b.order).map((act: any, idx: number) => (
+            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+              <div className="absolute top-2 right-2 flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (idx > 0) {
+                      const copy = [...actions];
+                      const temp = copy[idx - 1].order;
+                      copy[idx - 1].order = copy[idx].order;
+                      copy[idx].order = temp;
+                      updateProjField({ quickActions: copy });
+                    }
+                  }}
+                  className="p-1 rounded bg-white/5 hover:bg-white/10 text-white"
+                >
+                  <ArrowUp className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (idx < actions.length - 1) {
+                      const copy = [...actions];
+                      const temp = copy[idx + 1].order;
+                      copy[idx + 1].order = copy[idx].order;
+                      copy[idx].order = temp;
+                      updateProjField({ quickActions: copy });
+                    }
+                  }}
+                  className="p-1 rounded bg-white/5 hover:bg-white/10 text-white"
+                >
+                  <ArrowDown className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const copy = actions.filter((_: any, i: number) => i !== idx);
+                    updateProjField({ quickActions: copy });
+                  }}
+                  className="p-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-500"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Label</label>
+                  <input
+                    type="text"
+                    value={act.label || ""}
+                    onChange={(e) => {
+                      const copy = [...actions];
+                      copy[idx] = { ...copy[idx], label: e.target.value };
+                      updateProjField({ quickActions: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Icon (Lucide name)</label>
+                  <input
+                    type="text"
+                    value={act.icon || ""}
+                    onChange={(e) => {
+                      const copy = [...actions];
+                      copy[idx] = { ...copy[idx], icon: e.target.value };
+                      updateProjField({ quickActions: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Route Path</label>
+                  <input
+                    type="text"
+                    value={act.route || ""}
+                    onChange={(e) => {
+                      const copy = [...actions];
+                      copy[idx] = { ...copy[idx], route: e.target.value };
+                      updateProjField({ quickActions: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">External Link</label>
+                  <input
+                    type="text"
+                    value={act.externalUrl || ""}
+                    onChange={(e) => {
+                      const copy = [...actions];
+                      copy[idx] = { ...copy[idx], externalUrl: e.target.value };
+                      updateProjField({ quickActions: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-1">
+                <label className="flex items-center gap-1.5 text-[10px] text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={act.newTab || false}
+                    onChange={(e) => {
+                      const copy = [...actions];
+                      copy[idx] = { ...copy[idx], newTab: e.target.checked };
+                      updateProjField({ quickActions: copy });
+                    }}
+                    className="w-3.5 h-3.5 rounded"
+                  />
+                  New Tab
+                </label>
+                <label className="flex items-center gap-1.5 text-[10px] text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={act.visible !== false}
+                    onChange={(e) => {
+                      const copy = [...actions];
+                      copy[idx] = { ...copy[idx], visible: e.target.checked };
+                      updateProjField({ quickActions: copy });
+                    }}
+                    className="w-3.5 h-3.5 rounded"
+                  />
+                  Visible
+                </label>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderFeaturesSection = () => {
+    if (!editingProject) return null;
+    const feats = editingProject.features || [];
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-xs font-bold text-white uppercase font-mono">Dynamic Features Cards ({feats.length})</span>
+          <button
+            type="button"
+            onClick={() => {
+              const newFeat: Feature = {
+                title: "New Modular Pipeline",
+                description: "Optimized for latency and dynamic edge configurations.",
+                icon: "Sparkles",
+                id: `feat-${Date.now()}`,
+                visible: true,
+                order: feats.length + 1
+              };
+              updateProjField({ features: [...feats, newFeat] });
+            }}
+            className="px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
+          >
+            Add Feature
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {feats.sort((a: any,b: any) => a.order - b.order).map((feat: any, idx: number) => (
+            <div key={feat.id || idx} className="p-4 rounded-2xl bg-bg-secondary/40 border border-glass-border space-y-3 relative">
+              <div className="absolute top-3 right-3 flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (idx > 0) {
+                      const copy = [...feats];
+                      const temp = copy[idx - 1].order;
+                      copy[idx - 1].order = copy[idx].order;
+                      copy[idx].order = temp;
+                      updateProjField({ features: copy });
+                    }
+                  }}
+                  className="p-1 rounded bg-white/5 text-white"
+                >
+                  <ArrowUp className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (idx < feats.length - 1) {
+                      const copy = [...feats];
+                      const temp = copy[idx + 1].order;
+                      copy[idx + 1].order = copy[idx].order;
+                      copy[idx].order = temp;
+                      updateProjField({ features: copy });
+                    }
+                  }}
+                  className="p-1 rounded bg-white/5 text-white"
+                >
+                  <ArrowDown className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const copy = feats.filter((_: any, i: number) => i !== idx);
+                    updateProjField({ features: copy });
+                  }}
+                  className="p-1.5 rounded bg-rose-500/10 text-rose-500"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-text-secondary block mb-1">Feature Title</label>
+                <input
+                  type="text"
+                  value={feat.title || ""}
+                  onChange={(e) => {
+                    const copy = [...feats];
+                    copy[idx] = { ...copy[idx], title: e.target.value };
+                    updateProjField({ features: copy });
+                  }}
+                  className="w-full px-3 py-1.5 rounded bg-bg-secondary border border-glass-border text-xs text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-text-secondary block mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={feat.description || ""}
+                  onChange={(e) => {
+                    const copy = [...feats];
+                    copy[idx] = { ...copy[idx], description: e.target.value };
+                    updateProjField({ features: copy });
+                  }}
+                  className="w-full px-3 py-1.5 rounded bg-bg-secondary border border-glass-border text-xs text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Icon (Lucide)</label>
+                  <input
+                    type="text"
+                    value={feat.icon || ""}
+                    onChange={(e) => {
+                      const copy = [...feats];
+                      copy[idx] = { ...copy[idx], icon: e.target.value };
+                      updateProjField({ features: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Accent Border Hex</label>
+                  <input
+                    type="text"
+                    value={feat.accent || ""}
+                    onChange={(e) => {
+                      const copy = [...feats];
+                      copy[idx] = { ...copy[idx], accent: e.target.value };
+                      updateProjField({ features: copy });
+                    }}
+                    placeholder="e.g. #3b82f6"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Feature Image</label>
+                  <div className="flex gap-1.5">
+                    <input type="text" value={feat.image || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                    <button
+                      type="button"
+                      onClick={() => setMediaPickerTarget({
+                        title: `Image for feature ${feat.title}`,
+                        onSelect: (url) => {
+                          const copy = [...feats];
+                          copy[idx] = { ...copy[idx], image: url };
+                          updateProjField({ features: copy });
+                        }
+                      })}
+                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                    >
+                      Browse
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center pt-4 gap-2">
+                  <input
+                    type="checkbox"
+                    checked={feat.visible !== false}
+                    onChange={(e) => {
+                      const copy = [...feats];
+                      copy[idx] = { ...copy[idx], visible: e.target.checked };
+                      updateProjField({ features: copy });
+                    }}
+                    className="w-3.5 h-3.5 rounded"
+                  />
+                  <label className="text-[10px] text-text-secondary">Visible</label>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTechStackSection = () => {
+    if (!editingProject) return null;
+    const stack = editingProject.techStack || [];
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-xs font-bold text-white uppercase font-mono">Technologies ({stack.length})</span>
+          <button
+            type="button"
+            onClick={() => {
+              const newTech: TechItem = {
+                name: "React Next.js",
+                logo: "/logo.png",
+                category: "frontend",
+                version: "16.2",
+                website: "https://nextjs.org",
+                order: stack.length + 1
+              };
+              updateProjField({ techStack: [...stack, newTech] });
+            }}
+            className="px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
+          >
+            Add Tech Item
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {stack.sort((a: any,b: any) => a.order - b.order).map((tech: any, idx: number) => (
+            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+              <div className="absolute top-2 right-2 flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const copy = stack.filter((_: any, i: number) => i !== idx);
+                    updateProjField({ techStack: copy });
+                  }}
+                  className="p-1 rounded bg-rose-500/10 text-rose-500"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Name</label>
+                  <input
+                    type="text"
+                    value={tech.name || ""}
+                    onChange={(e) => {
+                      const copy = [...stack];
+                      copy[idx] = { ...copy[idx], name: e.target.value };
+                      updateProjField({ techStack: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Version</label>
+                  <input
+                    type="text"
+                    value={tech.version || ""}
+                    onChange={(e) => {
+                      const copy = [...stack];
+                      copy[idx] = { ...copy[idx], version: e.target.value };
+                      updateProjField({ techStack: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Logo Icon</label>
+                  <div className="flex gap-1.5">
+                    <input type="text" value={tech.logo || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                    <button
+                      type="button"
+                      onClick={() => setMediaPickerTarget({
+                        title: `Logo for ${tech.name}`,
+                        onSelect: (url) => {
+                          const copy = [...stack];
+                          copy[idx] = { ...copy[idx], logo: url };
+                          updateProjField({ techStack: copy });
+                        }
+                      })}
+                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                    >
+                      Browse
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Website URL</label>
+                  <input
+                    type="text"
+                    value={tech.website || ""}
+                    onChange={(e) => {
+                      const copy = [...stack];
+                      copy[idx] = { ...copy[idx], website: e.target.value };
+                      updateProjField({ techStack: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderReadmeSection = () => {
+    if (!editingProject) return null;
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="text-[10px] font-bold text-text-secondary uppercase">Markdown README Content</label>
+          <button
+            type="button"
+            onClick={() => {
+              const defaultReadme = `# System Operations Specification\n\nConfigure custom node definitions inside this readme blocks.`;
+              updateProjField({ readme: defaultReadme });
+              showToast("Loaded markdown templates!");
+            }}
+            className="text-[9px] font-bold text-accent-blue hover:underline"
+          >
+            Load Template
+          </button>
+        </div>
+        <textarea
+          rows={15}
+          value={editingProject.readme || ""}
+          onChange={(e) => updateProjField({ readme: e.target.value })}
+          className="w-full p-3.5 rounded-2xl bg-bg-secondary border border-glass-border text-xs text-white font-mono leading-relaxed"
+          placeholder="# Project Operations Readme..."
+        />
+      </div>
+    );
+  };
+
+  const renderGallerySection = () => {
+    if (!editingProject) return null;
+    const imgs = editingProject.images || [];
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-xs font-bold text-white uppercase font-mono">System Gallery Screenshots ({imgs.length})</span>
+          <button
+            type="button"
+            onClick={() => {
+              const newImg: ProjectImage = {
+                src: "/logo.png",
+                alt: "System Dashboard Screenshot",
+                caption: "Console pipeline monitoring analytics",
+                order: imgs.length + 1,
+                mediaType: "image"
+              };
+              updateProjField({ images: [...imgs, newImg] });
+            }}
+            className="px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
+          >
+            Add Asset Link
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {imgs.sort((a: any,b: any) => a.order - b.order).map((img: any, idx: number) => (
+            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+              <div className="absolute top-2 right-2 flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const copy = imgs.filter((_: any, i: number) => i !== idx);
+                    updateProjField({ images: copy });
+                  }}
+                  className="p-1 rounded bg-rose-500/10 text-rose-500"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div>
+                <label className="text-[9px] text-text-secondary block">Select Image Asset</label>
+                <div className="flex gap-1.5">
+                  <input type="text" value={img.src || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                  <button
+                    type="button"
+                    onClick={() => setMediaPickerTarget({
+                      title: `Gallery image #${idx + 1}`,
+                      onSelect: (url) => {
+                        const copy = [...imgs];
+                        copy[idx] = { ...copy[idx], src: url };
+                        updateProjField({ images: copy });
+                      }
+                    })}
+                    className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                  >
+                    Browse
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Alt Text</label>
+                  <input
+                    type="text"
+                    value={img.alt || ""}
+                    onChange={(e) => {
+                      const copy = [...imgs];
+                      copy[idx] = { ...copy[idx], alt: e.target.value };
+                      updateProjField({ images: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Caption label</label>
+                  <input
+                    type="text"
+                    value={img.caption || ""}
+                    onChange={(e) => {
+                      const copy = [...imgs];
+                      copy[idx] = { ...copy[idx], caption: e.target.value };
+                      updateProjField({ images: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <label className="flex items-center gap-1 text-[10px] text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={img.isVideo || img.mediaType === "video" || false}
+                    onChange={(e) => {
+                      const copy = [...imgs];
+                      copy[idx] = { ...copy[idx], isVideo: e.target.checked, mediaType: e.target.checked ? "video" : "image" };
+                      updateProjField({ images: copy });
+                    }}
+                    className="w-3.5 h-3.5 rounded"
+                  />
+                  Video Asset
+                </label>
+                {img.isVideo && (
+                  <input
+                    type="text"
+                    value={img.videoUrl || ""}
+                    onChange={(e) => {
+                      const copy = [...imgs];
+                      copy[idx] = { ...copy[idx], videoUrl: e.target.value };
+                      updateProjField({ images: copy });
+                    }}
+                    placeholder="Video MP4/YouTube link"
+                    className="flex-1 px-2 py-0.5 rounded bg-bg-secondary text-[10px] text-white font-mono"
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTimelineSection = () => {
+    if (!editingProject) return null;
+    const timeline = editingProject.timeline || [];
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-xs font-bold text-white uppercase font-mono">Timeline Releases ({timeline.length})</span>
+          <button
+            type="button"
+            onClick={() => {
+              const newEvent: TimelineEntry = {
+                date: new Date().toISOString().split("T")[0],
+                title: "Production Release v2",
+                description: "Full cluster replication deployed to production nodes.",
+                status: "completed",
+                order: timeline.length + 1
+              };
+              updateProjField({ timeline: [...timeline, newEvent] });
+            }}
+            className="px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
+          >
+            Add Event
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {timeline.sort((a: any,b: any) => a.order - b.order).map((event: any, idx: number) => (
+            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+              <div className="absolute top-2 right-2 flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const copy = timeline.filter((_: any, i: number) => i !== idx);
+                    updateProjField({ timeline: copy });
+                  }}
+                  className="p-1 rounded bg-rose-500/10 text-rose-500"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Date String</label>
+                  <input
+                    type="text"
+                    value={event.date || ""}
+                    onChange={(e) => {
+                      const copy = [...timeline];
+                      copy[idx] = { ...copy[idx], date: e.target.value };
+                      updateProjField({ timeline: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Badge text</label>
+                  <input
+                    type="text"
+                    value={event.badge || ""}
+                    onChange={(e) => {
+                      const copy = [...timeline];
+                      copy[idx] = { ...copy[idx], badge: e.target.value };
+                      updateProjField({ timeline: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[9px] text-text-secondary block">Event Title</label>
+                <input
+                  type="text"
+                  value={event.title || ""}
+                  onChange={(e) => {
+                    const copy = [...timeline];
+                    copy[idx] = { ...copy[idx], title: e.target.value };
+                    updateProjField({ timeline: copy });
+                  }}
+                  className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-[9px] text-text-secondary block">Description</label>
+                <textarea
+                  rows={2}
+                  value={event.description || ""}
+                  onChange={(e) => {
+                    const copy = [...timeline];
+                    copy[idx] = { ...copy[idx], description: e.target.value };
+                    updateProjField({ timeline: copy });
+                  }}
+                  className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Release Status</label>
+                  <select
+                    value={event.status || "planned"}
+                    onChange={(e) => {
+                      const copy = [...timeline];
+                      copy[idx] = { ...copy[idx], status: e.target.value as any };
+                      updateProjField({ timeline: copy });
+                    }}
+                    className="w-full px-2 py-1.5 rounded bg-[#111318] text-xs text-white"
+                  >
+                    <option value="completed">Completed</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="planned">Planned</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Optional image</label>
+                  <div className="flex gap-1.5">
+                    <input type="text" value={event.image || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                    <button
+                      type="button"
+                      onClick={() => setMediaPickerTarget({
+                        title: `Image for event ${event.title}`,
+                        onSelect: (url) => {
+                          const copy = [...timeline];
+                          copy[idx] = { ...copy[idx], image: url };
+                          updateProjField({ timeline: copy });
+                        }
+                      })}
+                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                    >
+                      Browse
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderContributorsSection = () => {
+    if (!editingProject) return null;
+    const team = editingProject.contributors || [];
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-xs font-bold text-white uppercase font-mono">Team Contributors ({team.length})</span>
+          <button
+            type="button"
+            onClick={() => {
+              const newUser: Contributor = {
+                name: "Sarah Lin",
+                role: "Lead DevOps",
+                avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
+                contributionPercent: 40,
+                featured: true,
+                order: team.length + 1
+              };
+              updateProjField({ contributors: [...team, newUser] });
+            }}
+            className="px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
+          >
+            Add Team Member
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {team.sort((a: any,b: any) => a.order - b.order).map((member: any, idx: number) => (
+            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+              <div className="absolute top-2 right-2 flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const copy = team.filter((_: any, i: number) => i !== idx);
+                    updateProjField({ contributors: copy });
+                  }}
+                  className="p-1 rounded bg-rose-500/10 text-rose-500"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Full Name</label>
+                  <input
+                    type="text"
+                    value={member.name || ""}
+                    onChange={(e) => {
+                      const copy = [...team];
+                      copy[idx] = { ...copy[idx], name: e.target.value };
+                      updateProjField({ contributors: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Role Title</label>
+                  <input
+                    type="text"
+                    value={member.role || ""}
+                    onChange={(e) => {
+                      const copy = [...team];
+                      copy[idx] = { ...copy[idx], role: e.target.value };
+                      updateProjField({ contributors: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[9px] text-text-secondary block">Avatar</label>
+                <div className="flex gap-1.5">
+                  <input type="text" value={member.avatar || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                  <button
+                    type="button"
+                    onClick={() => setMediaPickerTarget({
+                      title: `Avatar for ${member.name}`,
+                      onSelect: (url) => {
+                        const copy = [...team];
+                        copy[idx] = { ...copy[idx], avatar: url };
+                        updateProjField({ contributors: copy });
+                      }
+                    })}
+                    className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                  >
+                    Browse
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] text-text-secondary block">GitHub URL</label>
+                  <input
+                    type="text"
+                    value={member.github || ""}
+                    onChange={(e) => {
+                      const copy = [...team];
+                      copy[idx] = { ...copy[idx], github: e.target.value };
+                      updateProjField({ contributors: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] text-text-secondary block">Contribution %</label>
+                  <input
+                    type="number"
+                    value={member.contributionPercent || 0}
+                    onChange={(e) => {
+                      const copy = [...team];
+                      copy[idx] = { ...copy[idx], contributionPercent: parseInt(e.target.value) || 0 };
+                      updateProjField({ contributors: copy });
+                    }}
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderSEOSection = () => {
+    if (!editingProject) return null;
+    const seo = editingProject.seo || {};
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">SEO Metatags Title</label>
+          <input
+            type="text"
+            value={seo.title || ""}
+            onChange={(e) => updateProjField({ seo: { ...seo, title: e.target.value } })}
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">SEO Description</label>
+          <textarea
+            rows={3}
+            value={seo.description || ""}
+            onChange={(e) => updateProjField({ seo: { ...seo, description: e.target.value } })}
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Meta Keywords list</label>
+          <input
+            type="text"
+            value={seo.keywords || ""}
+            onChange={(e) => updateProjField({ seo: { ...seo, keywords: e.target.value } })}
+            placeholder="e.g. modular, edge, router"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Twitter Card type</label>
+            <input
+              type="text"
+              value={seo.twitterCard || ""}
+              onChange={(e) => updateProjField({ seo: { ...seo, twitterCard: e.target.value } })}
+              placeholder="summary_large_image"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Sitemap Priority (0 to 1)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={seo.sitemapPriority || 0.8}
+              onChange={(e) => updateProjField({ seo: { ...seo, sitemapPriority: parseFloat(e.target.value) || 0.8 } })}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary flex flex-col font-sans select-none antialiased">
@@ -2580,74 +4331,210 @@ export default function AdminPage() {
 
           {/* PROJECTS TAB */}
           {mainTab === "projects" && (
-            <div className="space-y-6 text-left">
-              <div className="flex items-center justify-between p-5 rounded-2xl bg-glass-bg border border-glass-border">
-                <div>
-                  <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                    <Folder className="w-4 h-4 text-accent-blue" /> Central Projects Catalog ({projects.length})
-                  </h3>
-                  <p className="text-xs text-text-secondary mt-0.5">Manage modular products, codebases, cover assets, status indicators, and deployment paths.</p>
-                </div>
-                <button
-                  onClick={() => {
-                    const slug = `project-${Date.now()}`;
-                    const newProj = {
-                      ...emptyProject,
-                      id: slug,
-                      slug,
-                      name: "New Kiwik Project",
-                      tagline: "High-performance modular service node.",
-                      description: "Detailed system architecture parameters and specifications will be updated here.",
-                      status: "in-progress" as const,
-                      category: "web" as const,
-                      lastUpdated: new Date().toISOString().split("T")[0]
-                    };
-                    addProject(newProj);
-                    setEditingProject(newProj);
-                    showToast("Created project catalog card! Opening editor specs...");
-                  }}
-                  className="px-5 py-2.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
-                >
-                  <Plus className="w-4 h-4" /> Add Project
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProjects.map((proj) => (
-                  <GlassCard key={proj.id} className="p-5 space-y-4 flex flex-col justify-between">
+            editingProject ? (
+              <div className="fixed inset-0 top-16 z-40 bg-[#08090d] flex flex-col h-[calc(100vh-64px)] w-screen text-left">
+                {/* Control bar */}
+                <div className="px-6 py-3.5 bg-black/40 border-b border-white/5 flex items-center justify-between flex-shrink-0">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        setEditingProject(null);
+                        showToast("Returned to projects catalog");
+                      }}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white cursor-pointer transition-all"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-sm font-bold text-text-primary">{proj.name}</h4>
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-[9px] font-bold uppercase">
-                          {proj.status}
-                        </span>
+                      <div className="text-[10px] text-text-secondary flex items-center gap-1.5 uppercase font-mono tracking-widest font-bold">
+                        <span>Projects Studio Editor</span>
+                        <span>/</span>
+                        <span className="text-accent-blue font-bold">{editingProject.slug}</span>
                       </div>
-                      <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">{proj.tagline || proj.description}</p>
+                      <h2 className="text-sm font-bold text-white mt-0.5">{editingProject.name}</h2>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const slug = editingProject.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                        const updated = { ...editingProject, slug };
+                        setEditingProject(updated);
+                        updateProject(editingProject.id, updated);
+                        showToast(`Derived slug from name: ${slug}`);
+                      }}
+                      className="px-4 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-white transition-all cursor-pointer"
+                    >
+                      Sync Slug
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingProject(null);
+                        showToast("All project specs synchronized successfully!");
+                      }}
+                      className="px-5 py-2 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-xs font-bold text-white cursor-pointer shadow-md transition-all hover:scale-[1.02]"
+                    >
+                      Publish & Close
+                    </button>
+                  </div>
+                </div>
+
+                {/* Left/Right Split Panel layout */}
+                <div className="flex-1 flex overflow-hidden bg-[#08090d]">
+                  {/* Left panel: Collapsible form builder (440px width) */}
+                  <div className="w-[440px] flex-shrink-0 bg-neutral-950/60 border-r border-white/5 flex h-full overflow-hidden">
+                    {/* Tiny Nav list on the left side of the CMS sidebar */}
+                    <div className="w-[85px] bg-[#0c0d12] border-r border-white/5 py-4 flex flex-col gap-1 items-center overflow-y-auto no-scrollbar">
+                      {editorTabs.map((tab) => {
+                        const isSelected = activeEditorTab === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => setActiveEditorTab(tab.id)}
+                            title={tab.label}
+                            className={cn(
+                              "p-2.5 w-16 h-16 rounded-xl transition-all flex flex-col items-center justify-center gap-1 group cursor-pointer",
+                              isSelected 
+                                ? "text-accent-blue bg-accent-blue/10 scale-105" 
+                                : "text-text-secondary hover:text-white hover:bg-white/5"
+                            )}
+                          >
+                            {tab.icon}
+                            <span className="text-[8px] font-bold text-center truncate w-full">
+                              {tab.label.split(" ")[0]}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-divider">
-                      <button
-                        onClick={() => {
-                          setEditingProject(proj);
-                        }}
-                        className="text-xs font-bold text-accent-blue flex items-center gap-1 cursor-pointer hover:underline"
-                      >
-                        <Edit className="w-3.5 h-3.5" /> Edit Specs
-                      </button>
-                      <button
-                        onClick={() => {
-                          deleteProject(proj.id);
-                          showToast(`Deleted project [${proj.name}]`);
-                        }}
-                        className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                    {/* Editing settings form values */}
+                    <div className="flex-1 p-5 overflow-y-auto space-y-6 no-scrollbar bg-[#0f1115]">
+                      {/* Form header */}
+                      <div className="border-b border-white/5 pb-3">
+                        <h3 className="text-xs font-mono font-bold text-accent-blue uppercase tracking-widest">
+                          {editorTabs.find(t => t.id === activeEditorTab)?.label || "Specifications"}
+                        </h3>
+                        <p className="text-[10px] text-text-secondary mt-1">
+                          Configure layout parameters and data fields.
+                        </p>
+                      </div>
+
+                      {/* RENDER ACTIVE TAB EDITOR */}
+                      {activeEditorTab === "general" && renderGeneralSection()}
+                      {activeEditorTab === "branding" && renderBrandingSection()}
+                      {activeEditorTab === "hero" && renderHeroSection()}
+                      {activeEditorTab === "overview" && renderOverviewSection()}
+                      {activeEditorTab === "telemetry" && renderTelemetrySection()}
+                      {activeEditorTab === "quick" && renderQuickActionsSection()}
+                      {activeEditorTab === "features" && renderFeaturesSection()}
+                      {activeEditorTab === "tech" && renderTechStackSection()}
+                      {activeEditorTab === "readme" && renderReadmeSection()}
+                      {activeEditorTab === "gallery" && renderGallerySection()}
+                      {activeEditorTab === "timeline" && renderTimelineSection()}
+                      {activeEditorTab === "contributors" && renderContributorsSection()}
+                      {activeEditorTab === "seo" && renderSEOSection()}
                     </div>
-                  </GlassCard>
-                ))}
+                  </div>
+
+                  {/* Right panel: Full real-time live preview (60% width) */}
+                  <div className="flex-1 bg-[#0b0f19] h-full overflow-y-auto no-scrollbar relative">
+                    <div className="absolute top-4 left-4 bg-accent-blue/20 border border-accent-blue/40 px-3 py-1 rounded-full text-[9px] font-mono font-bold text-accent-blue tracking-widest uppercase select-none z-[100] animate-pulse">
+                      Live Preview (Updates Instantly)
+                    </div>
+                    {/* Embed the actual page component passing the modified project object */}
+                    <div className="scale-[0.98] origin-top-left transform w-[102%] h-[102%] pointer-events-none">
+                      <ProjectDetailPage projectOverride={editingProject} />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-6 text-left">
+                <div className="flex items-center justify-between p-5 rounded-2xl bg-glass-bg border border-glass-border">
+                  <div>
+                    <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                      <Folder className="w-4 h-4 text-accent-blue" /> Central Projects Catalog ({projects.length})
+                    </h3>
+                    <p className="text-xs text-text-secondary mt-0.5">Manage modular products, codebases, cover assets, status indicators, and deployment paths.</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const slug = `project-${Date.now()}`;
+                      const newProj: Project = {
+                        id: slug,
+                        slug,
+                        name: "New Kiwik Project",
+                        tagline: "High-performance modular service node.",
+                        description: "Detailed system architecture parameters and specifications will be updated here.",
+                        status: "in-progress" as const,
+                        category: "web" as const,
+                        lastUpdated: new Date().toISOString().split("T")[0],
+                        createdAt: new Date().toISOString().split("T")[0],
+                        owner: "Admin",
+                        version: "1.0.0",
+                        completionPercent: 0,
+                        coverImage: "/images/kiwik-cover.jpg",
+                        tags: ["web"],
+                        images: [],
+                        techStack: [],
+                        features: [],
+                        changelog: [],
+                        contributors: [],
+                        timeline: [],
+                        readme: "# New Project Documentation",
+                        stars: 0,
+                        forks: 0,
+                        views: 0
+                      };
+                      addProject(newProj);
+                      setEditingProject(newProj);
+                      showToast("Created project catalog card! Opening editor specs...");
+                    }}
+                    className="px-5 py-2.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
+                  >
+                    <Plus className="w-4 h-4" /> Add Project
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProjects.map((proj) => (
+                    <GlassCard key={proj.id} className="p-5 space-y-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-sm font-bold text-text-primary">{proj.name}</h4>
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-[9px] font-bold uppercase">
+                            {proj.status}
+                          </span>
+                        </div>
+                        <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">{proj.tagline || proj.description}</p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t border-divider">
+                        <button
+                          onClick={() => {
+                            setEditingProject(proj);
+                          }}
+                          className="text-xs font-bold text-accent-blue flex items-center gap-1 cursor-pointer hover:underline"
+                        >
+                          <Edit className="w-3.5 h-3.5" /> Edit Specs
+                        </button>
+                        <button
+                          onClick={() => {
+                            deleteProject(proj.id);
+                            showToast(`Deleted project [${proj.name}]`);
+                          }}
+                          className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </GlassCard>
+                  ))}
+                </div>
+              </div>
+            )
           )}
 
           {/* DOCUMENTATION TAB */}
@@ -3072,192 +4959,6 @@ export default function AdminPage() {
         )}
       </AnimatePresence>
 
-      {/* PROJECT SPECS DIALOG MODAL */}
-      <AnimatePresence>
-        {editingProject && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-md flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-xl bg-[#0d0f13] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] text-left"
-            >
-              {/* Header */}
-              <div className="p-5 bg-black/20 border-b border-white/10 flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-bold text-white">Project Catalog Specifications</h4>
-                  <p className="text-[10px] text-text-muted mt-0.5">ID: {editingProject.id}</p>
-                </div>
-                <button
-                  onClick={() => setEditingProject(null)}
-                  className="p-1.5 rounded-full hover:bg-white/10 text-white cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Content Form */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-text-muted block mb-1">Project Name</label>
-                    <input
-                      type="text"
-                      value={editingProject.name}
-                      onChange={(e) => {
-                        const updated = { ...editingProject, name: e.target.value };
-                        setEditingProject(updated);
-                        updateProject(editingProject.id, updated);
-                      }}
-                      className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-text-muted block mb-1">Project Slug</label>
-                    <input
-                      type="text"
-                      value={editingProject.slug}
-                      onChange={(e) => {
-                        const updated = { ...editingProject, slug: e.target.value };
-                        setEditingProject(updated);
-                        updateProject(editingProject.id, updated);
-                      }}
-                      className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-text-muted block mb-1">Tagline</label>
-                  <input
-                    type="text"
-                    value={editingProject.tagline || ""}
-                    onChange={(e) => {
-                      const updated = { ...editingProject, tagline: e.target.value };
-                      setEditingProject(updated);
-                      updateProject(editingProject.id, updated);
-                    }}
-                    className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-text-muted block mb-1">Description</label>
-                  <textarea
-                    rows={3}
-                    value={editingProject.description || ""}
-                    onChange={(e) => {
-                      const updated = { ...editingProject, description: e.target.value };
-                      setEditingProject(updated);
-                      updateProject(editingProject.id, updated);
-                    }}
-                    className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-text-muted block mb-1">Status</label>
-                    <select
-                      value={editingProject.status}
-                      onChange={(e) => {
-                        const updated = { ...editingProject, status: e.target.value as any };
-                        setEditingProject(updated);
-                        updateProject(editingProject.id, updated);
-                      }}
-                      className="w-full px-3 py-2 rounded-xl bg-[#111318] border border-glass-border text-xs text-white"
-                    >
-                      <option value="active">Active / Operational</option>
-                      <option value="in-progress">In Development</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-text-muted block mb-1">Category</label>
-                    <select
-                      value={editingProject.category}
-                      onChange={(e) => {
-                        const updated = { ...editingProject, category: e.target.value as any };
-                        setEditingProject(updated);
-                        updateProject(editingProject.id, updated);
-                      }}
-                      className="w-full px-3 py-2 rounded-xl bg-[#111318] border border-glass-border text-xs text-white"
-                    >
-                      <option value="web">Web Application</option>
-                      <option value="mobile">Mobile App</option>
-                      <option value="infrastructure">Infrastructure</option>
-                      <option value="design">Design Brand</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-text-muted block mb-1">Project Icon (Lucide)</label>
-                    <input
-                      type="text"
-                      value={editingProject.icon || ""}
-                      onChange={(e) => {
-                        const updated = { ...editingProject, icon: e.target.value };
-                        setEditingProject(updated);
-                        updateProject(editingProject.id, updated);
-                      }}
-                      className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-text-muted block mb-1">Cover Image URL</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={editingProject.coverImage || ""}
-                        onChange={(e) => {
-                          const updated = { ...editingProject, coverImage: e.target.value };
-                          setEditingProject(updated);
-                          updateProject(editingProject.id, updated);
-                        }}
-                        className="flex-1 px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white font-mono"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setMediaPickerTarget({
-                          title: `Cover for ${editingProject.name}`,
-                          onSelect: (url) => {
-                            const updated = { ...editingProject, coverImage: url };
-                            setEditingProject(updated);
-                            updateProject(editingProject.id, updated);
-                          }
-                        })}
-                        className="px-3 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs text-white font-bold cursor-pointer"
-                      >
-                        Browse
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="p-4 bg-black/20 border-t border-white/10 flex justify-end">
-                <button
-                  onClick={() => {
-                    setEditingProject(null);
-                    showToast("Saved project specifications!");
-                  }}
-                  className="px-5 py-2 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-white font-bold text-xs cursor-pointer shadow-md transition-all"
-                >
-                  Save & Close
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
     </div>
   );
