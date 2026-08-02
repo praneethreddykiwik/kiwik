@@ -7,10 +7,11 @@ import { useSiteCMS } from "@/stores/site-cms-store";
 
 export function FeaturedProductsGrid() {
   const cms = useSiteCMS();
-  const featuredSection = cms.featuredSection;
+  const projectsPage = cms.projectsPage || {};
 
-  const title = featuredSection?.title || "The Enterprise Operating System";
-  const subtitle = featuredSection?.subtitle || "One featured platform at a time. Every project is showcased as a cinematic Apple-class software launch.";
+  const badgeText = projectsPage.badgeText || "FEATURED PRODUCTS";
+  const title = projectsPage.title || "Explore Kiwik Products";
+  const subtitle = projectsPage.description || "Understand what each product does, who it helps, its current status, and request real-time access. Fully synchronised with the Admin CMS panel.";
 
   return (
     <section id="featured-products-section" className="py-20 md:py-28 px-4 sm:px-6 md:px-8 max-w-[1500px] mx-auto relative z-20 select-none">
@@ -26,7 +27,7 @@ export function FeaturedProductsGrid() {
         className="text-center max-w-3xl mx-auto mb-10 space-y-3"
       >
         <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-neutral-500 dark:text-[#A1A1AA]">
-          FEATURED PRODUCTS
+          {badgeText}
         </span>
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif font-medium text-neutral-900 dark:text-white tracking-wide leading-snug py-1">
           {title}
