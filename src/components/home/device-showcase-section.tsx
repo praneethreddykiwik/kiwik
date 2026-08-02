@@ -90,7 +90,7 @@ export function DeviceShowcaseSection() {
       {/* Dynamic Coverflow Device Wrapper */}
       <motion.div
         style={{ y: smoothY }}
-        className="relative w-full flex items-center justify-center -space-x-4 sm:space-x-3 md:space-x-6 overflow-x-auto pb-12 pt-4 no-scrollbar px-6 sm:px-12"
+        className="relative w-full flex items-center justify-center -space-x-4 sm:space-x-3 md:space-x-6 overflow-x-auto pt-16 sm:pt-24 md:pt-28 lg:pt-32 pb-16 sm:pb-20 md:pb-24 lg:pb-28 no-scrollbar px-6 sm:px-12"
       >
         {activeCards.map((card, idx) => {
           const isHovered = hoveredIndex === idx;
@@ -112,16 +112,16 @@ export function DeviceShowcaseSection() {
               onMouseEnter={() => setHoveredIndex(idx)}
               onMouseLeave={() => setHoveredIndex(null)}
               animate={{
-                y: isHovered ? settings.yOffset - 4 : settings.yOffset + mousePos.y * (0.8 - (idx % 3) * 0.15),
+                y: isHovered ? settings.yOffset - 8 : settings.yOffset + mousePos.y * (0.8 - (idx % 3) * 0.15),
                 x: mousePos.x * (0.8 - (idx % 3) * 0.15),
                 scale: isHovered ? settings.hoverScale : settings.baseScale,
               }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              transition={{ type: "spring", stiffness: 240, damping: 26, mass: 0.8 }}
               className={cn(
-                "relative flex-shrink-0 shadow-[25px_35px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer group rounded-[48px] sm:rounded-[54px]",
+                "relative flex-shrink-0 shadow-[25px_35px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer group rounded-[48px] sm:rounded-[54px] transition-shadow duration-300",
                 settings.width,
                 settings.height,
-                settings.zIndex
+                isHovered ? "z-50 shadow-[0_50px_120px_rgba(0,0,0,0.35)] dark:shadow-[0_50px_130px_rgba(0,0,0,0.95)]" : settings.zIndex
               )}
             >
               {/* Screen Container */}

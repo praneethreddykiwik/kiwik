@@ -411,6 +411,12 @@ export interface VersionSnapshot {
   author: string;
   note: string;
   data: string;
+  /** Serialized JSON of the projects store state at snapshot time */
+  projectsData?: string;
+  /** Whether this was created manually by admin or auto-saved by the system */
+  type?: "manual" | "auto";
+  /** Approximate byte size of the snapshot data for display */
+  sizeBytes?: number;
 }
 
 export interface ArchitectureNodeCMS {
@@ -451,6 +457,12 @@ export interface DashboardShowcaseCMS {
   cards?: any[];
 }
 
+export interface ProjectsPageCMS {
+  badgeText: string;
+  title: string;
+  description: string;
+}
+
 export interface SiteCMSData {
   settings: WebsiteSettings;
   hero: HeroCMS;
@@ -474,4 +486,5 @@ export interface SiteCMSData {
   seo: SEOMetadata;
   auditLogs: AuditLogEntry[];
   snapshots: VersionSnapshot[];
+  projectsPage?: ProjectsPageCMS;
 }

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Grid3X3, List, Clock, Filter, Search, Sparkles } from "lucide-react";
 import { useProjects } from "@/stores/projects-store";
+import { useSiteCMSStore } from "@/stores/site-cms-store";
 import { PremiumShowcaseCard } from "@/components/projects/premium-showcase-card";
 import { ProjectCard } from "@/components/projects/project-card";
 import { ProjectStatus, ProjectCategory, SortMode } from "@/types";
@@ -50,6 +51,12 @@ export default function ProjectsPage() {
     return result;
   }, [projects, search, statusFilter, categoryFilter, sortMode]);
 
+  const projectsPageCMS = useSiteCMSStore((state) => state.cms.projectsPage) || {
+    badgeText: "FEATURED PRODUCTS",
+    title: "Next-Generation Enterprise Stack",
+    description: "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik."
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-20 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto select-none">
       
@@ -63,13 +70,13 @@ export default function ProjectsPage() {
         className="text-center max-w-3xl mx-auto mb-6 space-y-3"
       >
         <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-[#52525B] dark:text-[#A1A1AA]">
-          FEATURED PRODUCTS
+          {projectsPageCMS.badgeText || "FEATURED PRODUCTS"}
         </span>
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-semibold tracking-tight text-[#18181B] dark:text-white leading-[1.05]">
-          Next-Generation Enterprise Stack
+          {projectsPageCMS.title || "Next-Generation Enterprise Stack"}
         </h1>
         <p className="text-xs sm:text-sm text-[#71717A] dark:text-[#A1A1AA] font-sans font-medium max-w-xl mx-auto">
-          Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik.
+          {projectsPageCMS.description || "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik."}
         </p>
       </motion.div>
 

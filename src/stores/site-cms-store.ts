@@ -550,7 +550,12 @@ const defaultCMSData: SiteCMSData = {
       details: "Initialized Kiwik.1 Enterprise Website Content Management System"
     }
   ],
-  snapshots: []
+  snapshots: [],
+  projectsPage: {
+    badgeText: "FEATURED PRODUCTS",
+    title: "Next-Generation Enterprise Stack",
+    description: "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik."
+  }
 };
 
 interface SiteCMSStoreState {
@@ -593,6 +598,8 @@ interface SiteCMSStoreState {
   updateEarthShowcase: (sec: Partial<import("@/types/site-cms-types").EarthShowcaseCMS>) => void;
   updateEarthStat: (id: string, stat: Partial<import("@/types/site-cms-types").StatItem>) => void;
 
+  updateProjectsPage: (sec: Partial<import("@/types/site-cms-types").ProjectsPageCMS>) => void;
+
   // Architecture Nodes Mutators
   updateArchitectureNode: (id: string, node: Partial<ArchitectureNodeCMS>) => void;
   addArchitectureNode: (node: ArchitectureNodeCMS) => void;
@@ -619,9 +626,10 @@ interface SiteCMSStoreState {
   deleteMediaItem: (id: string) => void;
   
   // Snapshots & Rollback
-  createSnapshot: (name: string, note?: string) => void;
+  createSnapshot: (name: string, note?: string, projectsData?: string, type?: "manual" | "auto") => void;
   rollbackSnapshot: (snapshotId: string) => void;
   deleteSnapshot: (snapshotId: string) => void;
+  exportSnapshot: (snapshotId: string) => string | null;
   
   // Audit Trail
   addAuditLog: (action: string, section: string, details: string) => void;
@@ -953,6 +961,13 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
         get().addAuditLog("UPDATE_EARTH_STAT", "Earth Showcase", `Updated Earth stat [${id}]`);
       },
 
+      updateProjectsPage: (sec) => {
+        set((state) => ({
+          cms: { ...state.cms, projectsPage: { ...(state.cms.projectsPage || defaultCMSData.projectsPage!), ...sec } }
+        }));
+        get().addAuditLog("UPDATE_PROJECTS_PAGE", "Projects Directory", "Updated Projects page header copy");
+      },
+
       updateArchitectureNode: (id, node) => {
         set((state) => {
           const current = state.cms.architectureNodes || defaultCMSData.architectureNodes;
@@ -1118,19 +1133,29 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
         });
       },
 
-      createSnapshot: (name, note = "") => {
+      createSnapshot: (name, note = "", projectsData, type = "manual") => {
+        const cmsData = JSON.stringify(get().cms);
         const snapshot: VersionSnapshot = {
           id: `snap-${Date.now()}`,
           timestamp: new Date().toISOString(),
           versionName: name,
           author: "Super Admin",
           note,
-          data: JSON.stringify(get().cms)
+          data: cmsData,
+          projectsData,
+          type,
+          sizeBytes: new Blob([cmsData + (projectsData || "")]).size
         };
         set((state) => ({
           cms: { ...state.cms, snapshots: [snapshot, ...state.cms.snapshots] }
         }));
-        get().addAuditLog("CREATE_SNAPSHOT", "Version Control", `Created snapshot [${name}]`);
+        get().addAuditLog("CREATE_SNAPSHOT", "Version Control", `Created ${type} snapshot [${name}]`);
+      },
+
+      exportSnapshot: (snapshotId) => {
+        const snapshot = get().cms.snapshots.find((s) => s.id === snapshotId);
+        if (!snapshot) return null;
+        return JSON.stringify(snapshot, null, 2);
       },
 
       rollbackSnapshot: (snapshotId) => {
@@ -1161,9 +1186,13 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
       },
 
       deleteSnapshot: (snapshotId) => {
+        const snap = get().cms.snapshots.find((s) => s.id === snapshotId);
         set((state) => ({
           cms: { ...state.cms, snapshots: state.cms.snapshots.filter((s) => s.id !== snapshotId) }
         }));
+        if (snap) {
+          get().addAuditLog("DELETE_SNAPSHOT", "Version Control", `Deleted snapshot [${snap.versionName}]`);
+        }
       },
 
       addAuditLog: (action, section, details) => {
@@ -1200,7 +1229,18 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
     }),
     {
       name: "kiwik-site-cms-v1",
-      storage: createJSONStorage(() => localStorage)
+      storage: createJSONStorage(() => localStorage),
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        cms: {
+          ...defaultCMSData,
+          ...(persistedState?.cms || {}),
+          projectsPage: {
+            ...defaultCMSData.projectsPage,
+            ...(persistedState?.cms?.projectsPage || {})
+          }
+        }
+      })
     }
   )
 );

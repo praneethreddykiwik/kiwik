@@ -28,7 +28,7 @@ import {
   Users
 } from "lucide-react";
 
-import { useProjects } from "@/stores/projects-store";
+import { useProjects, useProjectsStore } from "@/stores/projects-store";
 import { GlassCard } from "@/components/glass/glass-card";
 import { GlassButton } from "@/components/glass/glass-button";
 import { useHistoryStore } from "@/stores/history-store";
@@ -39,7 +39,16 @@ export default function ProjectDetailPage({ projectOverride }: { projectOverride
   const projects = useProjects();
   const params = useParams();
   const slug = params?.slug as string;
-  const project = projectOverride || projects.find(p => p.slug === slug);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const project = projectOverride || 
+    projects.find(p => p.slug === slug || p.id === slug) || 
+    (typeof window !== "undefined" ? useProjectsStore.getState().projects.find(p => p.slug === slug || p.id === slug) : undefined);
+
   const { addToHistory } = useHistoryStore();
   const [activeTab, setActiveTab] = useState("overview");
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -66,6 +75,7 @@ export default function ProjectDetailPage({ projectOverride }: { projectOverride
 
   if (!project) {
     if (projectOverride) return <div className="text-white text-xs p-4">Loading project details preview...</div>;
+    if (!hasMounted) return <div className="min-h-screen bg-[#08090C]" />;
     notFound();
   }
 

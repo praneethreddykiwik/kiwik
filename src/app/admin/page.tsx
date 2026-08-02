@@ -9,6 +9,8 @@ import {
   Plus,
   ArrowUp,
   ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   Edit,
   Copy,
   Trash2,
@@ -98,7 +100,8 @@ type MainSidebarTab =
   | "analytics"
   | "users"
   | "appearance"
-  | "settings";
+  | "settings"
+  | "version-history";
 
 type PageSubTab =
   | "home"
@@ -186,8 +189,25 @@ export default function AdminPage() {
     deleteMediaItem,
     createSnapshot,
     rollbackSnapshot,
-    addAuditLog
+    deleteSnapshot,
+    exportSnapshot,
+    addAuditLog,
+    updateProjectsPage
   } = useSiteCMSStore();
+
+  // Version History State
+  const [versionName, setVersionName] = useState("");
+  const [versionNote, setVersionNote] = useState("");
+  const [snapshotFilter, setSnapshotFilter] = useState<"all" | "manual" | "auto">("all");
+  const [snapshotSearch, setSnapshotSearch] = useState("");
+  const [rollbackConfirmId, setRollbackConfirmId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [compareSnapshotId, setCompareSnapshotId] = useState<string | null>(null);
+  const [autoSaveBeforeRollback, setAutoSaveBeforeRollback] = useState(true);
+
+  // Projects Catalog Editor State
+  const [projectSearchQuery, setProjectSearchQuery] = useState("");
+  const [projectCategoryFilter, setProjectCategoryFilter] = useState<ProjectCategory | "all">("all");
 
   const docsCategories = useDocsStore((state) => state.categories);
   const { addArticle, updateArticle, deleteArticle } = useDocsStore();
@@ -2237,22 +2257,50 @@ export default function AdminPage() {
               >
                 <Settings className="w-4 h-4" /> Settings
               </button>
+
+              <button
+                onClick={() => setMainTab("version-history")}
+                className={cn(
+                  "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
+                  mainTab === "version-history" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+                )}
+              >
+                <History className="w-4 h-4" />
+                <span className="flex-1">Version History</span>
+                {cms.snapshots.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-accent-blue/20 text-accent-blue text-[9px] font-mono font-bold">
+                    {cms.snapshots.length}
+                  </span>
+                )}
+              </button>
             </div>
 
           </div>
 
           {/* System Snapshots */}
           <div className="p-3 rounded-2xl bg-bg-secondary/60 border border-glass-border space-y-2 text-left">
-            <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">System Control</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono font-bold uppercase text-text-muted">Version Control</span>
+              <span className="text-[9px] font-mono text-accent-blue font-bold">
+                {cms.snapshots.length} saved
+              </span>
+            </div>
             <button
               onClick={() => {
                 const name = `Backup - ${new Date().toLocaleString()}`;
-                createSnapshot(name, "Manual Admin Backup");
-                showToast(`Created Snapshot [${name}]`);
+                const projectsData = JSON.stringify(useProjectsStore.getState().projects);
+                createSnapshot(name, "Manual Admin Backup", projectsData, "manual");
+                showToast(`✓ Saved version: ${name}`);
               }}
               className="w-full py-1.5 rounded-lg bg-glass-bg border border-glass-border text-text-primary text-[11px] font-bold flex items-center justify-center gap-1.5 hover:bg-bg-secondary transition-colors cursor-pointer"
             >
-              <History className="w-3.5 h-3.5 text-accent-blue" /> Create Snapshot
+              <History className="w-3.5 h-3.5 text-accent-blue" /> Save Version
+            </button>
+            <button
+              onClick={() => setMainTab("version-history")}
+              className="w-full py-1 rounded-lg text-accent-blue text-[10px] font-bold flex items-center justify-center gap-1 hover:bg-accent-blue/5 transition-colors cursor-pointer"
+            >
+              View History →
             </button>
           </div>
         </aside>
@@ -4138,17 +4186,320 @@ export default function AdminPage() {
                 </GlassCard>
               )}
 
-              {/* OTHER PAGES: PROJECTS PAGE EDITOR */}
+              {/* OTHER PAGES: PROJECTS PAGE & CATALOG INVENTORY EDITOR */}
               {activePage === "projects-page" && (
-                <GlassCard className="p-6 space-y-5 text-left">
-                  <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                    <Folder className="w-4 h-4 text-accent-blue" /> Projects Directory Catalog Page Editor
-                  </h3>
-                  <div>
-                    <label className="text-xs font-bold text-text-secondary block mb-1">Catalog Page Title</label>
-                    <input type="text" defaultValue="Kiwik Engineering Showcase" className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold" />
-                  </div>
-                </GlassCard>
+                <div className="space-y-6">
+                  {/* HEADER & HERO COPY EDITOR */}
+                  <GlassCard className="p-6 space-y-5 text-left border border-white/10">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                        <Folder className="w-5 h-5 text-accent-blue" /> Catalog Page Header & Hero Customization
+                      </h3>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accent-blue/10 text-accent-blue font-bold border border-accent-blue/20">
+                        Live Sync Enabled
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-text-secondary block mb-1">Header Badge Text</label>
+                        <input
+                          type="text"
+                          value={cms.projectsPage?.badgeText || "FEATURED PRODUCTS"}
+                          onChange={(e) => updateProjectsPage({ badgeText: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold border border-white/5 focus:border-accent-blue outline-none"
+                          placeholder="e.g. FEATURED PRODUCTS"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-text-secondary block mb-1">Catalog Main Headline</label>
+                        <input
+                          type="text"
+                          value={cms.projectsPage?.title || "Next-Generation Enterprise Stack"}
+                          onChange={(e) => updateProjectsPage({ title: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold border border-white/5 focus:border-accent-blue outline-none"
+                          placeholder="e.g. Next-Generation Enterprise Stack"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-text-secondary block mb-1">Catalog Description / Subtitle Copy</label>
+                      <textarea
+                        rows={3}
+                        value={cms.projectsPage?.description || "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik."}
+                        onChange={(e) => updateProjectsPage({ description: e.target.value })}
+                        className="w-full p-3 rounded-xl bg-bg-secondary text-xs font-medium border border-white/5 focus:border-accent-blue outline-none"
+                        placeholder="Describe your project catalog..."
+                      />
+                    </div>
+                  </GlassCard>
+
+                  {/* PROJECTS INVENTORY, PICTURES & REORDERING STUDIO */}
+                  <GlassCard className="p-6 space-y-6 text-left border border-white/10">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                      <div>
+                        <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                          <Layers className="w-5 h-5 text-accent-blue" /> Central Projects Inventory, Pictures & Ordering Studio
+                        </h3>
+                        <p className="text-xs text-text-secondary mt-0.5">
+                          Directly edit titles, upload pictures, sort order, priority, categories, status, and launch full spec builder.
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          const newProj: Project = {
+                            id: `proj-${Date.now()}`,
+                            name: "New Enterprise System",
+                            tagline: "High-performance modular service engine.",
+                            description: "Detailed system parameters and specifications.",
+                            category: "saas",
+                            status: "in-progress",
+                            coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
+                            logoUrl: "",
+                            version: "1.0.0",
+                            slug: `new-system-${Date.now()}`,
+                            featured: true,
+                            priority: (projects.length || 0) + 1,
+                            tags: ["AI", "Cloud"],
+                            features: [],
+                            techStack: [],
+                            stats: [],
+                            faqs: [],
+                            screenshots: [],
+                            createdAt: new Date().toISOString(),
+                            lastUpdated: new Date().toISOString()
+                          };
+                          addProject(newProj);
+                          setEditingProject(newProj);
+                        }}
+                        className="px-4 py-2 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-accent-blue/20 transition-all shrink-0"
+                      >
+                        <Plus className="w-4 h-4" /> + Add New Project
+                      </button>
+                    </div>
+
+                    {/* FILTER & SEARCH BAR */}
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                      <div className="relative flex-1 w-full">
+                        <Search className="w-4 h-4 text-text-secondary absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search projects by name, tagline, or slug..."
+                          value={projectSearchQuery}
+                          onChange={(e) => setProjectSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-primary border border-white/5 focus:border-accent-blue outline-none"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <span className="text-xs font-bold text-text-secondary whitespace-nowrap">Category:</span>
+                        <select
+                          value={projectCategoryFilter}
+                          onChange={(e) => setProjectCategoryFilter(e.target.value as any)}
+                          className="px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold text-text-primary border border-white/5 outline-none cursor-pointer w-full sm:w-auto"
+                        >
+                          <option value="all">All Categories</option>
+                          <option value="web">Web</option>
+                          <option value="ai">AI</option>
+                          <option value="saas">SaaS</option>
+                          <option value="mobile">Mobile</option>
+                          <option value="automation">Automation</option>
+                          <option value="devops">DevOps</option>
+                          <option value="payments">Payments</option>
+                          <option value="research">Research</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* PROJECTS LIST TABLE / CARDS */}
+                    <div className="space-y-4">
+                      {projects
+                        .filter((p) => {
+                          const matchesSearch =
+                            p.name.toLowerCase().includes(projectSearchQuery.toLowerCase()) ||
+                            p.tagline.toLowerCase().includes(projectSearchQuery.toLowerCase()) ||
+                            p.slug.toLowerCase().includes(projectSearchQuery.toLowerCase());
+                          const matchesCategory = projectCategoryFilter === "all" || p.category === projectCategoryFilter;
+                          return matchesSearch && matchesCategory;
+                        })
+                        .map((proj, idx) => (
+                          <div
+                            key={proj.id}
+                            className="p-4 rounded-2xl bg-bg-secondary/60 border border-white/5 hover:border-accent-blue/30 transition-all space-y-4"
+                          >
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                              {/* LEFT: COVER PICTURE & BASIC INFO */}
+                              <div className="flex items-start gap-4 flex-1">
+                                {/* COVER PICTURE PREVIEW & MEDIA PICKER TRIGGER */}
+                                <div className="relative group shrink-0 w-24 h-16 rounded-xl overflow-hidden bg-bg-tertiary border border-white/10">
+                                  <img
+                                    src={proj.coverImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80"}
+                                    alt={proj.name}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    onError={(e) => {
+                                      (e.target as HTMLElement).setAttribute("src", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80");
+                                    }}
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      setMediaPickerTarget({
+                                        title: `Select Cover Picture for ${proj.name}`,
+                                        onSelect: (url) => updateProject(proj.id, { coverImage: url })
+                                      })
+                                    }
+                                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-[10px] font-bold text-white transition-opacity gap-1 cursor-pointer"
+                                  >
+                                    <ImageIcon className="w-3.5 h-3.5" />
+                                    <span>Change</span>
+                                  </button>
+                                </div>
+
+                                {/* INLINE EDITABLE NAME & TAGLINE */}
+                                <div className="space-y-1.5 flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="text"
+                                      value={proj.name}
+                                      onChange={(e) => updateProject(proj.id, { name: e.target.value })}
+                                      className="text-sm font-bold text-text-primary bg-transparent border-b border-transparent hover:border-white/20 focus:border-accent-blue outline-none px-1 py-0.5 rounded w-full max-w-sm"
+                                      placeholder="Project Name"
+                                    />
+                                    <span className="text-[10px] font-mono text-text-secondary px-2 py-0.5 rounded-full bg-white/5 border border-white/10 shrink-0">
+                                      /{proj.slug}
+                                    </span>
+                                  </div>
+
+                                  <input
+                                    type="text"
+                                    value={proj.tagline}
+                                    onChange={(e) => updateProject(proj.id, { tagline: e.target.value })}
+                                    className="text-xs text-text-secondary bg-transparent border-b border-transparent hover:border-white/20 focus:border-accent-blue outline-none px-1 py-0.5 rounded w-full"
+                                    placeholder="Project Tagline"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* MIDDLE: CATEGORY & STATUS & PRIORITY */}
+                              <div className="flex items-center gap-3 flex-wrap">
+                                {/* CATEGORY DROPDOWN */}
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-bold text-text-secondary block">Category</span>
+                                  <select
+                                    value={proj.category}
+                                    onChange={(e) => updateProject(proj.id, { category: e.target.value as any })}
+                                    className="px-2.5 py-1.5 rounded-lg bg-bg-tertiary text-xs font-bold text-text-primary border border-white/10 outline-none cursor-pointer"
+                                  >
+                                    <option value="web">Web</option>
+                                    <option value="ai">AI</option>
+                                    <option value="saas">SaaS</option>
+                                    <option value="mobile">Mobile</option>
+                                    <option value="automation">Automation</option>
+                                    <option value="devops">DevOps</option>
+                                    <option value="payments">Payments</option>
+                                    <option value="research">Research</option>
+                                  </select>
+                                </div>
+
+                                {/* STATUS DROPDOWN */}
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-bold text-text-secondary block">Status</span>
+                                  <select
+                                    value={proj.status}
+                                    onChange={(e) => updateProject(proj.id, { status: e.target.value as any })}
+                                    className="px-2.5 py-1.5 rounded-lg bg-bg-tertiary text-xs font-bold text-text-primary border border-white/10 outline-none cursor-pointer"
+                                  >
+                                    <option value="in-progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="archived">Archived</option>
+                                  </select>
+                                </div>
+
+                                {/* REORDERING & PRIORITY CONTROLS */}
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-bold text-text-secondary block">Order & Priority</span>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={() => movePriority(proj.id, "up")}
+                                      disabled={idx === 0}
+                                      title="Move Up in Catalog"
+                                      className="p-1.5 rounded-lg bg-bg-tertiary hover:bg-accent-blue/20 text-text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border border-white/10"
+                                    >
+                                      <ArrowUp className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => movePriority(proj.id, "down")}
+                                      disabled={idx === projects.length - 1}
+                                      title="Move Down in Catalog"
+                                      className="p-1.5 rounded-lg bg-bg-tertiary hover:bg-accent-blue/20 text-text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border border-white/10"
+                                    >
+                                      <ArrowDown className="w-3.5 h-3.5" />
+                                    </button>
+                                    <input
+                                      type="number"
+                                      value={proj.priority || idx + 1}
+                                      onChange={(e) => updateProject(proj.id, { priority: parseInt(e.target.value) || 0 })}
+                                      className="w-12 px-2 py-1 rounded-lg bg-bg-tertiary text-xs font-mono font-bold text-center border border-white/10 outline-none"
+                                      title="Priority Index (Lower = Higher Rank)"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* RIGHT: TOGGLES & ACTIONS */}
+                              <div className="flex items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/5 shrink-0">
+                                {/* FEATURED TOGGLE */}
+                                <button
+                                  onClick={() => updateProject(proj.id, { featured: !proj.featured })}
+                                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                                    proj.featured
+                                      ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                                      : "bg-white/5 text-text-secondary border-white/10 hover:text-text-primary"
+                                  }`}
+                                  title="Toggle Featured Badge"
+                                >
+                                  <Star className={`w-3.5 h-3.5 ${proj.featured ? "fill-amber-400 text-amber-400" : ""}`} />
+                                  <span>{proj.featured ? "Featured" : "Standard"}</span>
+                                </button>
+
+                                {/* EDIT SPECS BUTTON */}
+                                <button
+                                  onClick={() => setEditingProject(proj)}
+                                  className="px-3 py-1.5 rounded-xl bg-accent-blue/10 hover:bg-accent-blue/20 text-accent-blue border border-accent-blue/30 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                                >
+                                  <Sliders className="w-3.5 h-3.5" />
+                                  <span>Edit Specs</span>
+                                </button>
+
+                                {/* DUPLICATE BUTTON */}
+                                <button
+                                  onClick={() => duplicateProject(proj.id)}
+                                  title="Duplicate Project"
+                                  className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-text-secondary hover:text-text-primary border border-white/10 transition-colors cursor-pointer"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* DELETE BUTTON */}
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Delete "${proj.name}"? This action cannot be undone.`)) {
+                                      deleteProject(proj.id);
+                                    }
+                                  }}
+                                  title="Delete Project"
+                                  className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </GlassCard>
+                </div>
               )}
 
               {/* OTHER PAGES: PROJECT DETAILS BUILDER */}
@@ -4746,6 +5097,518 @@ export default function AdminPage() {
               </div>
             </GlassCard>
           )}
+
+          {/* VERSION HISTORY TAB */}
+          {mainTab === "version-history" && (() => {
+            const filteredSnapshots = cms.snapshots.filter((s) => {
+              const matchesFilter = snapshotFilter === "all" || (s.type || "manual") === snapshotFilter;
+              const matchesSearch =
+                snapshotSearch === "" ||
+                s.versionName.toLowerCase().includes(snapshotSearch.toLowerCase()) ||
+                (s.note || "").toLowerCase().includes(snapshotSearch.toLowerCase());
+              return matchesFilter && matchesSearch;
+            });
+
+            const compareSnap = compareSnapshotId ? cms.snapshots.find((s) => s.id === compareSnapshotId) : null;
+            const rollbackSnap = rollbackConfirmId ? cms.snapshots.find((s) => s.id === rollbackConfirmId) : null;
+            const deleteSnap = deleteConfirmId ? cms.snapshots.find((s) => s.id === deleteConfirmId) : null;
+
+            // Compute diff sections for compare view
+            const getDiffSections = () => {
+              if (!compareSnap) return [];
+              try {
+                const snapData = JSON.parse(compareSnap.data);
+                const currentData = cms;
+                const allKeys = new Set([...Object.keys(snapData), ...Object.keys(currentData)]);
+                return Array.from(allKeys)
+                  .filter((k) => !["snapshots", "auditLogs", "analytics"].includes(k))
+                  .map((key) => {
+                    const snapVal = JSON.stringify((snapData as any)[key]);
+                    const curVal = JSON.stringify((currentData as any)[key]);
+                    return {
+                      key,
+                      status: snapVal === curVal ? "unchanged" : snapVal === undefined ? "removed" : curVal === undefined ? "added" : "changed",
+                      snapPreview: snapVal ? snapVal.slice(0, 120) + (snapVal.length > 120 ? "..." : "") : "—",
+                      curPreview: curVal ? curVal.slice(0, 120) + (curVal.length > 120 ? "..." : "") : "—"
+                    };
+                  });
+              } catch { return []; }
+            };
+
+            const formatBytes = (bytes?: number) => {
+              if (!bytes) return "—";
+              if (bytes < 1024) return `${bytes} B`;
+              return `${(bytes / 1024).toFixed(1)} KB`;
+            };
+
+            const formatDate = (iso: string) => {
+              const d = new Date(iso);
+              return d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+            };
+
+            return (
+              <div className="space-y-6 text-left">
+                {/* Header Bar */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-glass-bg border border-glass-border">
+                  <div>
+                    <h2 className="text-lg font-serif font-bold text-text-primary flex items-center gap-2">
+                      <History className="w-5 h-5 text-accent-blue" /> Version History
+                    </h2>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      Snapshots capture the entire site CMS + projects state. Restore any version instantly.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-text-muted">{cms.snapshots.length} total versions</span>
+                    <button
+                      onClick={() => {
+                        const name = versionName.trim() || `Backup - ${new Date().toLocaleString()}`;
+                        const projectsData = JSON.stringify(useProjectsStore.getState().projects);
+                        createSnapshot(name, versionNote.trim() || "Manual Admin Backup", projectsData, "manual");
+                        setVersionName("");
+                        setVersionNote("");
+                        showToast(`✓ Version saved: ${name}`);
+                      }}
+                      className="px-5 py-2.5 rounded-full bg-accent-blue hover:bg-accent-blue/90 text-white font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
+                    >
+                      <History className="w-4 h-4" /> Save Version
+                    </button>
+                  </div>
+                </div>
+
+                {/* Create Snapshot Form */}
+                <GlassCard className="p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+                    <GitBranch className="w-4 h-4 text-emerald-400" /> Create Named Snapshot
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-text-secondary block mb-1">Version Name</label>
+                      <input
+                        type="text"
+                        value={versionName}
+                        onChange={(e) => setVersionName(e.target.value)}
+                        placeholder="e.g. Before Homepage Redesign"
+                        className="w-full px-4 py-2.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-semibold text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-text-secondary block mb-1">Note / Description</label>
+                      <input
+                        type="text"
+                        value={versionNote}
+                        onChange={(e) => setVersionNote(e.target.value)}
+                        placeholder="Optional note about what changed..."
+                        className="w-full px-4 py-2.5 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] text-text-muted">
+                      Captures: CMS content, all sections, projects, media — everything.
+                    </p>
+                    <button
+                      onClick={() => {
+                        const name = versionName.trim() || `Snapshot - ${new Date().toLocaleString()}`;
+                        const projectsData = JSON.stringify(useProjectsStore.getState().projects);
+                        createSnapshot(name, versionNote.trim(), projectsData, "manual");
+                        setVersionName("");
+                        setVersionNote("");
+                        showToast(`✓ Version saved: ${name}`);
+                      }}
+                      className="px-5 py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs flex items-center gap-2 cursor-pointer shadow hover:scale-[1.02] transition-all"
+                    >
+                      <History className="w-3.5 h-3.5" /> Save This Version
+                    </button>
+                  </div>
+                </GlassCard>
+
+                {/* Filter & Search Bar */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted" />
+                    <input
+                      type="text"
+                      placeholder="Search by version name or note..."
+                      value={snapshotSearch}
+                      onChange={(e) => setSnapshotSearch(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 rounded-xl bg-glass-bg border border-glass-border text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {(["all", "manual", "auto"] as const).map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setSnapshotFilter(f)}
+                        className={cn(
+                          "px-3.5 py-1.5 rounded-full text-xs font-bold capitalize transition-all cursor-pointer border",
+                          snapshotFilter === f
+                            ? "bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 border-transparent shadow"
+                            : "bg-bg-secondary/60 text-text-secondary border-glass-border hover:text-text-primary"
+                        )}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Snapshot List */}
+                {filteredSnapshots.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 space-y-3 text-center">
+                    <History className="w-10 h-10 text-text-muted opacity-40" />
+                    <p className="text-sm font-bold text-text-secondary">No snapshots yet</p>
+                    <p className="text-xs text-text-muted max-w-xs">
+                      Save a version above to start tracking history. Every save is fully restorable.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredSnapshots.map((snap, idx) => (
+                      <motion.div
+                        key={snap.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.04 }}
+                        className={cn(
+                          "p-5 rounded-2xl border transition-all",
+                          idx === 0
+                            ? "bg-emerald-500/5 border-emerald-500/30"
+                            : "bg-glass-bg border-glass-border hover:border-white/20"
+                        )}
+                      >
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          {/* Left: Meta */}
+                          <div className="flex items-start gap-4 flex-1 min-w-0">
+                            <div className="flex-shrink-0 mt-0.5">
+                              <div className={cn(
+                                "w-8 h-8 rounded-xl flex items-center justify-center",
+                                idx === 0 ? "bg-emerald-500/15" : "bg-accent-blue/10"
+                              )}>
+                                {idx === 0 ? (
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                ) : (
+                                  <History className="w-4 h-4 text-accent-blue" />
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-sm font-bold text-text-primary truncate">{snap.versionName}</h4>
+                                {idx === 0 && (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[9px] font-mono font-bold uppercase">
+                                    Latest
+                                  </span>
+                                )}
+                                <span className={cn(
+                                  "px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase",
+                                  (snap.type || "manual") === "auto"
+                                    ? "bg-purple-500/10 text-purple-400"
+                                    : "bg-accent-blue/10 text-accent-blue"
+                                )}>
+                                  {snap.type || "manual"}
+                                </span>
+                              </div>
+                              {snap.note && (
+                                <p className="text-[11px] text-text-secondary mt-0.5 truncate">{snap.note}</p>
+                              )}
+                              <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                                <span className="text-[10px] font-mono text-text-muted flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" /> {formatDate(snap.timestamp)}
+                                </span>
+                                <span className="text-[10px] font-mono text-text-muted flex items-center gap-1">
+                                  <Shield className="w-3 h-3" /> {snap.author}
+                                </span>
+                                <span className="text-[10px] font-mono text-text-muted">
+                                  {formatBytes(snap.sizeBytes)}
+                                </span>
+                                {snap.projectsData && (
+                                  <span className="text-[10px] font-mono text-emerald-400">
+                                    ✓ Includes projects
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right: Actions */}
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {/* Compare with Current */}
+                            <button
+                              onClick={() => setCompareSnapshotId(snap.id === compareSnapshotId ? null : snap.id)}
+                              title="Compare with current state"
+                              className={cn(
+                                "px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer border",
+                                compareSnapshotId === snap.id
+                                  ? "bg-purple-500/20 border-purple-500/40 text-purple-300"
+                                  : "bg-bg-secondary border-glass-border text-text-secondary hover:text-text-primary hover:border-white/20"
+                              )}
+                            >
+                              <Eye className="w-3.5 h-3.5 inline mr-1" /> Compare
+                            </button>
+
+                            {/* Export */}
+                            <button
+                              onClick={() => {
+                                const json = exportSnapshot(snap.id);
+                                if (!json) return;
+                                const blob = new Blob([json], { type: "application/json" });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = `kiwik-snapshot-${snap.versionName.replace(/\s+/g, "-").toLowerCase()}-${snap.id}.json`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                                showToast(`✓ Exported: ${snap.versionName}`);
+                              }}
+                              title="Export as JSON"
+                              className="p-2 rounded-lg bg-bg-secondary border border-glass-border text-text-secondary hover:text-text-primary hover:border-white/20 transition-colors cursor-pointer"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Rollback */}
+                            <button
+                              onClick={() => setRollbackConfirmId(snap.id)}
+                              title="Restore this version"
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" /> Restore
+                            </button>
+
+                            {/* Delete */}
+                            <button
+                              onClick={() => setDeleteConfirmId(snap.id)}
+                              title="Delete this snapshot"
+                              className="p-2 rounded-lg text-rose-500 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Inline Compare Diff Panel */}
+                        <AnimatePresence>
+                          {compareSnapshotId === snap.id && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="mt-5 pt-4 border-t border-glass-border space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h5 className="text-xs font-bold text-purple-300 flex items-center gap-2">
+                                    <Eye className="w-3.5 h-3.5" /> Diff: This Snapshot vs. Current State
+                                  </h5>
+                                  <button
+                                    onClick={() => setCompareSnapshotId(null)}
+                                    className="p-1 rounded hover:bg-white/10 text-text-muted cursor-pointer"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                                <div className="grid grid-cols-3 text-[10px] font-mono font-bold uppercase text-text-muted px-2">
+                                  <span>Section</span>
+                                  <span>Status</span>
+                                  <span>Notes</span>
+                                </div>
+                                <div className="space-y-1 max-h-64 overflow-y-auto no-scrollbar">
+                                  {getDiffSections().map(({ key, status, snapPreview, curPreview }) => (
+                                    <div key={key} className={cn(
+                                      "grid grid-cols-3 gap-2 items-start p-2 rounded-lg text-xs",
+                                      status === "unchanged" ? "bg-transparent" : "bg-white/5"
+                                    )}>
+                                      <span className="font-mono font-bold text-text-secondary truncate">{key}</span>
+                                      <span className={cn(
+                                        "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase w-fit",
+                                        status === "unchanged" ? "bg-white/5 text-text-muted" :
+                                        status === "changed" ? "bg-amber-500/15 text-amber-400" :
+                                        status === "added" ? "bg-emerald-500/15 text-emerald-400" :
+                                        "bg-rose-500/15 text-rose-400"
+                                      )}>
+                                        {status}
+                                      </span>
+                                      {status !== "unchanged" && (
+                                        <div className="flex flex-col gap-0.5">
+                                          {status === "changed" && (
+                                            <span className="text-[10px] text-amber-400/80 truncate font-mono">
+                                              was: {snapPreview.slice(0, 50)}
+                                            </span>
+                                          )}
+                                          {status === "changed" && (
+                                            <span className="text-[10px] text-emerald-400/80 truncate font-mono">
+                                              now: {curPreview.slice(0, 50)}
+                                            </span>
+                                          )}
+                                          {status !== "changed" && (
+                                            <span className="text-[10px] text-text-muted truncate font-mono">
+                                              {snapPreview.slice(0, 60)}
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                      {status === "unchanged" && <span />}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ROLLBACK CONFIRMATION MODAL */}
+                <AnimatePresence>
+                  {rollbackConfirmId && rollbackSnap && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+                    >
+                      <motion.div
+                        initial={{ scale: 0.93, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        exit={{ scale: 0.93, y: 20 }}
+                        className="w-full max-w-lg bg-[#0d0f13] border border-white/15 rounded-3xl p-8 shadow-2xl space-y-6 text-left"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                            <RotateCcw className="w-6 h-6 text-amber-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-bold text-text-primary">Restore This Version?</h3>
+                            <p className="text-xs text-text-secondary mt-1">
+                              You're about to restore the site to:
+                            </p>
+                            <div className="mt-2 p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                              <div className="text-sm font-bold text-white">{rollbackSnap.versionName}</div>
+                              {rollbackSnap.note && (
+                                <div className="text-[11px] text-text-secondary">{rollbackSnap.note}</div>
+                              )}
+                              <div className="text-[10px] font-mono text-text-muted">{formatDate(rollbackSnap.timestamp)}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-amber-500/8 border border-amber-500/20 space-y-2">
+                          <p className="text-xs font-bold text-amber-400 flex items-center gap-2">
+                            <AlertCircle className="w-3.5 h-3.5" /> Current state will be replaced
+                          </p>
+                          <p className="text-[11px] text-text-secondary">
+                            All unsaved changes will be overwritten. Your version history will be preserved.
+                          </p>
+                        </div>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <div className="relative">
+                            <input
+                              type="checkbox"
+                              checked={autoSaveBeforeRollback}
+                              onChange={(e) => setAutoSaveBeforeRollback(e.target.checked)}
+                              className="sr-only"
+                            />
+                            <div className={cn(
+                              "w-9 h-5 rounded-full transition-colors",
+                              autoSaveBeforeRollback ? "bg-accent-blue" : "bg-white/10"
+                            )}>
+                              <div className={cn(
+                                "w-3.5 h-3.5 bg-white rounded-full absolute top-0.5 transition-transform shadow",
+                                autoSaveBeforeRollback ? "translate-x-4" : "translate-x-0.5"
+                              )} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-text-primary">Auto-save current state first</div>
+                            <div className="text-[10px] text-text-muted">Creates a recovery checkpoint before restoring</div>
+                          </div>
+                        </label>
+
+                        <div className="flex items-center gap-3 pt-2">
+                          <button
+                            onClick={() => setRollbackConfirmId(null)}
+                            className="flex-1 py-2.5 rounded-xl bg-white/5 border border-glass-border text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-white/10 transition-colors cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (autoSaveBeforeRollback) {
+                                const projectsData = JSON.stringify(useProjectsStore.getState().projects);
+                                createSnapshot(`Pre-Rollback Backup — ${new Date().toLocaleString()}`, `Auto-saved before restoring to "${rollbackSnap.versionName}"`, projectsData, "auto");
+                              }
+                              rollbackSnapshot(rollbackConfirmId!);
+                              setRollbackConfirmId(null);
+                              showToast(`✓ Restored to: ${rollbackSnap.versionName}`);
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md transition-colors"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" /> Restore Version
+                          </button>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* DELETE CONFIRMATION MODAL */}
+                <AnimatePresence>
+                  {deleteConfirmId && deleteSnap && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+                    >
+                      <motion.div
+                        initial={{ scale: 0.93, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        exit={{ scale: 0.93, y: 20 }}
+                        className="w-full max-w-md bg-[#0d0f13] border border-white/15 rounded-3xl p-8 shadow-2xl space-y-6 text-left"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-rose-500/15 flex items-center justify-center flex-shrink-0">
+                            <Trash2 className="w-6 h-6 text-rose-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-bold text-text-primary">Delete This Snapshot?</h3>
+                            <p className="text-xs text-text-secondary mt-1">This action cannot be undone.</p>
+                            <div className="mt-2 p-3 rounded-xl bg-white/5 border border-white/10">
+                              <div className="text-sm font-bold text-white">{deleteSnap.versionName}</div>
+                              <div className="text-[10px] font-mono text-text-muted mt-0.5">{formatDate(deleteSnap.timestamp)}</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="flex-1 py-2.5 rounded-xl bg-white/5 border border-glass-border text-xs font-bold text-text-secondary hover:text-text-primary cursor-pointer transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              deleteSnapshot(deleteConfirmId!);
+                              setDeleteConfirmId(null);
+                              showToast(`Deleted snapshot: ${deleteSnap.versionName}`);
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold cursor-pointer transition-colors shadow-md"
+                          >
+                            Delete Permanently
+                          </button>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })()}
 
         </main>
       </div>
