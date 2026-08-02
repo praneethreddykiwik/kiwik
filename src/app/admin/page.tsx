@@ -3,6 +3,7 @@
 import * as LucideIcons from "lucide-react";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProjectImage } from "@/components/ui/project-image";
 import {
@@ -168,6 +169,17 @@ export default function AdminPage() {
   const [mainTab, setMainTab] = useState<MainSidebarTab>("pages");
   const [activePage, setActivePage] = useState<PageSubTab>("home");
   const [homeSection, setHomeSection] = useState<HomeSectionTab>("hero");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam === "projects-page" || tabParam === "projects") {
+        setMainTab("pages");
+        setActivePage("projects-page");
+      }
+    }
+  }, []);
 
   // Theme & Live Preview State
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
@@ -2169,6 +2181,7 @@ export default function AdminPage() {
                   ].map((pg) => (
                     <button
                       key={pg.id}
+                      id={`admin-subtab-${pg.id}`}
                       onClick={() => setActivePage(pg.id as PageSubTab)}
                       className={cn(
                         "w-full px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-2 transition-colors cursor-pointer text-left",
@@ -4251,6 +4264,7 @@ export default function AdminPage() {
                         </p>
                       </div>
                       <button
+                        id="admin-btn-add-slider-card"
                         onClick={() => {
                           const newCard = {
                             id: `slider-card-${Date.now()}`,
