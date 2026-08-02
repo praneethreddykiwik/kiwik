@@ -33,7 +33,9 @@
   --color-glass-border-hover: var(--glass-border-hover);
   --color-divider: var(--divider);
 
+  --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -165,6 +167,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  zoom: 0.9;
 }
 
 body {

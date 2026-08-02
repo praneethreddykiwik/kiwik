@@ -54,8 +54,8 @@ export function Navbar() {
         className={cn(
           'pointer-events-auto w-[92%] max-w-[1500px] h-[54px] sm:h-[58px] rounded-full transition-all duration-400 border flex items-center justify-between px-3 sm:px-5 relative select-none',
           scrolled 
-            ? 'scale-[0.99] bg-white/95 dark:bg-[#07080B]/95 backdrop-blur-[24px] backdrop-saturate-[180%] border-black/[0.08] dark:border-white/15 shadow-[0_16px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.7)]' 
-            : 'bg-white/95 dark:bg-[#07080B]/95 backdrop-blur-[20px] backdrop-saturate-[180%] border-black/[0.06] dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.5)]'
+            ? 'scale-[0.99] bg-[#FAFAF8]/90 dark:bg-[#0A0C10]/90 backdrop-blur-[24px] backdrop-saturate-[180%] border-black/[0.08] dark:border-white/15 shadow-[0_16px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.7)]' 
+            : 'bg-[#FAFAF8]/85 dark:bg-[#0A0C10]/85 backdrop-blur-[20px] backdrop-saturate-[180%] border-black/[0.06] dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.5)]'
         )}
       >
         {/* ─────────────────────────────────────────────────────────────

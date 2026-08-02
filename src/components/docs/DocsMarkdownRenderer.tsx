@@ -28,7 +28,7 @@ export function DocsMarkdownRenderer({ sections }: DocsMarkdownRendererProps) {
           </h2>
 
           {/* Body Markdown Content */}
-          <div className="text-sm text-slate-600 dark:text-slate-300 font-semibold leading-relaxed space-y-3 whitespace-pre-line">
+          <div className="text-sm text-slate-600 dark:text-slate-300 font-sans font-normal leading-relaxed space-y-3 whitespace-pre-line">
             {section.bodyMarkdown}
           </div>
 
