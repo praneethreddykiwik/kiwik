@@ -74,7 +74,7 @@
 
   /* Layout */
   --nav-height: 72px;
-  --max-width: 1400px;
+  --max-width: 1280px;
   --border-radius: 16px;
   --border-radius-lg: 24px;
   --border-radius-xl: 32px;
@@ -163,11 +163,12 @@
 
 /* Unlayered reset removed - Tailwind preflight handles box-sizing, margin, and padding resets within CSS Cascade Layers */
 
-html {
+html, body {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   zoom: 0.9;
+  font-size: 14.4px;
 }
 
 body {

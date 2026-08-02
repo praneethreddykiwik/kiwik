@@ -66,7 +66,7 @@ export function Navbar() {
             whileHover={{ scale: 1.05, rotate: 2 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.25 }}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0A0C10]/[0.04] dark:bg-white/[0.06] border border-black/10 dark:border-white/[0.12] shadow-2xs flex items-center justify-center p-1.5 group-hover:border-blue-500/40 transition-all"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-[#12131A] border border-black/10 dark:border-white/15 shadow-2xs flex items-center justify-center p-1 group-hover:border-blue-500/40 transition-all"
           >
             <img 
               src="/logo.png" 
