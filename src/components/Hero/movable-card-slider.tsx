@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useSiteCMS } from "@/stores/site-cms-store";
+
 // Curated Brand AI Models matching the reference screenshot
 const AI_MODELS = [
   {
@@ -59,11 +61,16 @@ const AI_MODELS = [
 ];
 
 export function MovableCardSlider() {
-  const [activeIndex, setActiveIndex] = useState(2); // Center card index (Meta)
+  const cms = useSiteCMS();
+  const displayCards = (cms.projectsPage?.sliderCards && cms.projectsPage.sliderCards.length > 0)
+    ? cms.projectsPage.sliderCards
+    : AI_MODELS;
+
+  const [activeIndex, setActiveIndex] = useState(2); // Center card index
   const [dragStartX, setDragStartX] = useState(0);
 
   const handleNext = () => {
-    setActiveIndex((prev) => Math.min(prev + 1, AI_MODELS.length - 1));
+    setActiveIndex((prev) => Math.min(prev + 1, displayCards.length - 1));
   };
 
   const handlePrev = () => {
@@ -73,7 +80,7 @@ export function MovableCardSlider() {
   const handleSliderClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const clickRatio = (e.clientX - rect.left) / rect.width;
-    const targetIdx = Math.round(clickRatio * (AI_MODELS.length - 1));
+    const targetIdx = Math.round(clickRatio * (displayCards.length - 1));
     setActiveIndex(targetIdx);
   };
 
@@ -82,7 +89,7 @@ export function MovableCardSlider() {
     else if (info.offset.x > 40) handlePrev();
   };
 
-  const progressPercent = ((activeIndex) / (AI_MODELS.length - 1)) * 100;
+  const progressPercent = displayCards.length > 1 ? ((activeIndex) / (displayCards.length - 1)) * 100 : 100;
 
   return (
     <div className="relative w-full max-w-[1450px] mx-auto py-6 sm:py-10 flex flex-col items-center justify-center select-none overflow-hidden transform-gpu">
@@ -96,7 +103,7 @@ export function MovableCardSlider() {
         onDragEnd={handleDragEnd}
         className="relative w-full h-[320px] sm:h-[380px] flex items-center justify-center cursor-grab active:cursor-grabbing transform-gpu overflow-visible"
       >
-        {AI_MODELS.map((model, idx) => {
+        {displayCards.map((model, idx) => {
           const offset = idx - activeIndex;
           const absOffset = Math.abs(offset);
 

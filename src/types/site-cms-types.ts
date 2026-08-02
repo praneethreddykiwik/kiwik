@@ -457,10 +457,20 @@ export interface DashboardShowcaseCMS {
   cards?: any[];
 }
 
+export interface MovableSliderCard {
+  id: string;
+  name: string;
+  tag: string;
+  image: string;
+  domain?: string;
+  gradient?: string;
+}
+
 export interface ProjectsPageCMS {
   badgeText: string;
   title: string;
   description: string;
+  sliderCards?: MovableSliderCard[];
 }
 
 export interface SiteCMSData {

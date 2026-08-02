@@ -192,7 +192,10 @@ export default function AdminPage() {
     deleteSnapshot,
     exportSnapshot,
     addAuditLog,
-    updateProjectsPage
+    updateProjectsPage,
+    addSliderCard,
+    updateSliderCard,
+    deleteSliderCard
   } = useSiteCMSStore();
 
   // Version History State
@@ -4233,6 +4236,133 @@ export default function AdminPage() {
                         className="w-full p-3 rounded-xl bg-bg-secondary text-xs font-medium border border-white/5 focus:border-accent-blue outline-none"
                         placeholder="Describe your project catalog..."
                       />
+                    </div>
+                  </GlassCard>
+
+                  {/* 3D SHOWCASE SLIDER MEDIA & IMAGES STUDIO */}
+                  <GlassCard className="p-6 space-y-6 text-left border border-white/10">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                      <div>
+                        <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                          <ImageIcon className="w-5 h-5 text-accent-cyan" /> Catalog 3D Showcase Slider & Media Studio
+                        </h3>
+                        <p className="text-xs text-text-secondary mt-0.5">
+                          Post, update, or change photos/images, titles, tags, and domain handles displayed in the 3D card stream on the /projects page.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newCard = {
+                            id: `slider-card-${Date.now()}`,
+                            name: "New Showcase Product",
+                            tag: "Autonomous AI Engine",
+                            image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
+                            domain: "newproduct.ai",
+                            gradient: "from-blue-600/30 to-purple-600/30",
+                          };
+                          addSliderCard(newCard);
+                          showToast("Success", "New showcase 3D image card added!");
+                        }}
+                        className="px-4 py-2 rounded-xl bg-accent-cyan hover:bg-accent-cyan/80 text-black text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-accent-cyan/20 shrink-0"
+                      >
+                        <Plus className="w-4 h-4" /> + Add Slider Image Card
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {(cms.projectsPage?.sliderCards || []).map((card, idx) => (
+                        <div
+                          key={card.id}
+                          className="p-4 rounded-2xl bg-bg-secondary border border-white/10 space-y-3 relative group"
+                        >
+                          {/* Top Card Bar with Index & Delete */}
+                          <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                            <span className="text-[10px] font-mono font-bold text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded-md">
+                              Card #{String(idx + 1).padStart(2, "0")}
+                            </span>
+                            <button
+                              onClick={() => {
+                                deleteSliderCard(card.id);
+                                showToast("Removed", `Deleted 3D card #${idx + 1}`);
+                              }}
+                              className="text-text-muted hover:text-red-400 p-1 transition-colors cursor-pointer"
+                              title="Delete Card"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Image Thumbnail & Media Picker Button */}
+                          <div className="relative w-full h-36 rounded-xl overflow-hidden bg-black/40 border border-white/10 group/img">
+                            <img
+                              src={card.image}
+                              alt={card.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                              <button
+                                onClick={() => {
+                                  openMediaPicker((selectedUrl) => {
+                                    updateSliderCard(card.id, { image: selectedUrl });
+                                    showToast("Image Updated", `Updated photo for ${card.name}`);
+                                  });
+                                }}
+                                className="px-3 py-1.5 rounded-lg bg-accent-blue text-white text-xs font-bold flex items-center gap-1.5 hover:scale-105 transition-transform cursor-pointer shadow-md"
+                              >
+                                <Camera className="w-3.5 h-3.5" /> Change Photo / Image
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Editable Image URL Input fallback */}
+                          <div>
+                            <label className="text-[10px] font-bold text-text-secondary block mb-1">Image URL / Media Source</label>
+                            <input
+                              type="text"
+                              value={card.image}
+                              onChange={(e) => updateSliderCard(card.id, { image: e.target.value })}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-[11px] font-mono text-text-primary border border-white/5 focus:border-accent-cyan outline-none"
+                              placeholder="https://..."
+                            />
+                          </div>
+
+                          {/* Card Name / Title */}
+                          <div>
+                            <label className="text-[10px] font-bold text-text-secondary block mb-1">Product Name / Title</label>
+                            <input
+                              type="text"
+                              value={card.name}
+                              onChange={(e) => updateSliderCard(card.id, { name: e.target.value })}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-xs font-bold text-text-primary border border-white/5 focus:border-accent-cyan outline-none"
+                              placeholder="e.g. Meta, Kiwik AI, Vidu"
+                            />
+                          </div>
+
+                          {/* Tag / Subtitle */}
+                          <div>
+                            <label className="text-[10px] font-bold text-text-secondary block mb-1">Tag / Subtitle Feature</label>
+                            <input
+                              type="text"
+                              value={card.tag}
+                              onChange={(e) => updateSliderCard(card.id, { tag: e.target.value })}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-[11px] font-medium text-text-secondary border border-white/5 focus:border-accent-cyan outline-none"
+                              placeholder="e.g. High-Fidelity Motion"
+                            />
+                          </div>
+
+                          {/* Domain Handle */}
+                          <div>
+                            <label className="text-[10px] font-bold text-text-secondary block mb-1">Domain Handle / Tagline</label>
+                            <input
+                              type="text"
+                              value={card.domain || ""}
+                              onChange={(e) => updateSliderCard(card.id, { domain: e.target.value })}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-[11px] font-mono text-text-secondary border border-white/5 focus:border-accent-cyan outline-none"
+                              placeholder="e.g. kiwik.ai"
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </GlassCard>
 

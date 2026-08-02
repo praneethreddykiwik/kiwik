@@ -555,7 +555,65 @@ const defaultCMSData: SiteCMSData = {
   projectsPage: {
     badgeText: "FEATURED PRODUCTS",
     title: "Next-Generation Enterprise Stack",
-    description: "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik."
+    description: "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik.",
+    sliderCards: [
+      {
+        id: "heygen",
+        name: "HeyGen",
+        tag: "Avatar & Video Synthesis",
+        image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop",
+        domain: "heygen.ai",
+        gradient: "from-amber-600/30 to-rose-600/30",
+      },
+      {
+        id: "vidu",
+        name: "Vidu",
+        tag: "High-Fidelity Motion",
+        image: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600&auto=format&fit=crop",
+        domain: "vidu.ai",
+        gradient: "from-emerald-600/30 to-teal-600/30",
+      },
+      {
+        id: "meta",
+        name: "Meta",
+        tag: "Movie Gen 3D",
+        image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=600&auto=format&fit=crop",
+        domain: "meta.ai",
+        gradient: "from-blue-600/30 to-indigo-600/30",
+      },
+      {
+        id: "x1",
+        name: "x1",
+        tag: "Grok Vision Engine",
+        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
+        domain: "x1.ai",
+        gradient: "from-orange-600/30 to-amber-600/30",
+      },
+      {
+        id: "lightricks",
+        name: "Lightricks",
+        tag: "LTX Video Generator",
+        image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=600&auto=format&fit=crop",
+        domain: "lightricks.ai",
+        gradient: "from-sky-600/30 to-blue-600/30",
+      },
+      {
+        id: "runway",
+        name: "Runway Gen-3",
+        tag: "Cinematic World Models",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
+        domain: "runway.ai",
+        gradient: "from-purple-600/30 to-indigo-600/30",
+      },
+      {
+        id: "midjourney",
+        name: "Midjourney v6",
+        tag: "Photorealistic AI Art",
+        image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop",
+        domain: "midjourney.ai",
+        gradient: "from-pink-600/30 to-purple-600/30",
+      }
+    ]
   }
 };
 
@@ -600,6 +658,9 @@ interface SiteCMSStoreState {
   updateEarthStat: (id: string, stat: Partial<import("@/types/site-cms-types").StatItem>) => void;
 
   updateProjectsPage: (sec: Partial<import("@/types/site-cms-types").ProjectsPageCMS>) => void;
+  addSliderCard: (card: import("@/types/site-cms-types").MovableSliderCard) => void;
+  updateSliderCard: (id: string, updated: Partial<import("@/types/site-cms-types").MovableSliderCard>) => void;
+  deleteSliderCard: (id: string) => void;
 
   // Architecture Nodes Mutators
   updateArchitectureNode: (id: string, node: Partial<ArchitectureNodeCMS>) => void;
@@ -967,6 +1028,57 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
           cms: { ...state.cms, projectsPage: { ...(state.cms.projectsPage || defaultCMSData.projectsPage!), ...sec } }
         }));
         get().addAuditLog("UPDATE_PROJECTS_PAGE", "Projects Directory", "Updated Projects page header copy");
+      },
+
+      addSliderCard: (card) => {
+        set((state) => {
+          const current = state.cms.projectsPage || defaultCMSData.projectsPage!;
+          const cards = current.sliderCards || [];
+          return {
+            cms: {
+              ...state.cms,
+              projectsPage: {
+                ...current,
+                sliderCards: [...cards, card]
+              }
+            }
+          };
+        });
+        get().addAuditLog("ADD_SLIDER_CARD", "Projects Directory", `Added slider card [${card.name}]`);
+      },
+
+      updateSliderCard: (id, updated) => {
+        set((state) => {
+          const current = state.cms.projectsPage || defaultCMSData.projectsPage!;
+          const cards = current.sliderCards || [];
+          return {
+            cms: {
+              ...state.cms,
+              projectsPage: {
+                ...current,
+                sliderCards: cards.map((c) => (c.id === id ? { ...c, ...updated } : c))
+              }
+            }
+          };
+        });
+        get().addAuditLog("UPDATE_SLIDER_CARD", "Projects Directory", `Updated slider card [${id}]`);
+      },
+
+      deleteSliderCard: (id) => {
+        set((state) => {
+          const current = state.cms.projectsPage || defaultCMSData.projectsPage!;
+          const cards = current.sliderCards || [];
+          return {
+            cms: {
+              ...state.cms,
+              projectsPage: {
+                ...current,
+                sliderCards: cards.filter((c) => c.id !== id)
+              }
+            }
+          };
+        });
+        get().addAuditLog("DELETE_SLIDER_CARD", "Projects Directory", `Deleted slider card [${id}]`);
       },
 
       updateArchitectureNode: (id, node) => {
