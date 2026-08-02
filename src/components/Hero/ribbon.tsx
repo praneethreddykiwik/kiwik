@@ -47,7 +47,10 @@ export function ImageRibbon() {
     return arr;
   };
 
-  const poolRef = useRef(shufflePool());
+  // Start with a deterministic (unshuffled) pool so the server-rendered markup
+  // matches the first client render. The pool is shuffled after mount (see the
+  // effect below) to avoid a hydration mismatch from Math.random().
+  const poolRef = useRef([...currentPool]);
 
   // Get next UNIQUE image from pool that is not currently visible anywhere on screen
   const getNextUniqueImage = () => {
@@ -78,11 +81,16 @@ export function ImageRibbon() {
     activeImageUrlsRef.current.delete(url);
   };
 
-  // Generate initial evenly-spaced emitter cards (7 left, 7 right = 14 total on desktop)
-  const createInitialCards = (): EmitterCardState[] => {
+  // Generate initial evenly-spaced emitter cards (7 left, 7 right = 14 total on desktop).
+  // When `randomize` is false the output is fully deterministic so SSR and the first
+  // client render agree; the mount effect below re-runs it with randomization on.
+  const createInitialCards = (randomize: boolean): EmitterCardState[] => {
     const cards: EmitterCardState[] = [];
     const countPerLane = 7;
     let cardIdCounter = 0;
+
+    // Deterministic tilt used for the initial (server) render.
+    const staticRotation = (i: number) => ((i % 5) - 2) * 3; // -6deg to +6deg
 
     // Left Lane Cards: Progress spaced from 0.05 to 0.9
     for (let i = 0; i < countPerLane; i++) {
@@ -94,7 +102,7 @@ export function ImageRibbon() {
         progress,
         imageUrl: img.url,
         title: img.title,
-        rotation: (Math.random() - 0.5) * 12, // -6deg to +6deg
+        rotation: randomize ? (Math.random() - 0.5) * 12 : staticRotation(i),
       });
     }
 
@@ -108,14 +116,25 @@ export function ImageRibbon() {
         progress,
         imageUrl: img.url,
         title: img.title,
-        rotation: (Math.random() - 0.5) * 12, // -6deg to +6deg
+        rotation: randomize ? (Math.random() - 0.5) * 12 : staticRotation(i),
       });
     }
 
     return cards;
   };
 
-  const [cards, setCards] = useState<EmitterCardState[]>(createInitialCards);
+  const [cards, setCards] = useState<EmitterCardState[]>(() => createInitialCards(false));
+
+  // After mount, shuffle the pool and re-seed the cards with randomization. This
+  // runs only on the client, so it can safely use Math.random() without breaking
+  // hydration.
+  useEffect(() => {
+    poolRef.current = shufflePool();
+    poolIndexRef.current = 0;
+    activeImageUrlsRef.current = new Set();
+    setCards(createInitialCards(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 60 FPS Procedural Emitter RAF Loop
   useEffect(() => {

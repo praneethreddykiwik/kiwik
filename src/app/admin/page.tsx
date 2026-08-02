@@ -2004,7 +2004,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary flex flex-col font-sans select-none antialiased">
+    <div className="h-screen bg-bg-primary text-text-primary flex flex-col font-sans select-none antialiased overflow-hidden">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -2024,7 +2024,7 @@ export default function AdminPage() {
       {/* ─────────────────────────────────────────────────────────────
           TOP CONTROL BAR (Enterprise CMS Studio Header)
          ───────────────────────────────────────────────────────────── */}
-      <header className="h-16 px-6 bg-glass-bg border-b border-glass-border backdrop-blur-xl flex items-center justify-between sticky top-0 z-40">
+      <header className="h-16 shrink-0 px-6 bg-glass-bg border-b border-glass-border backdrop-blur-xl flex items-center justify-between z-40">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-accent-blue via-indigo-500 to-purple-600 p-[1px]">
@@ -2116,10 +2116,10 @@ export default function AdminPage() {
       {/* ─────────────────────────────────────────────────────────────
           MAIN STUDIO LAYOUT (Sidebar + Main Content Canvas)
          ───────────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden">
-        
+      <div className="flex-1 flex overflow-hidden min-h-0">
+
         {/* LEFT SIDEBAR HIERARCHY */}
-        <aside className="w-64 bg-glass-bg border-r border-glass-border p-4 flex flex-col justify-between shrink-0 space-y-4 overflow-y-auto">
+        <aside className="w-64 bg-glass-bg border-r border-glass-border p-4 flex flex-col justify-between shrink-0 space-y-4 overflow-y-auto min-h-0">
           <div className="space-y-6">
             
             <div className="space-y-1">
@@ -2306,7 +2306,7 @@ export default function AdminPage() {
         </aside>
 
         {/* RIGHT MAIN CANVAS */}
-        <main className="flex-1 p-6 overflow-y-auto space-y-6">
+        <main className="flex-1 p-6 overflow-y-auto space-y-6 min-h-0">
           
           {/* LIVE DEVICE PREVIEW TAB */}
           {mainTab === ("live-preview" as any) && (

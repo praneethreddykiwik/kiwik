@@ -41,6 +41,9 @@ export function Navbar() {
     }
   };
 
+  // The admin CMS studio owns its own full-height chrome — hide the marketing navbar there.
+  if (pathname?.startsWith('/admin')) return null;
+
   return (
     <div className="fixed top-3 inset-x-0 z-50 flex justify-center px-3 sm:px-6 pointer-events-none">
       <motion.header

@@ -15,6 +15,7 @@ import {
   Sparkles
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 function GithubIcon({ className }: { className?: string }) {
@@ -74,6 +75,7 @@ export function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const pathname = usePathname();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +112,9 @@ export function Footer() {
     const LucideIcon = (LucideIcons as any)[iconName] || LucideIcons.Globe;
     return <LucideIcon className="w-4 h-4" />;
   };
+
+  // The admin CMS studio is a full-height app — no marketing footer there.
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <motion.footer
