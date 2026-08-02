@@ -85,7 +85,7 @@ export function AuroraBackground({ intensity = "medium", className }: AuroraBack
   return (
     <div className={cn("fixed inset-0 overflow-hidden pointer-events-none z-[-1] bg-bg-primary transition-colors duration-500", className)}>
       {/* Background layer 1: Mesh gradients with parallax */}
-      <div className={cn("absolute inset-0 filter blur-[90px] transition-opacity duration-700 select-none", intensityOpacity[intensity])}>
+      <div className={cn("absolute inset-0 filter blur-[80px] transform-gpu will-change-transform transition-opacity duration-700 select-none", intensityOpacity[intensity])}>
         {/* Blob 1 - Premium Teal/Cyan light wave */}
         <motion.div
           style={{ x: parallaxX1, y: parallaxY1 }}

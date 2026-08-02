@@ -6,7 +6,7 @@ import { useSiteCMSStore } from "@/stores/site-cms-store";
 // 60+ Curated Unique High-Resolution Art-Directed Image Pool (NO DUPLICATES)
 const MASTER_GALLERY_POOL = [
   { url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop", title: "Hyper Crimson Sneaker", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=600&auto=format&fit=crop", title: "Porcelain Roses", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", title: "Fluid 3D Prism", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600&auto=format&fit=crop", title: "Liquid Chroma", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop", title: "Patent Gloss", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop", title: "Holographic Waves", linkUrl: "/projects" },
@@ -85,12 +85,12 @@ export function ImageRibbon() {
     poolIndexRef.current = 0;
     activeImageUrlsRef.current = new Set();
 
-    const countPerLane = 7;
+    const countPerLane = 12;
     let cardIdCounter = 0;
     const initialCards: EmitterCardState[] = [];
 
     for (let i = 0; i < countPerLane; i++) {
-      const progress = 0.05 + (i / countPerLane) * 0.85;
+      const progress = i / countPerLane;
       const img = getNextUniqueImage();
       initialCards.push({
         id: `left-card-${cardIdCounter++}`,
@@ -99,12 +99,12 @@ export function ImageRibbon() {
         imageUrl: img.url,
         title: img.title,
         linkUrl: img.linkUrl || "/projects",
-        rotation: (Math.random() - 0.5) * 10,
+        rotation: (Math.random() - 0.5) * 8,
       });
     }
 
     for (let i = 0; i < countPerLane; i++) {
-      const progress = 0.05 + ((i + 0.5) / countPerLane) * 0.85;
+      const progress = (i + 0.5) / countPerLane;
       const img = getNextUniqueImage();
       initialCards.push({
         id: `right-card-${cardIdCounter++}`,
@@ -113,7 +113,7 @@ export function ImageRibbon() {
         imageUrl: img.url,
         title: img.title,
         linkUrl: img.linkUrl || "/projects",
-        rotation: (Math.random() - 0.5) * 10,
+        rotation: (Math.random() - 0.5) * 8,
       });
     }
 
@@ -129,14 +129,14 @@ export function ImageRibbon() {
       const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
 
-      const speed = hero?.gallerySpeed !== undefined ? hero.gallerySpeed : 0.075;
-      const perspectiveScale = hero?.galleryPerspective !== undefined ? hero.galleryPerspective : 0.28;
+      const speed = hero?.gallerySpeed !== undefined ? hero.gallerySpeed : 0.065;
+      const perspectiveScale = hero?.galleryPerspective !== undefined ? hero.galleryPerspective : 0.18;
       const maxScale = hero?.galleryScale !== undefined ? hero.galleryScale : 1.35;
-      const baseOpacity = hero?.galleryOpacity !== undefined ? hero.galleryOpacity : 0.85;
+      const baseOpacity = hero?.galleryOpacity !== undefined ? hero.galleryOpacity : 0.95;
 
       const windowWidth = typeof window !== "undefined" ? window.innerWidth : 1200;
       const isMobile = windowWidth < 640;
-      const maxDistancePx = isMobile ? 220 : 780;
+      const maxDistancePx = isMobile ? 220 : 820;
       const cardWidth = isMobile ? 150 : 260;
       const cardHeight = isMobile ? 185 : 320;
 
@@ -155,7 +155,7 @@ export function ImageRibbon() {
           card.imageUrl = newImg.url;
           card.title = newImg.title;
           card.linkUrl = newImg.linkUrl || "/projects";
-          card.rotation = (Math.random() - 0.5) * 10;
+          card.rotation = (Math.random() - 0.5) * 8;
 
           // Update image src and title text directly on DOM node
           const imgEl = imageElementRefs.current[i];
@@ -169,9 +169,13 @@ export function ImageRibbon() {
         const clampedP = Math.max(0, Math.min(1, card.progress));
         const scale = perspectiveScale + Math.pow(clampedP, 1.15) * (maxScale - perspectiveScale);
         const direction = card.lane === "left" ? -1 : 1;
-        const translateX = direction * Math.pow(clampedP, 1.35) * maxDistancePx;
+        const translateX = direction * Math.pow(clampedP, 1.25) * maxDistancePx;
         const zIndex = Math.floor(clampedP * 100) + 10;
-        const opacity = baseOpacity + clampedP * (1 - baseOpacity);
+        
+        // Continuous smooth fade in at center (0-0.12) & smooth fade out at edge (0.88-1.0)
+        let fadeIn = Math.min(clampedP / 0.12, 1.0);
+        let fadeOut = Math.min((1.0 - clampedP) / 0.12, 1.0);
+        const opacity = Math.max(0, fadeIn * fadeOut * baseOpacity);
 
         const el = cardElementRefs.current[i];
         if (el) {
@@ -190,7 +194,7 @@ export function ImageRibbon() {
     return () => cancelAnimationFrame(animId);
   }, [hero?.gallerySpeed, hero?.galleryPerspective, hero?.galleryScale, hero?.galleryOpacity]);
 
-  const initialCardsCount = 14;
+  const initialCardsCount = 24;
 
   return (
     <div
@@ -217,6 +221,7 @@ export function ImageRibbon() {
               ref={(el) => { imageElementRefs.current[idx] = el; }}
               src={MASTER_GALLERY_POOL[idx % MASTER_GALLERY_POOL.length].url}
               alt="Showcase Product"
+              onError={(e) => { e.currentTarget.src = "/images/kiwik-hero.jpg"; }}
               className="w-full h-full object-cover transform-gpu group-hover:scale-105 transition-transform duration-500"
               loading="eager"
               decoding="async"

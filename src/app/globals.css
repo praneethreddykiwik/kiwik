@@ -238,6 +238,18 @@ p {
   position: relative;
   overflow: hidden;
   transform: translateZ(0);
+  will-change: transform;
+}
+
+.gpu-layer {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.gpu-blur {
+  will-change: filter, transform;
+  transform: translateZ(0);
 }
 
 .vision-glass {

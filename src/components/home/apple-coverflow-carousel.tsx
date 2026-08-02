@@ -112,7 +112,7 @@ export function AppleCoverflowCarousel() {
           MORPHING AMBIENT BACKGROUND BACKLIGHT (Smooth 500ms)
          ───────────────────────────────────────────────────────────── */}
       <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[420px] rounded-full blur-[100px] pointer-events-none z-0"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[420px] rounded-full blur-[80px] pointer-events-none z-0 transform-gpu will-change-transform"
         animate={{ background: colorStyle.glow }}
         transition={{ duration: 0.5 }}
       />

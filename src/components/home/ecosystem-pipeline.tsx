@@ -7,6 +7,8 @@ import { Cpu, Layers, Cloud, Shield, ArrowRight } from "lucide-react";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
 import { cn } from "@/lib/utils";
 
+import { ArchitectureNodeCMS } from "@/types/site-cms-types";
+
 const ICON_MAP: Record<string, React.ReactNode> = {
   Cpu: <Cpu className="w-5 h-5 text-purple-400" />,
   Layers: <Layers className="w-5 h-5 text-cyan-400" />,
@@ -17,7 +19,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 export function EcosystemPipeline() {
   const cmsNodes = useSiteCMSStore((state) => state.cms.architectureNodes);
 
-  const defaultNodes = [
+  const defaultNodes: ArchitectureNodeCMS[] = [
     {
       id: "criska-ai",
       title: "CriskaAI",

@@ -3,7 +3,6 @@ import { sql, ensureDbTables } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
-    await ensureDbTables();
     const body = await request.json().catch(() => ({}));
     const email = (body.email || "").trim().toLowerCase();
     const password = (body.password || "").trim();
@@ -25,13 +24,18 @@ export async function POST(request: Request) {
     }
 
     // Neon DB lookup
-    const users = await sql`SELECT * FROM admin_users WHERE LOWER(email) = ${email} LIMIT 1;`;
-    if (users.length > 0 && (users[0].password_hash === password || defaultPasswords.includes(password))) {
-      return NextResponse.json({
-        status: "success",
-        token: `session-token-${Date.now()}-kiwik-admin`,
-        user: { email: users[0].email, role: users[0].role || "admin" }
-      });
+    try {
+      await ensureDbTables();
+      const users = await sql`SELECT * FROM admin_users WHERE LOWER(email) = ${email} LIMIT 1;`;
+      if (users.length > 0 && (users[0].password_hash === password || defaultPasswords.includes(password))) {
+        return NextResponse.json({
+          status: "success",
+          token: `session-token-${Date.now()}-kiwik-admin`,
+          user: { email: users[0].email, role: users[0].role || "admin" }
+        });
+      }
+    } catch (dbErr) {
+      console.warn("Neon DB auth query skipped or offline:", dbErr);
     }
 
     return NextResponse.json({ error: "Invalid admin credentials" }, { status: 401 });

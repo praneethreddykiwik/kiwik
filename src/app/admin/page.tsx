@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProjectImage } from "@/components/ui/project-image";
+import { QuickAction, TimelineEntry, Contributor, ProjectImage as ProjectImageInterface } from "@/types";
 import {
   Plus,
   ArrowUp,
@@ -81,7 +82,7 @@ import {
 import { useProjectsStore, useProjects } from "@/stores/projects-store";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
 import { useDocsStore } from "@/stores/docs-store";
-import ProjectDetailPage from "@/app/projects/[slug]/page";
+import { ProjectDetailContent } from "@/components/projects/project-detail-content";
 import { GlassCard } from "@/components/glass/glass-card";
 import type {
   Project,
@@ -174,6 +175,16 @@ export default function AdminPage() {
   const [homeSection, setHomeSection] = useState<HomeSectionTab>("hero");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  const handleSelectTab = (tab: MainSidebarTab) => {
+    setMainTab(tab);
+    setIsMobileSidebarOpen(false);
+  };
+
+  const handleSelectPage = (page: PageSubTab) => {
+    setActivePage(page);
+    setIsMobileSidebarOpen(false);
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -232,7 +243,7 @@ export default function AdminPage() {
   const { addArticle, updateArticle, deleteArticle } = useDocsStore();
 
   // Authentication State
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -241,8 +252,8 @@ export default function AdminPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("kiwik_admin_session_token");
-      if (!token) {
-        setIsAuthenticated(false);
+      if (token) {
+        setIsAuthenticated(true);
       }
     }
   }, []);
@@ -282,8 +293,9 @@ export default function AdminPage() {
 
   // Toast Notification State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
+  const showToast = (msg: string, detail?: string) => {
+    const fullMsg = detail ? `${msg}: ${detail}` : msg;
+    setToastMessage(fullMsg);
     setTimeout(() => setToastMessage(null), 3000);
 
     // Neon DB Global Synchronization Trigger
@@ -292,6 +304,35 @@ export default function AdminPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(useSiteCMSStore.getState().cms)
     }).catch((err) => console.error("Neon DB CMS sync error:", err));
+  };
+
+  const openMediaPicker = (onSelect: (selectedUrl: string) => void, title: string = "Select Media Asset") => {
+    setMediaPickerTarget({ onSelect, title });
+  };
+
+  const movePriority = (projId: string, direction: "up" | "down") => {
+    const sorted = [...projects].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+    const currIdx = sorted.findIndex((p) => p.id === projId);
+    if (currIdx === -1) return;
+    const targetIdx = direction === "up" ? currIdx - 1 : currIdx + 1;
+    if (targetIdx < 0 || targetIdx >= sorted.length) return;
+
+    // Ensure distinct integer priorities before swapping
+    sorted.forEach((p, idx) => {
+      p.priority = p.priority ?? idx + 1;
+    });
+
+    const currentItem = sorted[currIdx];
+    const targetItem = sorted[targetIdx];
+
+    const tempP = currentItem.priority || (currIdx + 1);
+    const targetP = targetItem.priority || (targetIdx + 1);
+    const newCurrentP = tempP === targetP ? (direction === "up" ? targetP - 1 : targetP + 1) : targetP;
+    const newTargetP = tempP === targetP ? targetP : tempP;
+
+    updateProject(currentItem.id, { priority: newCurrentP });
+    updateProject(targetItem.id, { priority: newTargetP });
+    showToast("Reordered", `Updated catalog priority for ${currentItem.name}`);
   };
 
   // Filter & Modal States
@@ -1630,7 +1671,7 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => {
-              const newImg: ProjectImage = {
+              const newImg: ProjectImageInterface = {
                 src: "/logo.png",
                 alt: "System Dashboard Screenshot",
                 caption: "Console pipeline monitoring analytics",
@@ -2320,7 +2361,7 @@ export default function AdminPage() {
               </span>
 
               <button
-                onClick={() => setMainTab("dashboard")}
+                onClick={() => handleSelectTab("dashboard")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "dashboard" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2330,7 +2371,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => setMainTab("pages")}
+                onClick={() => handleSelectTab("pages")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer text-left",
                   mainTab === "pages" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2359,7 +2400,7 @@ export default function AdminPage() {
                     <button
                       key={pg.id}
                       id={`admin-subtab-${pg.id}`}
-                      onClick={() => setActivePage(pg.id as PageSubTab)}
+                      onClick={() => handleSelectPage(pg.id as PageSubTab)}
                       className={cn(
                         "w-full px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-2 transition-colors cursor-pointer text-left",
                         activePage === pg.id ? "bg-white/10 text-accent-blue font-extrabold" : "text-text-secondary hover:text-text-primary"
@@ -2372,7 +2413,7 @@ export default function AdminPage() {
               )}
 
               <button
-                onClick={() => setMainTab("media")}
+                onClick={() => handleSelectTab("media")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "media" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2382,7 +2423,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => setMainTab("projects")}
+                onClick={() => handleSelectTab("projects")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "projects" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2392,7 +2433,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => setMainTab("documentation")}
+                onClick={() => handleSelectTab("documentation")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "documentation" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2402,7 +2443,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => setMainTab("ai")}
+                onClick={() => handleSelectTab("ai")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "ai" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2412,7 +2453,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => setMainTab("analytics")}
+                onClick={() => handleSelectTab("analytics")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "analytics" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2422,7 +2463,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => setMainTab("users")}
+                onClick={() => handleSelectTab("users")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "users" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2432,7 +2473,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => setMainTab("appearance")}
+                onClick={() => handleSelectTab("appearance")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "appearance" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2442,7 +2483,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => setMainTab("settings")}
+                onClick={() => handleSelectTab("settings")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "settings" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2452,7 +2493,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => setMainTab("version-history")}
+                onClick={() => handleSelectTab("version-history")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
                   mainTab === "version-history" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
@@ -2657,10 +2698,7 @@ export default function AdminPage() {
                         <input
                           type="text"
                           value={cms.hero.headlinePrefix}
-                          onChange={(e) => {
-                            updateHero({ headlinePrefix: e.target.value });
-                            showToast("Updated headline prefix!");
-                          }}
+                          onChange={(e) => updateHero({ headlinePrefix: e.target.value })}
                           className="w-full px-4 py-2.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-semibold"
                         />
                       </div>
@@ -2669,10 +2707,7 @@ export default function AdminPage() {
                         <input
                           type="text"
                           value={cms.hero.headlineHighlightWord}
-                          onChange={(e) => {
-                            updateHero({ headlineHighlightWord: e.target.value });
-                            showToast("Updated highlight word!");
-                          }}
+                          onChange={(e) => updateHero({ headlineHighlightWord: e.target.value })}
                           className="w-full px-4 py-2.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-semibold"
                         />
                       </div>
@@ -2681,10 +2716,7 @@ export default function AdminPage() {
                         <textarea
                           rows={3}
                           value={cms.hero.description}
-                          onChange={(e) => {
-                            updateHero({ description: e.target.value });
-                            showToast("Updated hero description!");
-                          }}
+                          onChange={(e) => updateHero({ description: e.target.value })}
                           className="w-full px-4 py-2.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-medium"
                         />
                       </div>
@@ -2757,7 +2789,6 @@ export default function AdminPage() {
                               onChange={(e) => {
                                 const updated = (cms.hero.galleryImages || []).map((g) => (g.id === img.id ? { ...g, title: e.target.value } : g));
                                 updateHero({ galleryImages: updated });
-                                showToast("Updated image title!");
                               }}
                               className="w-full px-3 py-1.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-bold"
                             />
@@ -2771,7 +2802,6 @@ export default function AdminPage() {
                               onChange={(e) => {
                                 const updated = (cms.hero.galleryImages || []).map((g) => (g.id === img.id ? { ...g, linkUrl: e.target.value } : g));
                                 updateHero({ galleryImages: updated });
-                                showToast("Updated click target URL!");
                               }}
                               className="w-full px-3 py-1.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono text-accent-blue"
                             />
@@ -2786,7 +2816,6 @@ export default function AdminPage() {
                                 onChange={(e) => {
                                   const updated = (cms.hero.galleryImages || []).map((g) => (g.id === img.id ? { ...g, url: e.target.value } : g));
                                   updateHero({ galleryImages: updated });
-                                  showToast("Updated image URL!");
                                 }}
                                 className="flex-1 px-3 py-1.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono"
                               />
@@ -2855,7 +2884,6 @@ export default function AdminPage() {
                             const updated = [...(cms.hero.rotatingWords || [])];
                             updated[idx] = e.target.value;
                             updateHero({ rotatingWords: updated });
-                            showToast("Updated prompt suggestion!");
                           }}
                           className="flex-1 bg-transparent text-xs font-mono font-medium text-text-primary focus:outline-none"
                         />
@@ -5067,7 +5095,7 @@ export default function AdminPage() {
                         }
                       }}
                     >
-                      <ProjectDetailPage projectOverride={editingProject} />
+                      <ProjectDetailContent projectOverride={editingProject} />
                     </div>
                   </div>
                 </div>

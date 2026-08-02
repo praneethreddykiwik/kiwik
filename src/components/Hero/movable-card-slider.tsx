@@ -6,9 +6,10 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useSiteCMS } from "@/stores/site-cms-store";
+import { MovableSliderCard } from "@/types/site-cms-types";
 
 // Curated Brand AI Models matching the reference screenshot
-const AI_MODELS = [
+const AI_MODELS: MovableSliderCard[] = [
   {
     id: "heygen",
     name: "HeyGen",
@@ -27,7 +28,7 @@ const AI_MODELS = [
     id: "meta",
     name: "Meta",
     tag: "Movie Gen 3D",
-    image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=600&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
     gradient: "from-blue-600/30 to-indigo-600/30",
   },
   {

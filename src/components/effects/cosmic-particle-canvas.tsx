@@ -94,10 +94,7 @@ export function CosmicParticleCanvas() {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = p.color + p.alpha + ")";
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = p.color + "0.8)";
         ctx.fill();
-        ctx.shadowBlur = 0;
 
         // Connect nearby nodes
         for (let j = i + 1; j < particles.length; j++) {

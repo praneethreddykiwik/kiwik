@@ -452,6 +452,7 @@ export interface DashboardShowcaseCMS {
   dashboardImageUrl?: string;
   rightPanelImageUrl?: string;
   backgroundImageUrl?: string;
+  avatarUrl?: string;
   labels?: string[];
   badges?: string[];
   cards?: any[];

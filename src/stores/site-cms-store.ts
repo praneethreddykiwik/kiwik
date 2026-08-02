@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { useProjectsStore } from "@/stores/projects-store";
 import type {
   SiteCMSData,
   WebsiteSettings,
@@ -86,7 +87,7 @@ const defaultCMSData: SiteCMSData = {
     animationSpeedSeconds: 2.5,
     galleryImages: [
       { id: "g1", url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop", title: "Hyper Crimson Sneaker", linkUrl: "/projects" },
-      { id: "g2", url: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=600&auto=format&fit=crop", title: "Porcelain Roses", linkUrl: "/projects" },
+      { id: "g2", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", title: "Porcelain Roses", linkUrl: "/projects" },
       { id: "g3", url: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600&auto=format&fit=crop", title: "Liquid Chroma", linkUrl: "/projects" },
       { id: "g4", url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop", title: "Patent Gloss Portrait", linkUrl: "/projects" },
       { id: "g5", url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop", title: "Holographic Waves", linkUrl: "/projects" },
@@ -577,7 +578,7 @@ const defaultCMSData: SiteCMSData = {
         id: "meta",
         name: "Meta",
         tag: "Movie Gen 3D",
-        image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=600&auto=format&fit=crop",
+        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
         domain: "meta.ai",
         gradient: "from-blue-600/30 to-indigo-600/30",
       },
@@ -621,6 +622,7 @@ interface SiteCMSStoreState {
   cms: SiteCMSData;
 
   // Mutator functions
+  setCMS: (cms: SiteCMSData) => void;
   updateSettings: (settings: Partial<WebsiteSettings>) => void;
   updateHero: (hero: Partial<HeroCMS>) => void;
   updatePromptBar: (promptBar: Partial<import("@/types/site-cms-types").PromptBarCMS>) => void;
@@ -706,6 +708,12 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
   persist(
     (set, get) => ({
       cms: defaultCMSData,
+
+      setCMS: (newCMS) => {
+        set((state) => ({
+          cms: { ...state.cms, ...newCMS }
+        }));
+      },
 
       updateSettings: (partialSettings) => {
         set((state) => ({
@@ -1276,6 +1284,16 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
         if (!snapshot) return;
         try {
           const restoredCMS: SiteCMSData = JSON.parse(snapshot.data);
+          if (snapshot.projectsData) {
+            try {
+              const restoredProjects = JSON.parse(snapshot.projectsData);
+              if (Array.isArray(restoredProjects)) {
+                useProjectsStore.getState().setProjects(restoredProjects);
+              }
+            } catch (pErr) {
+              console.error("Failed to restore projects state from snapshot:", pErr);
+            }
+          }
           set((state) => ({
             cms: {
               ...restoredCMS,
@@ -1348,10 +1366,28 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
         cms: {
           ...defaultCMSData,
           ...(persistedState?.cms || {}),
-          projectsPage: {
-            ...defaultCMSData.projectsPage,
-            ...(persistedState?.cms?.projectsPage || {})
-          }
+          settings: { ...defaultCMSData.settings, ...(persistedState?.cms?.settings || {}) },
+          hero: { ...defaultCMSData.hero, ...(persistedState?.cms?.hero || {}) },
+          promptBar: { ...defaultCMSData.promptBar, ...(persistedState?.cms?.promptBar || {}) },
+          navigation: { ...defaultCMSData.navigation, ...(persistedState?.cms?.navigation || {}) },
+          footer: { ...defaultCMSData.footer, ...(persistedState?.cms?.footer || {}) },
+          featuredSection: { ...defaultCMSData.featuredSection, ...(persistedState?.cms?.featuredSection || {}) },
+          capabilities: { ...defaultCMSData.capabilities, ...(persistedState?.cms?.capabilities || {}) },
+          trust: { ...defaultCMSData.trust, ...(persistedState?.cms?.trust || {}) },
+          howWeWork: { ...defaultCMSData.howWeWork, ...(persistedState?.cms?.howWeWork || {}) },
+          deviceShowcase: { ...defaultCMSData.deviceShowcase, ...(persistedState?.cms?.deviceShowcase || {}) },
+          earthShowcase: { ...defaultCMSData.earthShowcase, ...(persistedState?.cms?.earthShowcase || {}) },
+          dashboardShowcase: { ...defaultCMSData.dashboardShowcase, ...(persistedState?.cms?.dashboardShowcase || {}) },
+          aiKnowledge: { ...defaultCMSData.aiKnowledge, ...(persistedState?.cms?.aiKnowledge || {}) },
+          analytics: { ...defaultCMSData.analytics, ...(persistedState?.cms?.analytics || {}) },
+          theme: { ...defaultCMSData.theme, ...(persistedState?.cms?.theme || {}) },
+          seo: { ...defaultCMSData.seo, ...(persistedState?.cms?.seo || {}) },
+          projectsPage: { ...defaultCMSData.projectsPage, ...(persistedState?.cms?.projectsPage || {}) },
+          architectureNodes: persistedState?.cms?.architectureNodes || defaultCMSData.architectureNodes,
+          whyCriskaPills: persistedState?.cms?.whyCriskaPills || defaultCMSData.whyCriskaPills,
+          media: persistedState?.cms?.media || defaultCMSData.media,
+          auditLogs: persistedState?.cms?.auditLogs || defaultCMSData.auditLogs,
+          snapshots: persistedState?.cms?.snapshots || defaultCMSData.snapshots
         }
       })
     }
