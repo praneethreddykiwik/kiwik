@@ -68,6 +68,14 @@ export function MovableCardSlider() {
 
   const [activeIndex, setActiveIndex] = useState(2); // Center card index
   const [dragStartX, setDragStartX] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleNext = () => {
     setActiveIndex((prev) => Math.min(prev + 1, displayCards.length - 1));
@@ -92,7 +100,7 @@ export function MovableCardSlider() {
   const progressPercent = displayCards.length > 1 ? ((activeIndex) / (displayCards.length - 1)) * 100 : 100;
 
   return (
-    <div className="relative w-full max-w-[1450px] mx-auto py-6 sm:py-10 flex flex-col items-center justify-center select-none overflow-hidden transform-gpu">
+    <div className="relative w-full max-w-[1450px] mx-auto py-4 sm:py-10 flex flex-col items-center justify-center select-none overflow-hidden transform-gpu">
       
       {/* ─────────────────────────────────────────────────────────────
           MOVABLE 3D CARDS PERSPECTIVE STREAM
@@ -101,16 +109,17 @@ export function MovableCardSlider() {
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         onDragEnd={handleDragEnd}
-        className="relative w-full h-[320px] sm:h-[380px] flex items-center justify-center cursor-grab active:cursor-grabbing transform-gpu overflow-visible"
+        className="relative w-full h-[290px] sm:h-[380px] flex items-center justify-center cursor-grab active:cursor-grabbing transform-gpu overflow-visible"
       >
         {displayCards.map((model, idx) => {
           const offset = idx - activeIndex;
           const absOffset = Math.abs(offset);
 
-          // 3D Perspective Calculations matching the reference screenshot
-          const translateX = offset * 220; // Horizontal spacing offset
-          const scale = 1 - absOffset * 0.1; // Center card largest (1.0), side cards scale down
-          const rotateY = offset * -14; // Left cards tilt inward, right cards tilt outward
+          // 3D Perspective Calculations (Responsive for Mobile, Tablet, & Desktop)
+          const spacing = isMobile ? 135 : 220;
+          const translateX = offset * spacing;
+          const scale = 1 - absOffset * (isMobile ? 0.08 : 0.1);
+          const rotateY = offset * (isMobile ? -8 : -14);
           const opacity = absOffset > 3 ? 0 : 1 - absOffset * 0.2;
           const zIndex = 30 - absOffset * 5;
 
