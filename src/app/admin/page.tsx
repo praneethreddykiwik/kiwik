@@ -4680,9 +4680,11 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* PROJECTS TAB */}
-          {mainTab === "projects" && (
-            editingProject ? (
+          {/* GLOBAL FULLSCREEN PROJECT STUDIO EDITOR
+              Rendered at the top level (not gated behind a specific tab) so it can be
+              launched from BOTH the Pages ▸ Projects inventory and the standalone
+              Projects tab. As a `fixed inset-0` overlay it covers the whole studio. */}
+          {editingProject && (
               <div className="fixed inset-0 top-0 z-50 bg-bg-primary text-text-primary flex flex-col h-screen w-screen text-left overflow-hidden">
                 {/* Control bar */}
                 <div className="px-6 py-3.5 bg-bg-secondary/40 border-b border-divider flex items-center justify-between flex-shrink-0">
@@ -4812,7 +4814,10 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
-            ) : (
+          )}
+
+          {/* STANDALONE PROJECTS TAB — catalog list (only when not editing) */}
+          {mainTab === "projects" && !editingProject && (
               <div className="space-y-6 text-left">
                 <div className="flex items-center justify-between p-5 rounded-2xl bg-glass-bg border border-glass-border">
                   <div>
@@ -4896,7 +4901,6 @@ export default function AdminPage() {
                   ))}
                 </div>
               </div>
-            )
           )}
 
           {/* DOCUMENTATION TAB */}
