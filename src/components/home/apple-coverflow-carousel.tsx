@@ -49,14 +49,18 @@ const DEFAULT_COLOR = {
 
 export function AppleCoverflowCarousel() {
   const rawProjects = useProjects();
-  const featuredProjects = rawProjects.filter(p => p.featured === true);
-  const displayProjects = featuredProjects.length > 0 ? featuredProjects : rawProjects;
+  // Include all projects from store, sorting featured projects to the top
+  const displayProjects = [...rawProjects].sort((a, b) => {
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return (a.priority || 0) - (b.priority || 0);
+  });
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const total = displayProjects.length;
+  const total = displayProjects.length || 1;
 
   const handleNext = () => {
     setActiveIndex((prev) => (prev + 1) % total);
@@ -316,7 +320,7 @@ export function AppleCoverflowCarousel() {
             />
           ))}
           <span className="ml-2 text-[10px] text-neutral-600 dark:text-white/60 font-bold">
-            0{activeIndex + 1} / 0{total}
+            {String(activeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </span>
         </div>
 
