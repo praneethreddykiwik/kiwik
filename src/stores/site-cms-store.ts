@@ -1361,10 +1361,21 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
 export function useSiteCMS() {
   const [hasHydrated, setHasHydrated] = useState(false);
   const cms = useSiteCMSStore((state) => state.cms);
+  const setCMS = useSiteCMSStore((state) => state.setCMS);
 
   useEffect(() => {
     setHasHydrated(true);
-  }, []);
+
+    // Fetch latest global CMS state from Neon PostgreSQL
+    fetch("/api/cms")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "ok" && data.cms) {
+          setCMS(data.cms);
+        }
+      })
+      .catch((err) => console.error("Neon DB CMS fetch error:", err));
+  }, [setCMS]);
 
   return hasHydrated ? cms : defaultCMSData;
 }

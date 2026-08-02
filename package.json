@@ -19,6 +19,7 @@
   "author": "Criska",
   "license": "MIT",
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@radix-ui/react-slot": "^1.3.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.1.1",

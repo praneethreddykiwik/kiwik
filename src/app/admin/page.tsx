@@ -40,6 +40,10 @@ import {
   Tablet,
   Monitor,
   Menu,
+  LogOut,
+  Lock,
+  Mail,
+  Key,
   Moon,
   Sun,
   Shield,
@@ -62,12 +66,10 @@ import {
   Tag,
   ShieldCheck,
   HelpCircle,
-  Lock,
   UserCheck,
   Folder,
   MousePointer,
   Cpu,
-  Mail,
   Share2,
   FileCode,
   MessageSquare,
@@ -229,11 +231,67 @@ export default function AdminPage() {
   const docsCategories = useDocsStore((state) => state.categories);
   const { addArticle, updateArticle, deleteArticle } = useDocsStore();
 
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("kiwik_admin_session_token");
+      if (!token) {
+        setIsAuthenticated(false);
+      }
+    }
+  }, []);
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+    setLoginError(null);
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === "success") {
+        localStorage.setItem("kiwik_admin_session_token", data.token);
+        setIsAuthenticated(true);
+        setToastMessage("✓ Authenticated Admin Session Established");
+        setTimeout(() => setToastMessage(null), 3000);
+      } else {
+        setLoginError(data.error || "Invalid credentials");
+      }
+    } catch (err) {
+      setLoginError("Connection failure to auth server");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleAdminLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("kiwik_admin_session_token");
+    }
+    setIsAuthenticated(false);
+  };
+
   // Toast Notification State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+
+    // Neon DB Global Synchronization Trigger
+    fetch("/api/cms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(useSiteCMSStore.getState().cms)
+    }).catch((err) => console.error("Neon DB CMS sync error:", err));
   };
 
   // Filter & Modal States
@@ -2020,6 +2078,93 @@ export default function AdminPage() {
     );
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#050608] text-white flex items-center justify-center p-4 select-none relative overflow-hidden font-sans">
+        {/* Ambient Glowing Lighting */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-accent-blue/15 rounded-full blur-[140px] pointer-events-none" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          className="w-full max-w-md vision-glass p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6 relative z-10 bg-neutral-900/80 backdrop-blur-2xl"
+        >
+          <div className="text-center space-y-2">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-accent-blue via-indigo-500 to-purple-600 p-[1px] mx-auto shadow-lg">
+              <div className="w-full h-full bg-neutral-950 rounded-[15px] flex items-center justify-center font-bold text-lg text-white">
+                K
+              </div>
+            </div>
+            <h1 className="text-2xl font-serif font-bold text-white tracking-tight">Kiwik OS Studio Login</h1>
+            <p className="text-xs text-neutral-400 font-sans">Enter admin credentials to manage platform telemetry & content.</p>
+          </div>
+
+          <form onSubmit={handleAdminLogin} className="space-y-4">
+            {loginError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold text-center">
+                {loginError}
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-400">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                <input
+                  type="email"
+                  required
+                  placeholder="admin@kiwik.one"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-950/60 border border-white/10 focus:border-accent-blue text-xs text-white placeholder-neutral-500 focus:outline-none transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-400">Security Key / Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-950/60 border border-white/10 focus:border-accent-blue text-xs text-white placeholder-neutral-500 focus:outline-none transition-all"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full py-3 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-white font-bold text-xs shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              {isLoggingIn ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Authenticating...</span>
+                </>
+              ) : (
+                <>
+                  <Key className="w-4 h-4" />
+                  <span>Authenticate Session</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="pt-2 text-center border-t border-white/5">
+            <span className="text-[10px] text-neutral-500 font-mono">
+              Default Admin: <code className="text-neutral-300">shagantivivekgoud@gmail.com</code> / <code className="text-neutral-300">admin123</code>
+            </span>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen bg-bg-primary text-text-primary flex flex-col font-sans select-none antialiased overflow-hidden">
       
@@ -2134,6 +2279,15 @@ export default function AdminPage() {
           >
             <Eye className="w-4 h-4" /> <span className="hidden sm:inline">View Public Site</span>
           </Link>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleAdminLogout}
+            className="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+            title="Log out of Admin Studio"
+          >
+            <LogOut className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </header>
 

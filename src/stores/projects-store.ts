@@ -1,6 +1,6 @@
 "use client";
 // ─────────────────────────────────────────────────────────────
-// Kiwik.1 — Projects Store (Zustand + Persist)
+// Kiwik.1 — Projects Store (Zustand + Persist + Neon DB Sync)
 // ─────────────────────────────────────────────────────────────
 
 import { create } from "zustand";
@@ -18,6 +18,29 @@ const categoryFallbacks: Record<string, string> = {
   saas: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80",
   web: "/images/kiwik-cover.jpg",
 };
+
+// Async Neon DB Sync Helpers
+async function syncProjectToDb(project: Project) {
+  try {
+    await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(project),
+    });
+  } catch (err) {
+    console.error("Failed to sync project to Neon DB:", err);
+  }
+}
+
+async function deleteProjectFromDb(id: string) {
+  try {
+    await fetch(`/api/projects?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+  } catch (err) {
+    console.error("Failed to delete project from Neon DB:", err);
+  }
+}
 
 interface ProjectsState {
   projects: Project[];
@@ -38,24 +61,35 @@ export const useProjectsStore = create<ProjectsState>()(
 
       setProjects: (projects) => set({ projects }),
 
-      addProject: (newProject) =>
+      addProject: (newProject) => {
         set((state) => ({
           projects: [newProject, ...state.projects],
-        })),
+        }));
+        syncProjectToDb(newProject);
+      },
 
-      updateProject: (id, updated) =>
-        set((state) => ({
-          projects: state.projects.map((p) =>
+      updateProject: (id, updated) => {
+        set((state) => {
+          const newProjects = state.projects.map((p) =>
             p.id === id ? { ...p, ...updated, lastUpdated: new Date().toISOString().split("T")[0] } : p
-          ),
-        })),
+          );
+          const target = newProjects.find((p) => p.id === id);
+          if (target) syncProjectToDb(target);
+          return { projects: newProjects };
+        });
+      },
 
-      deleteProject: (id) =>
+      deleteProject: (id) => {
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),
-        })),
+        }));
+        deleteProjectFromDb(id);
+      },
 
-      reorderProjects: (newOrder) => set({ projects: newOrder }),
+      reorderProjects: (newOrder) => {
+        set({ projects: newOrder });
+        newOrder.forEach((p) => syncProjectToDb(p));
+      },
 
       movePriority: (id, direction) =>
         set((state) => {
@@ -91,6 +125,7 @@ export const useProjectsStore = create<ProjectsState>()(
           const updated = [...state.projects];
           updated.splice(index + 1, 0, duplicated);
 
+          syncProjectToDb(duplicated);
           return { projects: updated };
         }),
 
@@ -102,22 +137,32 @@ export const useProjectsStore = create<ProjectsState>()(
   )
 );
 
-// SSR Hydration Helper Hook
+// SSR Hydration & Global Neon DB Sync Hook
 export function useProjects() {
   const [hasHydrated, setHasHydrated] = useState(false);
   const storeProjects = useProjectsStore((s) => s.projects);
+  const setProjects = useProjectsStore((s) => s.setProjects);
 
   useEffect(() => {
     setHasHydrated(true);
-  }, []);
 
-  const sanitizedProjects = (hasHydrated ? storeProjects : defaultProjects).map(p => {
-    // If coverImage is empty, a broken local path, or invalid, auto-fix with valid default
+    // Sync latest global Projects state from Neon PostgreSQL
+    fetch("/api/projects")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "ok" && Array.isArray(data.projects) && data.projects.length > 0) {
+          setProjects(data.projects);
+        }
+      })
+      .catch((err) => console.error("Neon DB projects fetch error:", err));
+  }, [setProjects]);
+
+  const sanitizedProjects = (hasHydrated ? storeProjects : defaultProjects).map((p) => {
     if (!p.coverImage || p.coverImage.startsWith("/images/criska-") || !p.coverImage.includes(".")) {
-      const defaultP = defaultProjects.find(dp => dp.id === p.id || dp.slug === p.slug);
+      const defaultP = defaultProjects.find((dp) => dp.id === p.id || dp.slug === p.slug);
       return {
         ...p,
-        coverImage: defaultP?.coverImage || categoryFallbacks[p.category] || "/images/kiwik-cover.jpg"
+        coverImage: defaultP?.coverImage || categoryFallbacks[p.category] || "/images/kiwik-cover.jpg",
       };
     }
     return p;
