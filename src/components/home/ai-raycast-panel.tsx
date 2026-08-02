@@ -151,7 +151,7 @@ export function AiRaycastPanel() {
 
   return (
     <div className="w-full max-w-[340px] select-none mx-auto lg:mx-0">
-      <div className="vision-glass border border-white/50 backdrop-blur-2xl rounded-3xl p-5 shadow-2xl flex flex-col gap-4 min-h-[580px] justify-between relative overflow-hidden">
+      <div className="vision-glass border border-white/50 rounded-3xl p-5 shadow-2xl flex flex-col gap-4 min-h-[580px] justify-between relative overflow-hidden transform-gpu">
         
         {/* Header Title */}
         <div className="space-y-4">

@@ -128,7 +128,7 @@ export function MacosDashboard() {
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 mt-12 mb-16 relative z-30 select-none">
       {/* Outer macOS chrome wrapper */}
-      <div className="vision-glass border border-white/50 backdrop-blur-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[580px]">
+      <div className="vision-glass border border-white/50 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[580px] transform-gpu">
         
         {/* Sidebar Left panel */}
         <aside className="w-full md:w-[220px] bg-bg-secondary/40 border-r border-divider/60 p-4 flex flex-col justify-between gap-6">
