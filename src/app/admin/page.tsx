@@ -4683,7 +4683,7 @@ export default function AdminPage() {
           {/* PROJECTS TAB */}
           {mainTab === "projects" && (
             editingProject ? (
-              <div className="fixed inset-0 top-16 z-40 bg-bg-primary text-text-primary flex flex-col h-[calc(100vh-64px)] w-screen text-left">
+              <div className="fixed inset-0 top-0 z-50 bg-bg-primary text-text-primary flex flex-col h-screen w-screen text-left">
                 {/* Control bar */}
                 <div className="px-6 py-3.5 bg-bg-secondary/40 border-b border-divider flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-3">
@@ -4790,13 +4790,13 @@ export default function AdminPage() {
                   </div>
 
                   {/* Right panel: Full real-time live preview (60% width) */}
-                  <div className="flex-1 bg-bg-secondary/50 h-full overflow-y-auto no-scrollbar relative">
+                  <div className="flex-1 bg-bg-secondary/50 h-full overflow-y-auto relative overscroll-y-contain">
                     <div className="absolute top-4 left-4 bg-accent/20 border border-accent/40 px-3 py-1 rounded-full text-[9px] font-mono font-bold text-accent tracking-widest uppercase select-none z-[100] animate-pulse">
                       Live Preview (Updates Instantly)
                     </div>
                     {/* Embed the actual page component passing the modified project object */}
                     <div 
-                      className="scale-[0.98] origin-top-left transform w-[102%] h-[102%]"
+                      className="scale-[0.98] origin-top-left transform w-[102%] h-auto overscroll-y-contain"
                       onClick={(e) => {
                         const target = e.target as HTMLElement;
                         const anchor = target.closest("a");
