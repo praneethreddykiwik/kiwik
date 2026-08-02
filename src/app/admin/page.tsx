@@ -30,6 +30,7 @@ import {
   FileText,
   Users,
   Calendar,
+  Camera,
   Image as ImageIcon,
   Check,
   Eye,
