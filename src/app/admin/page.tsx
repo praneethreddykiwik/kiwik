@@ -39,6 +39,7 @@ import {
   Smartphone,
   Tablet,
   Monitor,
+  Menu,
   Moon,
   Sun,
   Shield,
@@ -169,6 +170,7 @@ export default function AdminPage() {
   const [mainTab, setMainTab] = useState<MainSidebarTab>("pages");
   const [activePage, setActivePage] = useState<PageSubTab>("home");
   const [homeSection, setHomeSection] = useState<HomeSectionTab>("hero");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -2040,22 +2042,29 @@ export default function AdminPage() {
           TOP CONTROL BAR (Enterprise CMS Studio Header)
          ───────────────────────────────────────────────────────────── */}
       <header className="h-16 shrink-0 px-6 bg-glass-bg border-b border-glass-border backdrop-blur-xl flex items-center justify-between z-40">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            className="lg:hidden p-2 rounded-xl bg-bg-secondary border border-glass-border text-text-primary hover:bg-bg-primary cursor-pointer shrink-0"
+            aria-label="Toggle Navigation Menu"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-accent-blue via-indigo-500 to-purple-600 p-[1px]">
               <div className="w-full h-full bg-bg-primary rounded-[11px] flex items-center justify-center font-bold text-xs text-text-primary group-hover:scale-105 transition-transform">
                 K
               </div>
             </div>
-            <span className="font-serif font-bold text-base tracking-tight text-text-primary">Kiwik OS Studio</span>
+            <span className="font-serif font-bold text-base tracking-tight text-text-primary hidden sm:inline">Kiwik OS Studio</span>
           </Link>
-          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold flex items-center gap-1.5">
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold hidden sm:flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Telemetry Synced
           </span>
         </div>
 
         {/* Device Switcher & Mode Tools */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
           {/* Viewport Frame Toggle */}
           <button
             onClick={() => {
@@ -2066,7 +2075,7 @@ export default function AdminPage() {
               }
             }}
             className={cn(
-              "px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border",
+              "px-3 py-1.5 rounded-xl text-xs font-bold hidden md:flex items-center gap-1.5 transition-all cursor-pointer border",
               mainTab === ("live-preview" as any)
                 ? "bg-accent-blue text-white border-transparent shadow-md"
                 : "bg-bg-secondary border-glass-border text-text-primary hover:bg-bg-primary"
@@ -2077,7 +2086,7 @@ export default function AdminPage() {
           </button>
 
           {/* Device Switcher Segment */}
-          <div className="flex items-center p-1 rounded-xl bg-bg-secondary border border-glass-border">
+          <div className="hidden sm:flex items-center p-1 rounded-xl bg-bg-secondary border border-glass-border">
             <button
               onClick={() => setPreviewDevice("desktop")}
               className={cn(
@@ -2112,18 +2121,18 @@ export default function AdminPage() {
 
           <button
             onClick={() => setPreviewMode(previewMode === "dark" ? "light" : "dark")}
-            className="p-2 rounded-xl bg-bg-secondary border border-glass-border text-text-primary text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+            className="p-2 rounded-xl bg-bg-secondary border border-glass-border text-text-primary text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             {previewMode === "dark" ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
-            <span>{previewMode === "dark" ? "Dark Mode" : "Light Mode"}</span>
+            <span className="hidden sm:inline">{previewMode === "dark" ? "Dark Mode" : "Light Mode"}</span>
           </button>
 
           <Link
             href="/"
             target="_blank"
-            className="px-4 py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 text-xs font-bold shadow-md hover:scale-102 transition-all flex items-center gap-1.5"
+            className="px-3 sm:px-4 py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 text-xs font-bold shadow-md hover:scale-102 transition-all flex items-center gap-1.5 shrink-0"
           >
-            <Eye className="w-4 h-4" /> View Public Site
+            <Eye className="w-4 h-4" /> <span className="hidden sm:inline">View Public Site</span>
           </Link>
         </div>
       </header>
@@ -2131,10 +2140,24 @@ export default function AdminPage() {
       {/* ─────────────────────────────────────────────────────────────
           MAIN STUDIO LAYOUT (Sidebar + Main Content Canvas)
          ───────────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      <div className="flex-1 flex overflow-hidden min-h-0 relative">
+
+        {/* Mobile Backdrop Overlay */}
+        {isMobileSidebarOpen && (
+          <div
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
 
         {/* LEFT SIDEBAR HIERARCHY */}
-        <aside className="w-64 bg-glass-bg border-r border-glass-border p-4 flex flex-col justify-between shrink-0 space-y-4 overflow-y-auto min-h-0">
+        <aside
+          className={cn(
+            "bg-glass-bg border-r border-glass-border p-4 flex flex-col justify-between shrink-0 space-y-4 overflow-y-auto min-h-0 transition-transform duration-300 z-50",
+            "fixed inset-y-0 left-0 w-72 lg:static lg:w-64",
+            isMobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0 hidden lg:flex"
+          )}
+        >
           <div className="space-y-6">
             
             <div className="space-y-1">
@@ -2322,7 +2345,7 @@ export default function AdminPage() {
         </aside>
 
         {/* RIGHT MAIN CANVAS */}
-        <main className="flex-1 p-6 overflow-y-auto space-y-6 min-h-0">
+        <main className="flex-1 w-full min-w-0 p-3 sm:p-6 overflow-y-auto space-y-6 min-h-0">
           
           {/* LIVE DEVICE PREVIEW TAB */}
           {mainTab === ("live-preview" as any) && (
