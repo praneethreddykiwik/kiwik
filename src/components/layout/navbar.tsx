@@ -8,7 +8,7 @@ import { Menu, X, Command, Search, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeSwitcher } from './theme-switcher';
 import { useThemeStore } from '@/stores/theme-store';
-import { useSiteCMSStore } from '@/stores/site-cms-store';
+import { useSiteCMS } from '@/stores/site-cms-store';
 
 export function Navbar() {
   const [scrolled, setScrolled] = React.useState(false);
@@ -16,7 +16,8 @@ export function Navbar() {
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
   const pathname = usePathname();
 
-  const navCMS = useSiteCMSStore((state) => state.cms.navigation);
+  const cms = useSiteCMS();
+  const navCMS = cms.navigation || { items: [] };
   const { mode } = useThemeStore();
 
   React.useEffect(() => {

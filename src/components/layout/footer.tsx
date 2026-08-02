@@ -58,10 +58,11 @@ function DiscordIcon({ className }: { className?: string }) {
   );
 }
 
-import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
 
 export function Footer() {
-  const footerCMS = useSiteCMSStore((state) => state.cms.footer) || {
+  const cms = useSiteCMS();
+  const footerCMS = cms.footer || {
     columns: [],
     socialLinks: [],
     copyrightText: "",

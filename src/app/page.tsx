@@ -32,7 +32,7 @@ import { FeaturePillars } from "@/components/home/feature-pillars";
 import { FeaturedProductsGrid } from "@/components/home/featured-products-grid";
 import { FutureVision } from "@/components/home/future-vision";
 import { useProjects } from "@/stores/projects-store";
-import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
 import { GlassCard } from "@/components/glass/glass-card";
 
 export default function HomePage() {
@@ -40,7 +40,7 @@ export default function HomePage() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const projects = useProjects();
   
-  const cms = useSiteCMSStore((state) => state.cms);
+  const cms = useSiteCMS();
   const featuredSection = cms.featuredSection || {
     title: "Explore Kiwik Products",
     subtitle: "Understand what each product does, who it helps, its current status, and request real-time access. Fully synchronised with the Admin CMS panel."

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type {
@@ -1245,4 +1246,13 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
   )
 );
 
-export const useSiteCMS = () => useSiteCMSStore((state) => state.cms);
+export function useSiteCMS() {
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const cms = useSiteCMSStore((state) => state.cms);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  return hasHydrated ? cms : defaultCMSData;
+}

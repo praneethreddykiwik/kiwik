@@ -3,10 +3,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { AppleCoverflowCarousel } from "./apple-coverflow-carousel";
-import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
 
 export function FeaturedProductsGrid() {
-  const featuredSection = useSiteCMSStore((state) => state.cms.featuredSection);
+  const cms = useSiteCMS();
+  const featuredSection = cms.featuredSection;
 
   const title = featuredSection?.title || "The Enterprise Operating System";
   const subtitle = featuredSection?.subtitle || "One featured platform at a time. Every project is showcased as a cinematic Apple-class software launch.";
