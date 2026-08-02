@@ -10,7 +10,6 @@ import {
   ArrowUp,
   ArrowLeft,
   ArrowDown,
-  ArrowLeft,
   ArrowRight,
   Edit,
   Copy,

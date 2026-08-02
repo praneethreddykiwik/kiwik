@@ -19,6 +19,14 @@
   --color-accent-muted: var(--accent-muted);
   --color-accent-dim: var(--accent-dim);
   
+  --color-accent-blue: hsl(217 91% 60%);
+  --color-accent-violet: hsl(263 70% 58%);
+  --color-accent-emerald: hsl(160 84% 39%);
+  --color-accent-orange: hsl(25 95% 53%);
+  --color-accent-crimson: hsl(346 77% 49%);
+  --color-accent-cyan: hsl(187 92% 48%);
+  --color-accent-white: hsl(0 0% 95%);
+  
   --color-glass-bg: var(--glass-bg);
   --color-glass-bg-hover: var(--glass-bg-hover);
   --color-glass-border: var(--glass-border);
