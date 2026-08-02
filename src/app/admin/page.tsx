@@ -4683,7 +4683,7 @@ export default function AdminPage() {
           {/* PROJECTS TAB */}
           {mainTab === "projects" && (
             editingProject ? (
-              <div className="fixed inset-0 top-0 z-50 bg-bg-primary text-text-primary flex flex-col h-screen w-screen text-left">
+              <div className="fixed inset-0 top-0 z-50 bg-bg-primary text-text-primary flex flex-col h-screen w-screen text-left overflow-hidden">
                 {/* Control bar */}
                 <div className="px-6 py-3.5 bg-bg-secondary/40 border-b border-divider flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-3">
@@ -4732,9 +4732,9 @@ export default function AdminPage() {
                 </div>
 
                 {/* Left/Right Split Panel layout */}
-                <div className="flex-1 flex overflow-hidden bg-bg-primary">
+                <div className="flex-1 flex min-h-0 overflow-hidden bg-bg-primary">
                   {/* Left panel: Collapsible form builder (440px width) */}
-                  <div className="w-[440px] flex-shrink-0 bg-bg-secondary border-r border-divider flex h-full overflow-hidden">
+                  <div className="w-[440px] flex-shrink-0 bg-bg-secondary border-r border-divider flex h-full overflow-hidden min-h-0">
                     {/* Tiny Nav list on the left side of the CMS sidebar */}
                     <div className="w-[85px] bg-bg-tertiary border-r border-divider py-4 flex flex-col gap-1 items-center overflow-y-auto no-scrollbar">
                       {editorTabs.map((tab) => {
@@ -4761,7 +4761,7 @@ export default function AdminPage() {
                     </div>
 
                     {/* Editing settings form values */}
-                    <div className="flex-1 p-5 overflow-y-auto space-y-6 no-scrollbar bg-bg-primary studio-editor-form">
+                    <div className="flex-1 p-5 overflow-y-auto space-y-6 bg-bg-primary studio-editor-form min-h-0">
                       {/* Form header */}
                       <div className="border-b border-divider pb-3">
                         <h3 className="text-xs font-mono font-bold text-accent uppercase tracking-widest">
@@ -4790,7 +4790,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Right panel: Full real-time live preview (60% width) */}
-                  <div className="flex-1 bg-bg-secondary/50 h-full overflow-y-auto relative overscroll-y-contain">
+                  <div className="flex-1 bg-bg-secondary/50 h-full overflow-y-auto relative overscroll-y-contain min-h-0">
                     <div className="absolute top-4 left-4 bg-accent/20 border border-accent/40 px-3 py-1 rounded-full text-[9px] font-mono font-bold text-accent tracking-widest uppercase select-none z-[100] animate-pulse">
                       Live Preview (Updates Instantly)
                     </div>
