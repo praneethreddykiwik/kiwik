@@ -377,6 +377,44 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
             </div>
           )}
         </div>
+
+        {/* ─────────────────────────────────────────────────────────────
+            NEXT & PREVIOUS PROJECT FOOTER NAVIGATION
+           ───────────────────────────────────────────────────────────── */}
+        {!projectOverride && (
+          <div className="mt-16 pt-8 border-t border-glass-border flex flex-col sm:flex-row items-center justify-between gap-4">
+            {(() => {
+              const currIdx = projects.findIndex(p => p.id === project.id || p.slug === project.slug);
+              const prevP = projects[(currIdx - 1 + projects.length) % projects.length];
+              const nextP = projects[(currIdx + 1) % projects.length];
+              return (
+                <>
+                  <Link
+                    href={`/projects/${prevP.slug}`}
+                    className="w-full sm:w-auto flex items-center gap-3 p-4 rounded-2xl bg-glass-bg border border-glass-border hover:border-accent-blue/40 transition-all group cursor-pointer"
+                  >
+                    <ArrowLeft className="w-5 h-5 text-accent-blue group-hover:-translate-x-1 transition-transform" />
+                    <div>
+                      <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Previous Project</span>
+                      <span className="text-sm font-bold text-text-primary tracking-tight">{prevP.name}</span>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href={`/projects/${nextP.slug}`}
+                    className="w-full sm:w-auto flex items-center justify-end gap-3 p-4 rounded-2xl bg-glass-bg border border-glass-border hover:border-accent-blue/40 transition-all group cursor-pointer text-right"
+                  >
+                    <div>
+                      <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Next Project</span>
+                      <span className="text-sm font-bold text-text-primary tracking-tight">{nextP.name}</span>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-accent-blue group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </>
+              );
+            })()}
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
