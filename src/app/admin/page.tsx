@@ -199,10 +199,60 @@ export default function AdminPage() {
   // Theme & Live Preview State
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [previewMode, setPreviewMode] = useState<"dark" | "light">("dark");
+  const [isSavingGlobal, setIsSavingGlobal] = useState(false);
 
   // Store Hooks
   const projects = useProjects();
   const { addProject, updateProject, deleteProject } = useProjectsStore();
+
+  const handleSaveGlobalCMS = async () => {
+    setIsSavingGlobal(true);
+    try {
+      const currentCMS = useSiteCMSStore.getState().cms;
+      const currentProjects = useProjectsStore.getState().projects;
+
+      // 1. Save CMS Data to Neon DB via POST /api/cms
+      const cmsRes = await fetch("/api/cms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(currentCMS)
+      });
+
+      // 2. Save Projects Data to Neon DB via POST /api/projects
+      for (const p of currentProjects) {
+        await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(p)
+        });
+      }
+
+      // 3. Create a snapshot in store
+      useSiteCMSStore.getState().createSnapshot(
+        `Manual Save (${new Date().toLocaleTimeString()})`,
+        "Saved via Admin Studio Save Button",
+        JSON.stringify(currentProjects)
+      );
+
+      showToast("✅ All CMS settings & Projects saved globally in Neon DB!");
+    } catch (err) {
+      console.error("Global save error:", err);
+      showToast("⚠️ Global save failed. Check connection.", "error");
+    } finally {
+      setIsSavingGlobal(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleSaveHotkey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        handleSaveGlobalCMS();
+      }
+    };
+    window.addEventListener("keydown", handleSaveHotkey);
+    return () => window.removeEventListener("keydown", handleSaveHotkey);
+  }, []);
 
   const {
     cms,
@@ -2311,6 +2361,26 @@ export default function AdminPage() {
           >
             {previewMode === "dark" ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
             <span className="hidden sm:inline">{previewMode === "dark" ? "Dark Mode" : "Light Mode"}</span>
+          </button>
+
+          {/* Explicit Save All Changes Button */}
+          <button
+            onClick={handleSaveGlobalCMS}
+            disabled={isSavingGlobal}
+            className="px-3.5 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-neutral-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer shrink-0"
+            title="Save all CMS text & project edits globally to Neon DB (Cmd+S)"
+          >
+            {isSavingGlobal ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-neutral-950/30 border-t-neutral-950 rounded-full animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4 text-neutral-950" />
+                <span>Save All Changes</span>
+              </>
+            )}
           </button>
 
           <Link

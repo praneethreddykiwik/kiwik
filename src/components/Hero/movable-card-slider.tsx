@@ -75,8 +75,19 @@ export function MovableCardSlider() {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
     checkMobile();
     window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+    
+    // Keyboard Left/Right Arrow Navigation
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") handlePrev();
+      if (e.key === "ArrowRight") handleNext();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [displayCards.length]);
 
   const handleNext = () => {
     setActiveIndex((prev) => Math.min(prev + 1, displayCards.length - 1));
@@ -84,6 +95,15 @@ export function MovableCardSlider() {
 
   const handlePrev = () => {
     setActiveIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (Math.abs(e.deltaX) > 20) {
+      if (e.deltaX > 0) handleNext();
+      else handlePrev();
+    } else if (Math.abs(e.deltaY) > 40 && Math.abs(e.deltaX) < 10) {
+      // Optional trackpad wheel swipe fallback
+    }
   };
 
   const handleSliderClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -101,17 +121,44 @@ export function MovableCardSlider() {
   const progressPercent = displayCards.length > 1 ? ((activeIndex) / (displayCards.length - 1)) * 100 : 100;
 
   return (
-    <div className="relative w-full max-w-[1450px] mx-auto py-4 sm:py-10 flex flex-col items-center justify-center select-none overflow-hidden transform-gpu">
+    <div 
+      onWheel={handleWheel}
+      className="relative w-full max-w-[1450px] mx-auto py-4 sm:py-10 flex flex-col items-center justify-center select-none overflow-hidden transform-gpu"
+    >
+      {/* Morphing ambient glow behind active card */}
+      <motion.div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] rounded-full blur-[90px] pointer-events-none z-0 opacity-40 transform-gpu"
+        animate={{
+          background: activeIndex % 3 === 0 
+            ? "rgba(59, 130, 246, 0.25)" 
+            : activeIndex % 3 === 1 
+              ? "rgba(168, 85, 247, 0.25)" 
+              : "rgba(16, 185, 129, 0.25)"
+        }}
+        transition={{ duration: 0.5 }}
+      />
       
       {/* ─────────────────────────────────────────────────────────────
           MOVABLE 3D CARDS PERSPECTIVE STREAM
          ───────────────────────────────────────────────────────────── */}
-      <motion.div
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        onDragEnd={handleDragEnd}
-        className="relative w-full h-[290px] sm:h-[380px] flex items-center justify-center cursor-grab active:cursor-grabbing transform-gpu overflow-visible"
-      >
+      <div className="relative w-full h-[290px] sm:h-[380px] flex items-center justify-center transform-gpu overflow-visible z-10">
+        
+        {/* Floating Side Left Arrow Button */}
+        <button
+          onClick={handlePrev}
+          disabled={activeIndex === 0}
+          className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 dark:bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-black/60 dark:hover:bg-white/20 disabled:opacity-20 disabled:cursor-not-allowed transition-all z-40 cursor-pointer shadow-lg group"
+          aria-label="Previous card"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+        </button>
+
+        <motion.div
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          onDragEnd={handleDragEnd}
+          className="relative w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing transform-gpu overflow-visible"
+        >
         {displayCards.map((model, idx) => {
           const offset = idx - activeIndex;
           const absOffset = Math.abs(offset);
@@ -173,6 +220,17 @@ export function MovableCardSlider() {
           );
         })}
       </motion.div>
+
+        {/* Floating Side Right Arrow Button */}
+        <button
+          onClick={handleNext}
+          disabled={activeIndex === displayCards.length - 1}
+          className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 dark:bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-black/60 dark:hover:bg-white/20 disabled:opacity-20 disabled:cursor-not-allowed transition-all z-40 cursor-pointer shadow-lg group"
+          aria-label="Next card"
+        >
+          <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+        </button>
+      </div>
 
       {/* ─────────────────────────────────────────────────────────────
           BOTTOM INTERACTIVE SLIDER CONTROLS (← Track Indicator →)
