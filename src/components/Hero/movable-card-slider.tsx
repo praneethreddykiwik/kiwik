@@ -108,10 +108,10 @@ export function MovableCardSlider() {
           const absOffset = Math.abs(offset);
 
           // 3D Perspective Calculations matching the reference screenshot
-          const translateX = offset * 210; // Horizontal spacing offset
-          const scale = 1 - absOffset * 0.12; // Center card largest (1.0), side cards scale down
+          const translateX = offset * 220; // Horizontal spacing offset
+          const scale = 1 - absOffset * 0.1; // Center card largest (1.0), side cards scale down
           const rotateY = offset * -14; // Left cards tilt inward, right cards tilt outward
-          const opacity = absOffset > 3 ? 0 : 1 - absOffset * 0.22;
+          const opacity = absOffset > 3 ? 0 : 1 - absOffset * 0.2;
           const zIndex = 30 - absOffset * 5;
 
           return (
@@ -126,13 +126,13 @@ export function MovableCardSlider() {
                 zIndex,
               }}
               transition={{ type: "spring", stiffness: 260, damping: 26 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[230px] sm:w-[270px] h-[260px] sm:h-[310px] rounded-2xl bg-[#12131A] border border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.6)] overflow-hidden group cursor-pointer transform-gpu will-change-transform"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] sm:w-[285px] h-[270px] sm:h-[325px] rounded-2xl bg-[#12131A] border border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.6)] overflow-hidden group cursor-pointer transform-gpu will-change-transform"
             >
               {/* Top Window Header (Single Red Dot 🔴 on Left) */}
               <div className="px-3.5 py-2.5 bg-[#181924] border-b border-white/10 flex items-center justify-between">
                 <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
                 <span className="text-[9px] font-mono text-white/30 tracking-wider">
-                  {model.name.toLowerCase()}.ai
+                  {(model.domain || `${model.name.toLowerCase()}.ai`)}
                 </span>
                 <div className="w-2" />
               </div>
@@ -194,7 +194,7 @@ export function MovableCardSlider() {
         {/* Right Arrow Button */}
         <button
           onClick={handleNext}
-          disabled={activeIndex === AI_MODELS.length - 1}
+          disabled={activeIndex === displayCards.length - 1}
           className="p-2 rounded-full text-white/60 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-all cursor-pointer"
           aria-label="Next card"
         >

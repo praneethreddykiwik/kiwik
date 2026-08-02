@@ -161,14 +161,17 @@
    BASE STYLES
    ═══════════════════════════════════════════════════════════════ */
 
-/* Unlayered reset removed - Tailwind preflight handles box-sizing, margin, and padding resets within CSS Cascade Layers */
+html {
+  background: var(--bg-primary);
+  min-height: 100%;
+}
 
 html, body {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  zoom: 0.9;
-  font-size: 14.4px;
+  zoom: 0.95;
+  font-size: 15.2px;
 }
 
 body {
@@ -177,6 +180,7 @@ body {
   color: var(--text-primary);
   overflow-x: hidden;
   min-height: 100vh;
+  min-height: calc(100vh / 0.95);
   letter-spacing: 0.025em;
   line-height: 1.7;
   transition: background-color 0.4s ease, color 0.3s ease;
