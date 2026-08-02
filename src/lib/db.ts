@@ -47,6 +47,20 @@ export async function ensureDbTables() {
       );
     `;
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS site_visitor_sessions (
+        session_id VARCHAR(100) PRIMARY KEY,
+        ip_address VARCHAR(100),
+        user_agent TEXT,
+        device_type VARCHAR(50) DEFAULT 'desktop',
+        browser_name VARCHAR(50) DEFAULT 'Chrome',
+        pathname VARCHAR(255) DEFAULT '/',
+        pageviews INT DEFAULT 1,
+        first_seen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        last_ping TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     const existing = await sql`SELECT count(*)::int as count FROM projects;`;
     if (existing[0]?.count === 0) {
       console.log("Seeding default projects into Neon database...");

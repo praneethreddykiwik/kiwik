@@ -46,6 +46,7 @@ export const metadata: Metadata = {
 };
 
 import { LenisProvider } from "@/components/providers/lenis-provider";
+import { TelemetryProvider } from "@/components/providers/telemetry-provider";
 
 export default function RootLayout({
   children,
@@ -64,6 +65,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <LenisProvider>
+            <TelemetryProvider />
             <IntroSplash />
             <CursorGlow />
             <Navbar />

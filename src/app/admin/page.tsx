@@ -254,6 +254,48 @@ export default function AdminPage() {
     return () => window.removeEventListener("keydown", handleSaveHotkey);
   }, []);
 
+  // Real-time visitor telemetry polling state
+  const [visitorTelemetry, setVisitorTelemetry] = useState<{
+    active: number;
+    totalUnique: number;
+    totalPageviews: number;
+    recentSessions: Array<{
+      sessionId: string;
+      deviceType: string;
+      browserName: string;
+      pathname: string;
+      pageviews: number;
+      lastPing: string;
+    }>;
+  }>({
+    active: 1,
+    totalUnique: 1,
+    totalPageviews: 1,
+    recentSessions: []
+  });
+
+  useEffect(() => {
+    const fetchTelemetry = () => {
+      fetch("/api/visitors")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.status === "ok" || typeof data.active !== "undefined") {
+            setVisitorTelemetry({
+              active: data.active || 1,
+              totalUnique: data.totalUnique || 1,
+              totalPageviews: data.totalPageviews || 1,
+              recentSessions: data.recentSessions || []
+            });
+          }
+        })
+        .catch((err) => console.error("Telemetry poll error:", err));
+    };
+
+    fetchTelemetry();
+    const interval = setInterval(fetchTelemetry, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   const {
     cms,
     updateSettings,
@@ -2295,7 +2337,7 @@ export default function AdminPage() {
             <span className="font-serif font-bold text-base tracking-tight text-text-primary hidden sm:inline">Kiwik OS Studio</span>
           </Link>
           <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold hidden sm:flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Telemetry Synced
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> {visitorTelemetry.active} {visitorTelemetry.active === 1 ? "Visitor" : "Visitors"} Online Now
           </span>
         </div>
 
@@ -2675,33 +2717,82 @@ export default function AdminPage() {
                 <p className="text-xs text-text-secondary">Overview of live site telemetry, CMS store updates, audit trails, and system health.</p>
               </div>
 
-              {/* Quick Stat Cards */}
+              {/* Real Empirical Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <GlassCard className="p-4 space-y-2">
-                  <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Total Visitors</span>
-                  <div className="text-2xl font-bold font-mono text-text-primary">{cms.analytics.totalVisitors.toLocaleString()}</div>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">↑ +14.2% this month</span>
+                <GlassCard className="p-4 space-y-2 border-emerald-500/30 bg-emerald-500/5">
+                  <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 block flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live Active Visitors
+                  </span>
+                  <div className="text-3xl font-extrabold font-mono text-emerald-400">{visitorTelemetry.active}</div>
+                  <span className="text-[10px] text-emerald-400/80 font-mono font-bold">● Live Online Now</span>
                 </GlassCard>
 
                 <GlassCard className="p-4 space-y-2">
-                  <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Total Projects</span>
+                  <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Total Pageviews</span>
+                  <div className="text-2xl font-bold font-mono text-text-primary">{visitorTelemetry.totalPageviews.toLocaleString()}</div>
+                  <span className="text-[10px] text-accent-blue font-mono font-bold">Empirical Database Count</span>
+                </GlassCard>
+
+                <GlassCard className="p-4 space-y-2">
+                  <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Unique Visitors</span>
+                  <div className="text-2xl font-bold font-mono text-text-primary">{visitorTelemetry.totalUnique.toLocaleString()}</div>
+                  <span className="text-[10px] text-purple-400 font-mono font-bold">Persistent Session Count</span>
+                </GlassCard>
+
+                <GlassCard className="p-4 space-y-2">
+                  <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Active Projects</span>
                   <div className="text-2xl font-bold font-mono text-text-primary">{projects.length}</div>
-                  <span className="text-[10px] text-accent-blue font-mono font-bold">● Active Catalog</span>
+                  <span className="text-[10px] text-cyan-400 font-mono font-bold">Catalog Inventory</span>
                 </GlassCard>
+              </div>
 
-                <GlassCard className="p-4 space-y-2">
-                  <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Media Assets</span>
-                  <div className="text-2xl font-bold font-mono text-text-primary">{cms.media.length}</div>
-                  <span className="text-[10px] text-purple-400 font-mono font-bold">Managed DAM Pool</span>
-                </GlassCard>
+              {/* Real-time Active Sessions Table */}
+              <div className="p-6 rounded-2xl bg-glass-bg border border-glass-border space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+                    <Users className="w-4 h-4 text-emerald-400" /> Live Visitor Telemetry Sessions ({visitorTelemetry.active} Active)
+                  </h3>
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                    Auto-polling every 3s
+                  </span>
+                </div>
 
-                <GlassCard className="p-4 space-y-2">
-                  <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Docs Articles</span>
-                  <div className="text-2xl font-bold font-mono text-text-primary">
-                    {docsCategories.reduce((acc, c) => acc + c.articles.length, 0)}
+                {visitorTelemetry.recentSessions.length === 0 ? (
+                  <div className="p-6 text-center text-xs font-mono text-text-secondary">
+                    📡 Active Session Telemetry connected. Waiting for visitor pings...
                   </div>
-                  <span className="text-[10px] text-cyan-400 font-mono font-bold">Published Articles</span>
-                </GlassCard>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs font-mono">
+                      <thead>
+                        <tr className="border-b border-white/10 text-text-muted text-[10px] uppercase">
+                          <th className="pb-2">Session ID</th>
+                          <th className="pb-2">Device</th>
+                          <th className="pb-2">Browser</th>
+                          <th className="pb-2">Current Route</th>
+                          <th className="pb-2">Pageviews</th>
+                          <th className="pb-2 text-right">Last Active</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {visitorTelemetry.recentSessions.map((sess, idx) => (
+                          <tr key={idx} className="hover:bg-white/5 transition-colors">
+                            <td className="py-2.5 font-bold text-accent-blue">{sess.sessionId.substring(0, 16)}</td>
+                            <td className="py-2.5 capitalize text-text-primary">
+                              {sess.deviceType === "mobile" ? "📱 Mobile" : sess.deviceType === "tablet" ? "タブ Tablet" : "💻 Desktop"}
+                            </td>
+                            <td className="py-2.5 text-text-secondary">{sess.browserName}</td>
+                            <td className="py-2.5 font-bold text-emerald-400">{sess.pathname}</td>
+                            <td className="py-2.5 text-text-primary">{sess.pageviews}</td>
+                            <td className="py-2.5 text-right text-text-muted text-[10px]">
+                              {sess.lastPing ? `${Math.max(0, Math.round((Date.now() - new Date(sess.lastPing).getTime()) / 1000))}s ago` : "Active now"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}
