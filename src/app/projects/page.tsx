@@ -4,18 +4,18 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Grid3X3, List, Clock, Filter, Search, Sparkles } from "lucide-react";
 import { useProjects } from "@/stores/projects-store";
-import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
 import { PremiumShowcaseCard } from "@/components/projects/premium-showcase-card";
 import { ProjectCard } from "@/components/projects/project-card";
 import { ProjectStatus, ProjectCategory, SortMode } from "@/types";
 import { cn } from "@/lib/utils";
-
 import { MovableCardSlider } from "@/components/Hero/movable-card-slider";
 
 type LayoutMode = "grid" | "rows" | "timeline";
 
 export default function ProjectsPage() {
   const projects = useProjects();
+  const cms = useSiteCMS();
   const [layout, setLayout] = useState<LayoutMode>("grid");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">("all");
@@ -51,7 +51,7 @@ export default function ProjectsPage() {
     return result;
   }, [projects, search, statusFilter, categoryFilter, sortMode]);
 
-  const projectsPageCMS = useSiteCMSStore((state) => state.cms.projectsPage) || {
+  const projectsPageCMS = cms.projectsPage || {
     badgeText: "FEATURED PRODUCTS",
     title: "Next-Generation Enterprise Stack",
     description: "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik."

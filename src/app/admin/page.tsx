@@ -3,7 +3,6 @@
 import * as LucideIcons from "lucide-react";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProjectImage } from "@/components/ui/project-image";
 import {
