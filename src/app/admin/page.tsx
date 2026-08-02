@@ -4247,38 +4247,6 @@ export default function AdminPage() {
                           Directly edit titles, upload pictures, sort order, priority, categories, status, and launch full spec builder.
                         </p>
                       </div>
-
-                      <button
-                        onClick={() => {
-                          const newProj: Project = {
-                            id: `proj-${Date.now()}`,
-                            name: "New Enterprise System",
-                            tagline: "High-performance modular service engine.",
-                            description: "Detailed system parameters and specifications.",
-                            category: "saas",
-                            status: "in-progress",
-                            coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
-                            logoUrl: "",
-                            version: "1.0.0",
-                            slug: `new-system-${Date.now()}`,
-                            featured: true,
-                            priority: (projects.length || 0) + 1,
-                            tags: ["AI", "Cloud"],
-                            features: [],
-                            techStack: [],
-                            stats: [],
-                            faqs: [],
-                            screenshots: [],
-                            createdAt: new Date().toISOString(),
-                            lastUpdated: new Date().toISOString()
-                          };
-                          addProject(newProj);
-                          setEditingProject(newProj);
-                        }}
-                        className="px-4 py-2 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-accent-blue/20 transition-all shrink-0"
-                      >
-                        <Plus className="w-4 h-4" /> + Add New Project
-                      </button>
                     </div>
 
                     {/* FILTER & SEARCH BAR */}
@@ -4461,37 +4429,6 @@ export default function AdminPage() {
                                 >
                                   <Star className={`w-3.5 h-3.5 ${proj.featured ? "fill-amber-400 text-amber-400" : ""}`} />
                                   <span>{proj.featured ? "Featured" : "Standard"}</span>
-                                </button>
-
-                                {/* EDIT SPECS BUTTON */}
-                                <button
-                                  onClick={() => setEditingProject(proj)}
-                                  className="px-3 py-1.5 rounded-xl bg-accent-blue/10 hover:bg-accent-blue/20 text-accent-blue border border-accent-blue/30 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-                                >
-                                  <Sliders className="w-3.5 h-3.5" />
-                                  <span>Edit Specs</span>
-                                </button>
-
-                                {/* DUPLICATE BUTTON */}
-                                <button
-                                  onClick={() => duplicateProject(proj.id)}
-                                  title="Duplicate Project"
-                                  className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-text-secondary hover:text-text-primary border border-white/10 transition-colors cursor-pointer"
-                                >
-                                  <Copy className="w-3.5 h-3.5" />
-                                </button>
-
-                                {/* DELETE BUTTON */}
-                                <button
-                                  onClick={() => {
-                                    if (confirm(`Delete "${proj.name}"? This action cannot be undone.`)) {
-                                      deleteProject(proj.id);
-                                    }
-                                  }}
-                                  title="Delete Project"
-                                  className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </div>
