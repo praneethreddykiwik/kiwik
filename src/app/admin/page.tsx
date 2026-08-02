@@ -8,6 +8,7 @@ import { ProjectImage } from "@/components/ui/project-image";
 import {
   Plus,
   ArrowUp,
+  ArrowLeft,
   ArrowDown,
   ArrowLeft,
   ArrowRight,
@@ -4683,16 +4684,16 @@ export default function AdminPage() {
           {/* PROJECTS TAB */}
           {mainTab === "projects" && (
             editingProject ? (
-              <div className="fixed inset-0 top-16 z-40 bg-[#08090d] flex flex-col h-[calc(100vh-64px)] w-screen text-left">
+              <div className="fixed inset-0 top-16 z-40 bg-bg-primary text-text-primary flex flex-col h-[calc(100vh-64px)] w-screen text-left">
                 {/* Control bar */}
-                <div className="px-6 py-3.5 bg-black/40 border-b border-white/5 flex items-center justify-between flex-shrink-0">
+                <div className="px-6 py-3.5 bg-bg-secondary/40 border-b border-divider flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => {
                         setEditingProject(null);
                         showToast("Returned to projects catalog");
                       }}
-                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white cursor-pointer transition-all"
+                      className="p-2 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary border border-divider cursor-pointer transition-all"
                     >
                       <ArrowLeft className="w-4 h-4" />
                     </button>
@@ -4700,9 +4701,9 @@ export default function AdminPage() {
                       <div className="text-[10px] text-text-secondary flex items-center gap-1.5 uppercase font-mono tracking-widest font-bold">
                         <span>Projects Studio Editor</span>
                         <span>/</span>
-                        <span className="text-accent-blue font-bold">{editingProject.slug}</span>
+                        <span className="text-accent font-bold">{editingProject.slug}</span>
                       </div>
-                      <h2 className="text-sm font-bold text-white mt-0.5">{editingProject.name}</h2>
+                      <h2 className="text-sm font-bold text-text-primary mt-0.5">{editingProject.name}</h2>
                     </div>
                   </div>
 
@@ -4715,7 +4716,7 @@ export default function AdminPage() {
                         updateProject(editingProject.id, updated);
                         showToast(`Derived slug from name: ${slug}`);
                       }}
-                      className="px-4 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-white transition-all cursor-pointer"
+                      className="px-4 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-divider text-xs font-bold text-text-primary transition-all cursor-pointer"
                     >
                       Sync Slug
                     </button>
@@ -4724,7 +4725,7 @@ export default function AdminPage() {
                         setEditingProject(null);
                         showToast("All project specs synchronized successfully!");
                       }}
-                      className="px-5 py-2 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-xs font-bold text-white cursor-pointer shadow-md transition-all hover:scale-[1.02]"
+                      className="px-5 py-2 rounded-xl bg-accent hover:opacity-90 text-xs font-bold text-white cursor-pointer shadow-md transition-all hover:scale-[1.02]"
                     >
                       Publish & Close
                     </button>
@@ -4732,11 +4733,11 @@ export default function AdminPage() {
                 </div>
 
                 {/* Left/Right Split Panel layout */}
-                <div className="flex-1 flex overflow-hidden bg-[#08090d]">
+                <div className="flex-1 flex overflow-hidden bg-bg-primary">
                   {/* Left panel: Collapsible form builder (440px width) */}
-                  <div className="w-[440px] flex-shrink-0 bg-neutral-950/60 border-r border-white/5 flex h-full overflow-hidden">
+                  <div className="w-[440px] flex-shrink-0 bg-bg-secondary border-r border-divider flex h-full overflow-hidden">
                     {/* Tiny Nav list on the left side of the CMS sidebar */}
-                    <div className="w-[85px] bg-[#0c0d12] border-r border-white/5 py-4 flex flex-col gap-1 items-center overflow-y-auto no-scrollbar">
+                    <div className="w-[85px] bg-bg-tertiary border-r border-divider py-4 flex flex-col gap-1 items-center overflow-y-auto no-scrollbar">
                       {editorTabs.map((tab) => {
                         const isSelected = activeEditorTab === tab.id;
                         return (
@@ -4747,8 +4748,8 @@ export default function AdminPage() {
                             className={cn(
                               "p-2.5 w-16 h-16 rounded-xl transition-all flex flex-col items-center justify-center gap-1 group cursor-pointer",
                               isSelected 
-                                ? "text-accent-blue bg-accent-blue/10 scale-105" 
-                                : "text-text-secondary hover:text-white hover:bg-white/5"
+                                ? "text-accent bg-accent/10 scale-105 font-bold" 
+                                : "text-text-secondary hover:text-text-primary hover:bg-bg-primary/5"
                             )}
                           >
                             {tab.icon}
@@ -4761,10 +4762,10 @@ export default function AdminPage() {
                     </div>
 
                     {/* Editing settings form values */}
-                    <div className="flex-1 p-5 overflow-y-auto space-y-6 no-scrollbar bg-[#0f1115]">
+                    <div className="flex-1 p-5 overflow-y-auto space-y-6 no-scrollbar bg-bg-primary studio-editor-form">
                       {/* Form header */}
-                      <div className="border-b border-white/5 pb-3">
-                        <h3 className="text-xs font-mono font-bold text-accent-blue uppercase tracking-widest">
+                      <div className="border-b border-divider pb-3">
+                        <h3 className="text-xs font-mono font-bold text-accent uppercase tracking-widest">
                           {editorTabs.find(t => t.id === activeEditorTab)?.label || "Specifications"}
                         </h3>
                         <p className="text-[10px] text-text-secondary mt-1">
@@ -4790,12 +4791,23 @@ export default function AdminPage() {
                   </div>
 
                   {/* Right panel: Full real-time live preview (60% width) */}
-                  <div className="flex-1 bg-[#0b0f19] h-full overflow-y-auto no-scrollbar relative">
-                    <div className="absolute top-4 left-4 bg-accent-blue/20 border border-accent-blue/40 px-3 py-1 rounded-full text-[9px] font-mono font-bold text-accent-blue tracking-widest uppercase select-none z-[100] animate-pulse">
+                  <div className="flex-1 bg-bg-secondary/50 h-full overflow-y-auto no-scrollbar relative">
+                    <div className="absolute top-4 left-4 bg-accent/20 border border-accent/40 px-3 py-1 rounded-full text-[9px] font-mono font-bold text-accent tracking-widest uppercase select-none z-[100] animate-pulse">
                       Live Preview (Updates Instantly)
                     </div>
                     {/* Embed the actual page component passing the modified project object */}
-                    <div className="scale-[0.98] origin-top-left transform w-[102%] h-[102%] pointer-events-none">
+                    <div 
+                      className="scale-[0.98] origin-top-left transform w-[102%] h-[102%]"
+                      onClick={(e) => {
+                        const target = e.target as HTMLElement;
+                        const anchor = target.closest("a");
+                        if (anchor) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          showToast("Navigation is disabled in Live Preview");
+                        }
+                      }}
+                    >
                       <ProjectDetailPage projectOverride={editingProject} />
                     </div>
                   </div>

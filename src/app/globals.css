@@ -758,3 +758,56 @@ p {
 .animate-border-beam {
   animation: border-beam var(--duration, 15s) infinite linear;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   STUDIO EDITOR FORM OVERRIDES (LIGHT & DARK THEME COMPATIBILITY)
+   ═══════════════════════════════════════════════════════════════ */
+.studio-editor-form {
+  background-color: var(--bg-primary) !important;
+}
+
+.studio-editor-form h3 {
+  color: var(--accent) !important;
+}
+
+.studio-editor-form p {
+  color: var(--text-secondary) !important;
+}
+
+.studio-editor-form input[type="text"],
+.studio-editor-form input[type="number"],
+.studio-editor-form textarea,
+.studio-editor-form select {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--divider) !important;
+}
+
+.studio-editor-form input[type="text"]:focus,
+.studio-editor-form input[type="number"]:focus,
+.studio-editor-form textarea:focus,
+.studio-editor-form select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent) !important;
+  outline: none !important;
+}
+
+.studio-editor-form input::placeholder,
+.studio-editor-form textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+.studio-editor-form label {
+  color: var(--text-secondary) !important;
+}
+
+.studio-editor-form button:not(.bg-accent-blue):not(.text-rose-500):not(.bg-rose-500):not(.text-accent-blue) {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--divider) !important;
+}
+
+.studio-editor-form button:not(.bg-accent-blue):not(.text-rose-500):not(.bg-rose-500):not(.text-accent-blue):hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
