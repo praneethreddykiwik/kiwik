@@ -244,6 +244,15 @@ p {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   SCROLL PERFORMANCE & GPU LAYER PROMOTION
+   ═══════════════════════════════════════════════════════════════ */
+
+.smooth-gpu, [class*="backdrop-blur"] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    GLASSMORPHISM SYSTEM
    ═══════════════════════════════════════════════════════════════ */
 
@@ -256,7 +265,7 @@ p {
   position: relative;
   overflow: hidden;
   transform: translateZ(0);
-  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .gpu-layer {
