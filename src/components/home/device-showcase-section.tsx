@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
 import { InteractiveLogo } from "./interactive-logo";
 
 export function DeviceShowcaseSection() {
@@ -13,7 +13,8 @@ export function DeviceShowcaseSection() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  const deviceShowcase = useSiteCMSStore((state) => state.cms.deviceShowcase) || {
+  const cms = useSiteCMS();
+  const deviceShowcase = cms.deviceShowcase || {
     topBadgeText: "No Credit Card Required",
     cards: []
   };

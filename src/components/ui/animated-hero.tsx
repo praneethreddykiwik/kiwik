@@ -127,7 +127,7 @@ function MagneticGlassButton({ children, onClick, href, variant = "primary", cla
   return <div onClick={onClick}>{content}</div>;
 }
 
-import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
 
 // ─────────────────────────────────────────────────────────────
 // 3. MAIN ANIMATED HERO COMPONENT
@@ -138,7 +138,8 @@ export interface AnimatedHeroProps {
 }
 
 export function AnimatedHero({ onWatchOverview, className }: AnimatedHeroProps) {
-  const heroCMS = useSiteCMSStore((state) => state.cms.hero);
+  const cms = useSiteCMS();
+  const heroCMS = cms.hero;
   const rotatingWords = heroCMS.rotatingWords && heroCMS.rotatingWords.length > 0
     ? heroCMS.rotatingWords
     : ["Digital Products.", "AI Platforms.", "Enterprise Apps.", "Automation.", "Research.", "Innovation."];

@@ -1402,15 +1402,31 @@ export function useSiteCMS() {
   useEffect(() => {
     setHasHydrated(true);
 
-    // Fetch latest global CMS state from Neon PostgreSQL
-    fetch("/api/cms")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "ok" && data.cms) {
-          setCMS(data.cms);
-        }
-      })
-      .catch((err) => console.error("Neon DB CMS fetch error:", err));
+    const fetchCMS = () => {
+      fetch("/api/cms")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.status === "ok" && data.cms) {
+            setCMS(data.cms);
+          }
+        })
+        .catch((err) => console.error("Neon DB CMS fetch error:", err));
+    };
+
+    // Initial fetch on mount
+    fetchCMS();
+
+    // Poll every 5 seconds to sync cross-device edits
+    const interval = setInterval(fetchCMS, 5000);
+
+    // Sync on window focus
+    const handleFocus = () => fetchCMS();
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [setCMS]);
 
   return hasHydrated ? cms : defaultCMSData;

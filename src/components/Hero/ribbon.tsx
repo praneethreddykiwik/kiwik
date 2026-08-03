@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
 
 // 60+ Curated Unique High-Resolution Art-Directed Image Pool (NO DUPLICATES)
 const MASTER_GALLERY_POOL = [
@@ -36,7 +36,8 @@ export function ImageRibbon() {
   const poolIndexRef = useRef<number>(0);
   const activeImageUrlsRef = useRef<Set<string>>(new Set());
 
-  const hero = useSiteCMSStore((state) => state.cms.hero);
+  const cms = useSiteCMS();
+  const hero = cms.hero;
   const cmsGalleryImages = hero?.galleryImages;
   const currentPool = cmsGalleryImages && cmsGalleryImages.length > 0 ? cmsGalleryImages : MASTER_GALLERY_POOL;
 

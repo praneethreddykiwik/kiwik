@@ -6,11 +6,12 @@ import { motion } from "framer-motion";
 import { PaperBackground } from "./paper-background";
 import { ImageRibbon } from "./ribbon";
 import { PromptCTA } from "./prompt-cta";
-import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
 import { cn } from "@/lib/utils";
 
 export function MeliusHero() {
-  const hero = useSiteCMSStore((state) => state.cms.hero);
+  const cms = useSiteCMS();
+  const hero = cms.hero;
 
   const headlinePrefix = hero?.headlinePrefix || "One platform.";
   const headlineHighlight = hero?.headlineHighlightWord || "Every creative outcome.";

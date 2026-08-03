@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useProjects } from "@/stores/projects-store";
 import { ProjectImage } from "@/components/ui/project-image";
-import { useSiteCMSStore } from "@/stores/site-cms-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
 
 type SidebarTab = "overview" | "projects" | "docs" | "analytics" | "ai" | "settings";
 
@@ -44,7 +44,8 @@ export function MacosDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<string[]>(["Kiwik.1"]);
 
-  const dashboardShowcase = useSiteCMSStore((state) => state.cms.dashboardShowcase) || {
+  const cms = useSiteCMS();
+  const dashboardShowcase = cms.dashboardShowcase || {
     sectionTitle: "KIWIK OS Kernel",
     searchPlaceholder: "Search projects, docs, commands...",
     kernelStatusText: "OS Kernel Active",
@@ -120,7 +121,7 @@ export function MacosDashboard() {
     return "⚡";
   };
 
-  const stack = (dashboardShowcase.systemCoreTechs || []).map(t => ({
+  const stack = (dashboardShowcase.systemCoreTechs || []).map((t: string) => ({
     name: t,
     icon: getTechIcon(t)
   }));
