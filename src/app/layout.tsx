@@ -55,6 +55,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme-storage');var mode=t?JSON.parse(t).state.mode:'dark';var accent=t?JSON.parse(t).state.accent:'blue';document.documentElement.setAttribute('data-theme',mode);document.documentElement.setAttribute('data-accent',accent);if(mode==='dark'){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body
         className="antialiased min-h-screen flex flex-col overflow-x-hidden w-full max-w-full"
         style={{

@@ -72,14 +72,26 @@
   --spring-smooth: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
+  /* Default theme fallbacks (dark obsidian) to prevent FOUC */
+  --bg-primary: #08090C;
+  --bg-secondary: #101114;
+  --bg-tertiary: #15171B;
+  --bg-elevated: #1C1E24;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-muted: #475569;
+  --glass-bg: rgba(16, 17, 20, 0.75);
+  --glass-bg-hover: rgba(16, 17, 20, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(99, 102, 241, 0.35);
+
   /* Layout */
   --nav-height: 72px;
   --max-width: 1280px;
   --border-radius: 16px;
   --border-radius-lg: 24px;
   --border-radius-xl: 32px;
-
-  /* Typography */
   --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
   --font-serif: "Playfair Display", Georgia, Cambria, serif;
@@ -164,14 +176,20 @@
 html {
   background: var(--bg-primary);
   min-height: 100%;
-  scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
   -webkit-overflow-scrolling: touch;
+}
+
+html.lenis, html.lenis body {
+  height: auto;
+  scroll-behavior: auto !important;
 }
 
 html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 15px;
+  transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
 }
 
 body {

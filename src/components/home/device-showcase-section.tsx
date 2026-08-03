@@ -64,7 +64,7 @@ export function DeviceShowcaseSection() {
       ref={sectionRef}
       onMouseMove={handleMouseMove}
       id="device-showcase-section"
-      className="py-28 sm:py-36 md:py-40 lg:py-44 px-0 sm:px-4 max-w-[1700px] mx-auto relative z-20 select-none overflow-hidden bg-[#FAFAF8] dark:bg-[#08090C]"
+      className="py-24 sm:py-32 md:py-36 lg:py-40 px-0 sm:px-4 max-w-[1700px] mx-auto relative z-20 select-none overflow-hidden bg-bg-primary transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28"
     >
       {/* Centered Kiwik Logo */}
       <div className="flex justify-center mb-[50px] relative z-30">

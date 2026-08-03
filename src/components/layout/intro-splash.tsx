@@ -6,20 +6,26 @@ import { Logo } from "./logo";
 
 export function IntroSplash() {
   const [show, setShow] = useState(false);
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
     // Check if splash has played in this tab session
     const hasPlayed = sessionStorage.getItem("kiwik-intro-played");
     if (!hasPlayed) {
       setShow(true);
-      // Automatically disable after 3 seconds
+      // Automatically disable after 2.4 seconds
       const timer = setTimeout(() => {
         setShow(false);
         sessionStorage.setItem("kiwik-intro-played", "true");
-      }, 3000);
+      }, 2400);
+      setHasChecked(true);
       return () => clearTimeout(timer);
+    } else {
+      setHasChecked(true);
     }
   }, []);
+
+  if (!hasChecked || !show) return null;
 
   return (
     <AnimatePresence>

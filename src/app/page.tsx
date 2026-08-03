@@ -176,7 +176,7 @@ export default function HomePage() {
       })()}
 
       {/* SECTION B: HOW WE WORK (5-Step Engineering Pipeline) */}
-      <section id="how-we-work" className="py-16 md:py-24 px-4 sm:px-6 md:px-8 border-t border-divider/60 max-w-[1400px] mx-auto relative z-20">
+      <section id="how-we-work" className="py-16 md:py-24 px-4 sm:px-6 md:px-8 border-t border-divider/60 max-w-[1400px] mx-auto relative z-20 scroll-mt-24 sm:scroll-mt-28">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono font-bold uppercase tracking-wider">
             <Workflow className="w-3.5 h-3.5" />

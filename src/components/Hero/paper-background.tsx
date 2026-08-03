@@ -10,7 +10,7 @@ interface PaperBackgroundProps {
 
 export function PaperBackground({ className, children }: PaperBackgroundProps) {
   return (
-    <div className={cn("relative w-full min-h-screen bg-[#FAFAF8] dark:bg-[#0A0C10] text-[#18181B] dark:text-[#F4F4F5] overflow-hidden transition-colors duration-500 select-none", className)}>
+    <div className={cn("relative w-full min-h-screen bg-bg-primary text-text-primary overflow-hidden transition-colors duration-300 select-none", className)}>
       {/* Subtle 2-3% Dotted Paper Grid (18px Spacing) */}
       <div 
         className="absolute inset-0 pointer-events-none z-0 opacity-[0.03] dark:opacity-[0.06]" 

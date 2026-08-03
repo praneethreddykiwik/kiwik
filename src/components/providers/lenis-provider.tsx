@@ -17,11 +17,12 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
     if (prefersReducedMotion) return;
 
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 0.9,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 0.85,
+      touchMultiplier: 1.0,
+      syncTouch: false,
     });
 
     let rafId: number;
