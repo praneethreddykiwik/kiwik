@@ -3,7 +3,7 @@ import { projects as defaultProjects } from "@/data/projects";
 
 const getDbUrl = () =>
   process.env.DATABASE_URL ||
-  "postgresql://neondb_owner:npg_a1nVOCkRD9wI@ep-aged-cloud-auski0i0-pooler.c-10.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+  "postgresql://neondb_owner:npg_a1nVOCkRD9wI@ep-aged-cloud-auski0i0-pooler.c-10.us-east-1.aws.neon.tech/neondb?sslmode=require";
 
 export const sql = neon(getDbUrl());
 
