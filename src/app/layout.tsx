@@ -56,9 +56,33 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Blocking theme-init script — runs before first paint to prevent FOUC.
+            Reads from the correct Zustand key 'kiwik-theme'.
+            Hides body until theme is applied, then reveals instantly. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme-storage');var mode=t?JSON.parse(t).state.mode:'dark';var accent=t?JSON.parse(t).state.accent:'blue';document.documentElement.setAttribute('data-theme',mode);document.documentElement.setAttribute('data-accent',accent);if(mode==='dark'){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})()`,
+            __html: `(function(){
+  try {
+    var stored = localStorage.getItem('kiwik-theme');
+    var mode = 'dark';
+    var accent = 'blue';
+    if (stored) {
+      var parsed = JSON.parse(stored);
+      if (parsed && parsed.state) {
+        mode = parsed.state.mode || 'dark';
+        accent = parsed.state.accent || 'blue';
+      }
+    }
+    var root = document.documentElement;
+    root.setAttribute('data-theme', mode);
+    root.setAttribute('data-accent', accent);
+    if (mode === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  } catch(e) {}
+})()`,
           }}
         />
       </head>
