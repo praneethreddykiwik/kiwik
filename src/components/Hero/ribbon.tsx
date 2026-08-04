@@ -216,7 +216,7 @@ export function ImageRibbon() {
               transformOrigin: "center center",
               willChange: "transform, opacity",
             }}
-            className="group block overflow-hidden rounded-[16px] sm:rounded-[20px] bg-neutral-900 border border-black/10 dark:border-white/15 transition-shadow duration-300 transform-gpu shadow-[0_15px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.6)] cursor-pointer"
+            className="group block overflow-hidden rounded-[16px] sm:rounded-[20px] bg-bg-secondary border border-glass-border transition-colors duration-300 transform-gpu shadow-xl cursor-pointer"
           >
             <img
               ref={(el) => { imageElementRefs.current[idx] = el; }}

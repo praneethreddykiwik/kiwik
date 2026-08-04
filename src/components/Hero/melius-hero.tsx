@@ -13,8 +13,8 @@ export function MeliusHero() {
   const cms = useSiteCMS();
   const hero = cms.hero;
 
-  const headlinePrefix = hero?.headlinePrefix || "One platform.";
-  const headlineHighlight = hero?.headlineHighlightWord || "Every creative outcome.";
+  const headlinePrefix = hero?.headlinePrefix || "The Operating System for";
+  const headlineHighlight = hero?.headlineHighlightWord || "future";
   const description = hero?.description || "Be the creative director. Let agents be your team. Brief our agent Mel, watch the work assemble, and steer any prompt until the output lands exactly as you imagined.";
 
   return (
@@ -31,7 +31,7 @@ export function MeliusHero() {
           >
             <Link
               href={hero?.badgeLink || "/projects"}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/5 dark:bg-white/10 border border-black/10 dark:border-white/15 text-[10px] font-mono font-bold tracking-tight text-neutral-800 dark:text-neutral-300 hover:border-neutral-800/40 dark:hover:border-white/30 transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-glass-bg border border-glass-border text-[10px] font-mono font-bold tracking-tight text-text-primary hover:border-accent-blue/40 transition-colors"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-accent-blue animate-pulse" />
               <span>{hero?.versionBadge || "Kiwik.1 v1.0.0-beta"}</span>
@@ -40,7 +40,7 @@ export function MeliusHero() {
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            HEADLINE (Large Editorial Serif, Canela / Playfair style)
+            HEADLINE (Large Editorial Serif)
            ───────────────────────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
@@ -48,9 +48,9 @@ export function MeliusHero() {
           transition={{ duration: 0.9, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="space-y-1 sm:space-y-2 max-w-4xl mx-auto"
         >
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-medium tracking-wide leading-[1.15] py-1 text-[#18181B] dark:text-[#F4F4F5]">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-medium tracking-wide leading-[1.15] py-1 text-text-primary">
             {headlinePrefix} <br />
-            <span className="italic font-semibold bg-clip-text text-transparent bg-gradient-to-r from-[#18181B] via-zinc-800 to-zinc-500 dark:from-white dark:via-zinc-200 dark:to-zinc-400">
+            <span className="italic font-semibold text-text-primary">
               {headlineHighlight}
             </span>
           </h1>
@@ -70,7 +70,7 @@ export function MeliusHero() {
           transition={{ duration: 0.8, delay: 1.4, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-lg mx-auto text-center"
         >
-          <p className="text-sm sm:text-base text-[#52525B] dark:text-[#A1A1AA] leading-loose tracking-wide font-sans font-medium">
+          <p className="text-sm sm:text-base text-text-secondary leading-loose tracking-wide font-sans font-medium">
             {description}
           </p>
         </motion.div>
