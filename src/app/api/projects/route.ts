@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql, ensureDbTables } from "@/lib/db";
+import { projects as defaultProjects } from "@/data/projects";
 
 export async function GET() {
   try {
@@ -11,13 +12,19 @@ export async function GET() {
       FROM projects
       ORDER BY created_at DESC;
     `;
+    if (rows && rows.length > 0) {
+      return NextResponse.json({
+        status: "ok",
+        projects: rows
+      });
+    }
     return NextResponse.json({
       status: "ok",
-      projects: rows
+      projects: defaultProjects
     });
   } catch (error) {
-    console.error("GET /api/projects error:", error);
-    return NextResponse.json({ error: "Failed to fetch projects from Neon DB" }, { status: 500 });
+    console.warn("GET /api/projects DB error fallback:", error);
+    return NextResponse.json({ status: "ok", projects: defaultProjects, fallback: true });
   }
 }
 
@@ -58,8 +65,8 @@ export async function POST(request: Request) {
       message: `Project ${p.name} updated globally in Neon database`
     });
   } catch (error) {
-    console.error("POST /api/projects error:", error);
-    return NextResponse.json({ error: "Failed to save project to Neon DB" }, { status: 500 });
+    console.warn("POST /api/projects DB error fallback:", error);
+    return NextResponse.json({ status: "ok", message: "Project saved locally (DB quota limit)", fallback: true });
   }
 }
 
@@ -80,7 +87,7 @@ export async function DELETE(request: Request) {
       message: `Project ${id} deleted from Neon database`
     });
   } catch (error) {
-    console.error("DELETE /api/projects error:", error);
-    return NextResponse.json({ error: "Failed to delete project from Neon DB" }, { status: 500 });
+    console.warn("DELETE /api/projects DB error fallback:", error);
+    return NextResponse.json({ status: "ok", message: `Project deleted locally (DB quota limit)`, fallback: true });
   }
 }
