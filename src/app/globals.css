@@ -174,54 +174,51 @@
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Smooth Theme Transition ─────────────────────────────────
-   Applied only during the 350ms window when the theme class is
-   being swapped. Using a guard class prevents the perpetual
-   overhead of transitioning every repaint.
+   Uses GPU View Transitions API when available (Chrome 111+, Edge 111+, Safari 18+)
+   or lightweight container-scoped CSS fallback.
    ───────────────────────────────────────────────────────────── */
-.theme-transitioning,
-.theme-transitioning *,
-.theme-transitioning *::before,
-.theme-transitioning *::after {
-  transition:
-    background-color 350ms cubic-bezier(0.4, 0, 0.2, 1),
-    background     350ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-color   350ms cubic-bezier(0.4, 0, 0.2, 1),
-    color          350ms cubic-bezier(0.4, 0, 0.2, 1),
-    fill           350ms cubic-bezier(0.4, 0, 0.2, 1),
-    stroke         350ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow     350ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity        350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  animation-name: theme-fade-out;
+}
+::view-transition-new(root) {
+  animation-name: theme-fade-in;
+}
+@keyframes theme-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes theme-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-/* Exclude elements that should never be slowed by theme transitions */
+/* Fallback CSS transition for older browsers */
+.theme-transitioning,
+.theme-transitioning body,
+.theme-transitioning header,
+.theme-transitioning nav,
+.theme-transitioning main,
+.theme-transitioning footer,
+.theme-transitioning section,
+.theme-transitioning .vision-glass,
+.theme-transitioning .glass {
+  transition:
+    background-color 250ms cubic-bezier(0.16, 1, 0.3, 1),
+    color            250ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color     250ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 .theme-transitioning img,
 .theme-transitioning video,
 .theme-transitioning canvas,
-.theme-transitioning [style*="transform"] {
+.theme-transitioning svg {
   transition: none !important;
-}
-
-/* Native View Transitions API — for browsers that support it (Chrome 111+) */
-@supports (view-transition-name: none) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 350ms;
-    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  ::view-transition-old(root) {
-    animation-name: theme-fade-out;
-  }
-  ::view-transition-new(root) {
-    animation-name: theme-fade-in;
-  }
-  @keyframes theme-fade-out {
-    from { opacity: 1; }
-    to   { opacity: 0.5; }
-  }
-  @keyframes theme-fade-in {
-    from { opacity: 0.5; }
-    to   { opacity: 1; }
-  }
 }
 
 html {
@@ -240,9 +237,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 15px;
-  transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
 }
-
 
 body {
   font-family: var(--font-sans);
@@ -299,7 +294,7 @@ p {
    SCROLL PERFORMANCE & GPU LAYER PROMOTION
    ═══════════════════════════════════════════════════════════════ */
 
-.smooth-gpu, [class*="backdrop-blur"] {
+.smooth-gpu {
   transform: translateZ(0);
   backface-visibility: hidden;
 }

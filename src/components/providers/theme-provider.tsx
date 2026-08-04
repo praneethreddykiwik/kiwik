@@ -5,9 +5,6 @@ import { useThemeStore } from '@/stores/theme-store';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { mode, accent } = useThemeStore();
-  // Track whether this is the first mount — we skip the transition on initial
-  // render since the blocking inline script in layout.tsx already set the correct
-  // theme before first paint, so we don't want a spurious cross-fade on load.
   const isFirstMount = React.useRef(true);
 
   React.useEffect(() => {
@@ -24,35 +21,32 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
 
     if (isFirstMount.current) {
-      // On first mount, just ensure the DOM reflects the store state.
-      // The blocking script already handled the initial paint — no animation needed.
+      // On first mount, apply theme without any transition animation
       isFirstMount.current = false;
       applyTheme();
       return;
     }
 
-    // Subsequent changes (user toggling) — animate smoothly.
-    root.classList.add('theme-transitioning');
-
+    // User toggled theme
     if (
+      typeof document !== 'undefined' &&
       'startViewTransition' in document &&
       typeof (document as any).startViewTransition === 'function'
     ) {
-      // Use the native View Transitions API (Chrome/Edge 111+)
+      // Use native View Transitions API (Chrome 111+, Edge 111+, Safari 18+)
+      // This performs a hardware-accelerated GPU screen cross-fade without DOM element thrashing
       (document as any).startViewTransition(() => {
         applyTheme();
       });
     } else {
-      // Fallback: the CSS .theme-transitioning rule handles the animation
+      // Fallback for browsers without View Transitions: lightweight targeted CSS transition
+      root.classList.add('theme-transitioning');
       applyTheme();
+      const timer = setTimeout(() => {
+        root.classList.remove('theme-transitioning');
+      }, 300);
+      return () => clearTimeout(timer);
     }
-
-    // Remove guard class after transition completes (350ms + small buffer)
-    const timer = setTimeout(() => {
-      root.classList.remove('theme-transitioning');
-    }, 420);
-
-    return () => clearTimeout(timer);
   }, [mode, accent]);
 
   return <>{children}</>;
