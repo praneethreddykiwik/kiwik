@@ -113,10 +113,21 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
       </div>
 
       <div className="relative overflow-hidden border-b border-white/10 bg-gradient-to-b from-bg-secondary/80 to-bg-primary">
-        {project.heroBgImage ? (
-          <div className="absolute inset-0 z-0">
-            <img src={project.heroBgImage} alt="" className="w-full h-full object-cover" style={{ opacity: project.heroBgOpacity ?? 0.2 }} />
-            <div className="absolute inset-0 bg-gradient-to-b from-bg-primary/60 via-bg-primary/90 to-bg-primary" />
+        {/* The hero previously rendered a flat glow and ignored the project's own
+            artwork, which is what made every detail page look generic. The cover
+            image now backs the hero, blurred and faded into the page so the
+            headline stays legible over any screenshot. */}
+        {project.heroBgImage || project.coverImage ? (
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <img
+              src={project.heroBgImage || project.coverImage}
+              alt=""
+              aria-hidden="true"
+              className="w-full h-full object-cover object-top scale-110 blur-[2px]"
+              style={{ opacity: project.heroBgOpacity ?? 0.32 }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-bg-primary/70 via-bg-primary/92 to-bg-primary" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_10%,var(--bg-primary)_78%)]" />
           </div>
         ) : (
           <div className="absolute inset-0 bg-radial-glow opacity-30 pointer-events-none" />
@@ -180,6 +191,32 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
                   </a>
                 )}
               </div>
+
+              {/* Lead with the product itself, in a browser chrome frame, rather
+                  than dropping straight from a headline into body copy. */}
+              {project.coverImage && (
+                <div className="pt-8">
+                  <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0B0C10] shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+                    <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10 bg-white/[0.03]">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+                      <span className="flex-1 text-center text-[10px] font-mono text-white/40 truncate px-3">
+                        {project.liveUrl
+                          ? project.liveUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")
+                          : project.slug}
+                      </span>
+                    </div>
+                    <img
+                      src={project.coverImage}
+                      alt={`${project.name} interface`}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-auto aspect-[16/10] object-cover object-top"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-6 rounded-2xl bg-bg-secondary/60 border border-white/10 backdrop-blur-xl space-y-4 shadow-xl">
@@ -197,26 +234,37 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
                 </div>
               </div>
 
+              {/* Only real figures. Stars/forks/views used to fall back to 142,
+                  28 and 4820 — invented numbers shown even for a project with no
+                  repository at all. A metric with no value is now simply absent. */}
               <div className="grid grid-cols-2 gap-4 py-2">
+                {typeof project.stars === "number" && (
+                  <div>
+                    <span className="text-[10px] font-mono text-text-secondary uppercase block">Stars</span>
+                    <span className="text-sm font-bold font-mono text-text-primary flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> {project.stars}
+                    </span>
+                  </div>
+                )}
+                {typeof project.forks === "number" && (
+                  <div>
+                    <span className="text-[10px] font-mono text-text-secondary uppercase block">Forks</span>
+                    <span className="text-sm font-bold font-mono text-text-primary flex items-center gap-1">
+                      <GitFork className="w-3.5 h-3.5 text-accent-blue" /> {project.forks}
+                    </span>
+                  </div>
+                )}
+                {typeof project.completionPercent === "number" && (
+                  <div>
+                    <span className="text-[10px] font-mono text-text-secondary uppercase block">Completion</span>
+                    <span className="text-sm font-bold font-mono text-emerald-400">{project.completionPercent}%</span>
+                  </div>
+                )}
                 <div>
-                  <span className="text-[10px] font-mono text-text-secondary uppercase block">Stars</span>
-                  <span className="text-sm font-bold font-mono text-text-primary flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> {project.stars || 142}
+                  <span className="text-[10px] font-mono text-text-secondary uppercase block">Status</span>
+                  <span className="text-sm font-bold font-mono text-cyan-400 capitalize">
+                    {(project.status || "—").replace("-", " ")}
                   </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono text-text-secondary uppercase block">Forks</span>
-                  <span className="text-sm font-bold font-mono text-text-primary flex items-center gap-1">
-                    <GitFork className="w-3.5 h-3.5 text-accent-blue" /> {project.forks || 28}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono text-text-secondary uppercase block">Completion</span>
-                  <span className="text-sm font-bold font-mono text-emerald-400">{project.completionPercent || 100}%</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono text-text-secondary uppercase block">Telemetry</span>
-                  <span className="text-sm font-bold font-mono text-cyan-400">{project.views || 4820} views</span>
                 </div>
               </div>
 
