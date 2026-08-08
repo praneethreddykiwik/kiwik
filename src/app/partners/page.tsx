@@ -18,9 +18,9 @@ const DEFAULTS = {
     "Kiwik operates as your embedded growth partner — part studio, part signal engine — turning scattered attention into durable momentum for the ventures we back.",
   servicesTitle: "How the partnership works",
   servicesSub: "Four disciplines, one compounding loop.",
-  showcaseEyebrow: "SELECTED WORK",
-  showcaseTitle: "Ventures we've moved",
-  showcaseSub: "Each one started as attention. We turned it into a system.",
+  showcaseEyebrow: "BRAND PARTNERS",
+  showcaseTitle: "Brands we build with",
+  showcaseSub: "The partners we back — and the momentum we build with them.",
 };
 
 const SERVICES = [

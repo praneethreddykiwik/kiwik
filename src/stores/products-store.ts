@@ -82,7 +82,14 @@ export const useProductsStore = create<ProductsState>()(
 
       resetToDefaults: () => set({ products: defaultProducts }),
     }),
-    { name: "kiwik-products-store-v1" }
+    // Key bumped to v2 to drop every browser's cached product list.
+    //
+    // The admin studio posts whatever this store holds, so a browser still
+    // caching a retired seed product will write it back to the database on the
+    // next "Save All Changes" — which is exactly how the old placeholder
+    // partners kept reappearing after being deleted. Discarding the cache lets
+    // the database (polled below) be the single source of truth.
+    { name: "kiwik-products-store-v2" }
   )
 );
 

@@ -17,6 +17,8 @@ export interface PartnerProduct {
   category?: string;
   /** Card / hero cover image URL. */
   coverImage: string;
+  /** Additional image URLs shown as a gallery on the detail page. */
+  gallery?: string[];
   logoUrl?: string;
   tags: string[];
   /** Tailwind gradient classes for the card accent, e.g. "from-indigo-500 to-purple-600". */

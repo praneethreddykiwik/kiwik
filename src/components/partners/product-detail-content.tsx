@@ -99,11 +99,42 @@ export function ProductDetailContent() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10">
         {/* Body */}
-        <div className="markdown-body prose-invert min-w-0">
-          {product.body ? (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{product.body}</ReactMarkdown>
-          ) : (
-            <p className="text-text-secondary">{product.summary || product.tagline}</p>
+        <div className="min-w-0 space-y-10">
+          <div className="markdown-body prose-invert">
+            {product.body ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{product.body}</ReactMarkdown>
+            ) : (
+              <p className="text-text-secondary">{product.summary || product.tagline}</p>
+            )}
+          </div>
+
+          {/* Partner-supplied imagery. Lazy-loaded and given an explicit aspect
+              ratio so the page doesn't reflow as each one arrives. */}
+          {Array.isArray(product.gallery) && product.gallery.length > 0 && (
+            <section className="space-y-4">
+              <h3 className="text-[11px] font-mono font-bold uppercase tracking-wider text-text-muted">
+                Gallery
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {product.gallery.map((src, i) => (
+                  <a
+                    key={src + i}
+                    href={src}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block rounded-2xl overflow-hidden border border-glass-border bg-bg-secondary hover:border-accent-blue/40 transition-colors"
+                  >
+                    <img
+                      src={src}
+                      alt={`${product.name} — image ${i + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-auto aspect-square object-cover hover:scale-[1.02] transition-transform duration-500"
+                    />
+                  </a>
+                ))}
+              </div>
+            </section>
           )}
         </div>
 

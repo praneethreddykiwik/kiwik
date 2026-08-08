@@ -1,67 +1,70 @@
 import type { PartnerProduct } from "@/types/partner";
 
-// Seed set for the Alliance showcase. Deliberately written with distinctive,
-// non-generic language. All of this is editable in the admin Partners tab and
-// persisted to Postgres.
+// Seed set for the Alliance showcase — the brands Kiwik partners with.
+// All of this is editable in the admin Partners tab and persisted to Postgres.
 export const partnerProducts: PartnerProduct[] = [
   {
-    id: "alliance-lumen",
-    slug: "lumen-commerce",
-    name: "Lumen Commerce",
-    tagline: "A storefront that sells while you sleep — and learns while it does.",
-    category: "Commerce",
-    coverImage:
-      "https://images.unsplash.com/photo-1677442136019-21780efad99a?q=80&w=1200&auto=format&fit=crop",
-    tags: ["Storefront", "Attribution", "Lifecycle"],
-    accentGradient: "from-amber-400 to-rose-500",
-    summary: "We rebuilt the buying path around intent, not clicks — conversions followed.",
-    body:
-      "## The brief\nLumen had traffic but leaks. Attention arrived and evaporated before checkout.\n\n## What we moved\nWe re-sequenced the entire path from first glance to first purchase, wiring each step to a measurable signal. Creative was engineered to compound — every asset earned attention and fed the next.\n\n## The shape of the result\nA storefront that behaves like a system: it notices, adapts, and keeps a warm memory of everyone who passes through.",
-    metrics: [
-      { label: "Path friction", value: "-41%" },
-      { label: "Repeat rate", value: "2.3x" },
-      { label: "Time to value", value: "9 days" },
+    id: "alliance-glentree-serenity",
+    slug: "glentree-serenity",
+    name: "Glentree Serenity",
+    tagline: "A villa for your family. A location for your future.",
+    category: "Real Estate",
+    coverImage: "/partners/serenity-1.jpeg",
+    gallery: [
+      "/partners/serenity-1.jpeg",
+      "/partners/serenity-2.jpeg",
+      "/partners/serenity-3.jpeg",
+      "/partners/serenity-4.jpeg",
+      "/partners/serenity-5.jpeg",
+      "/partners/serenity-6.jpeg",
     ],
+    tags: ["Luxury Villas", "Lakeside Estate", "Nadergul"],
+    accentGradient: "from-amber-400 to-emerald-600",
+    summary:
+      "An 18-acre lakeside villa estate in Nadergul — 184 families, 85+ amenities, premium triplex villas from ₹2.26 Cr.",
+    body: `## Exclusive living, without being isolated
+
+Glentree Serenity is an 18-acre lakeside estate in **Nadergul, South Hyderabad** — a peaceful sanctuary for your family that never disconnects you from the city. Premium triplex villas sit next to established neighbourhoods, so daily life stays convenient while the address keeps growing.
+
+## The villas
+
+- **3 & 4 BHK** premium triplex villas
+- Plot sizes from **200 to 300 sq yds**
+- Starting at **₹2.26 Cr**\\*
+- Only **184 limited families** across the estate
+
+## The community
+
+Serenity offers spaces for every generation — not just a home, but everything around it.
+
+- **85+ amenities**
+- **2 clubhouses**
+- **5 themed parks**
+- **18-acre** lakeside estate with immediate access to everything
+
+## Why the location works
+
+Many villa projects offer greenery. Few offer convenience. Serenity sits within South Hyderabad's growing corridor, next to established neighbourhoods — convenient today, and appreciating for tomorrow.
+
+## Approvals
+
+- **RERA:** P02400010707
+- **HMDA Permit:** 012013/LO/HMDA/3194/SMD/2024
+- Verify at [rera.telangana.gov.in](https://rera.telangana.gov.in)
+
+## Enquire
+
+Book a private site visit — [sales@glentreehomes.in](mailto:sales@glentreehomes.in)
+
+\\*T&C apply.`,
+    metrics: [
+      { label: "Lakeside estate", value: "18 Acres" },
+      { label: "Limited families", value: "184" },
+      { label: "Amenities", value: "85+" },
+      { label: "Starting at", value: "₹2.26 Cr" },
+    ],
+    liveUrl: "https://glentreehomes.in",
     featured: true,
     sortOrder: 0,
-  },
-  {
-    id: "alliance-cadence",
-    slug: "cadence-creator",
-    name: "Cadence",
-    tagline: "Turning a creator's scattered output into a compounding audience engine.",
-    category: "Creator",
-    coverImage:
-      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1200&auto=format&fit=crop",
-    tags: ["Audience", "Distribution", "Signal"],
-    accentGradient: "from-indigo-500 to-purple-600",
-    summary: "Distribution designed so momentum carries, not resets, between drops.",
-    body:
-      "## The brief\nGreat work, quiet growth. Each release started the climb over again.\n\n## What we moved\nWe mapped where the audience already leaned and built the shortest path from curiosity to conviction — then made every release inherit the reach of the last.\n\n## The shape of the result\nA cadence that stacks. Nothing plateaus quietly anymore.",
-    metrics: [
-      { label: "Owned reach", value: "5.1x" },
-      { label: "Drop-over-drop lift", value: "+68%" },
-    ],
-    featured: true,
-    sortOrder: 1,
-  },
-  {
-    id: "alliance-atlas",
-    slug: "atlas-partner-network",
-    name: "Atlas Network",
-    tagline: "Revenue-aligned partnerships where our upside is your growth.",
-    category: "Partnerships",
-    coverImage:
-      "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=1200&auto=format&fit=crop",
-    tags: ["Affiliate", "Economics", "Scale"],
-    accentGradient: "from-emerald-400 to-teal-500",
-    summary: "An affiliate structure built on aligned incentives instead of ad spend.",
-    body:
-      "## The brief\nAtlas wanted reach without renting it — growth that didn't reset the moment budget paused.\n\n## What we moved\nWe designed partner economics where every collaborator wins when Atlas does, then instrumented the whole network so contribution is legible, not guessed.\n\n## The shape of the result\nA compounding partner flywheel that keeps turning after the spend stops.",
-    metrics: [
-      { label: "Partner-sourced rev", value: "34%" },
-      { label: "CAC vs. paid", value: "-52%" },
-    ],
-    sortOrder: 2,
   },
 ];
