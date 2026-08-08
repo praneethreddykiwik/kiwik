@@ -5718,9 +5718,9 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                  { name: "Vivek Shaganti", role: "Owner", email: "shagantivivekgoud@gmail.com" },
-                  { name: "Sarah Lin", role: "Admin", email: "sarah@kiwik.io" },
-                  { name: "Alex Mercer", role: "Developer", email: "alex@kiwik.io" }
+                  { name: "Vivek Shaganti", role: "Owner", email: "praneeth@kiwik.one" },
+                  { name: "Sarah Lin", role: "Admin", email: "praneeth@kiwik.one" },
+                  { name: "Alex Mercer", role: "Developer", email: "praneeth@kiwik.one" }
                 ].map((usr, i) => (
                   <GlassCard key={i} className="p-5 space-y-3">
                     <div className="flex items-center justify-between">

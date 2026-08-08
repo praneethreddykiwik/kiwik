@@ -47,7 +47,7 @@ const defaultCMSData: SiteCMSData = {
     logoUrl: "/logo.png",
     faviconUrl: "/favicon.ico",
     copyrightText: "© 2026 Kiwik Inc. All rights reserved.",
-    contactEmail: "shagantivivekgoud@gmail.com",
+    contactEmail: "praneeth@kiwik.one",
     contactPhone: "+1 (800) 555-KIWIK",
     address: "San Francisco, CA & Remote Global",
     version: "1.0.0-beta",
@@ -234,7 +234,7 @@ const defaultCMSData: SiteCMSData = {
     logoUrl: "/logo.png",
     statusBadgeText: "All Systems Operational",
     statusBadgeVisible: true,
-    contactEmail: "hello@kiwik.dev",
+    contactEmail: "praneeth@kiwik.one",
     contactPhone: "+1 (800) 555-KIWIK",
     address: "Internet, Everywhere",
     bottomLinks: [
@@ -644,6 +644,25 @@ function reconcileNavigation(incoming: Partial<NavigationCMS> | undefined): Navi
   return { ...defaultCMSData.navigation, ...incoming };
 }
 
+/**
+ * Contact addresses that shipped in earlier builds. The CMS outlives a
+ * deployment in each visitor's localStorage and in the `site_cms` row, so a
+ * retired address would otherwise keep reappearing on the public site long
+ * after the default changed. Any of these is migrated to the current default;
+ * an address set deliberately in the admin studio is left untouched.
+ */
+const LEGACY_CONTACT_EMAILS = new Set([
+  "shagantivivekgoud@gmail.com",
+  "hello@kiwik.dev",
+  "sarah@kiwik.io",
+  "alex@kiwik.io",
+]);
+
+function reconcileContactEmail(value: string | undefined, fallback: string): string {
+  if (!value || LEGACY_CONTACT_EMAILS.has(value.trim().toLowerCase())) return fallback;
+  return value;
+}
+
 interface SiteCMSStoreState {
   cms: SiteCMSData;
 
@@ -741,8 +760,22 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
             ...state.cms,
             ...newCMS,
             // The DB blob is the source of truth for editable content, but not
-            // for a navbar that shipped before the current build.
-            navigation: reconcileNavigation(newCMS?.navigation)
+            // for a navbar or contact address that shipped before this build.
+            navigation: reconcileNavigation(newCMS?.navigation),
+            settings: {
+              ...(newCMS?.settings || state.cms.settings),
+              contactEmail: reconcileContactEmail(
+                newCMS?.settings?.contactEmail,
+                defaultCMSData.settings.contactEmail
+              ),
+            },
+            footer: {
+              ...(newCMS?.footer || state.cms.footer),
+              contactEmail: reconcileContactEmail(
+                newCMS?.footer?.contactEmail,
+                defaultCMSData.footer.contactEmail!
+              ),
+            }
           }
         }));
       },
@@ -1405,11 +1438,25 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
         cms: {
           ...defaultCMSData,
           ...(persistedState?.cms || {}),
-          settings: { ...defaultCMSData.settings, ...(persistedState?.cms?.settings || {}) },
+          settings: {
+            ...defaultCMSData.settings,
+            ...(persistedState?.cms?.settings || {}),
+            contactEmail: reconcileContactEmail(
+              persistedState?.cms?.settings?.contactEmail,
+              defaultCMSData.settings.contactEmail
+            ),
+          },
           hero: { ...defaultCMSData.hero, ...(persistedState?.cms?.hero || {}) },
           promptBar: { ...defaultCMSData.promptBar, ...(persistedState?.cms?.promptBar || {}) },
           navigation: reconcileNavigation(persistedState?.cms?.navigation),
-          footer: { ...defaultCMSData.footer, ...(persistedState?.cms?.footer || {}) },
+          footer: {
+            ...defaultCMSData.footer,
+            ...(persistedState?.cms?.footer || {}),
+            contactEmail: reconcileContactEmail(
+              persistedState?.cms?.footer?.contactEmail,
+              defaultCMSData.footer.contactEmail!
+            ),
+          },
           featuredSection: { ...defaultCMSData.featuredSection, ...(persistedState?.cms?.featuredSection || {}) },
           capabilities: { ...defaultCMSData.capabilities, ...(persistedState?.cms?.capabilities || {}) },
           trust: { ...defaultCMSData.trust, ...(persistedState?.cms?.trust || {}) },

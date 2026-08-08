@@ -52,6 +52,7 @@ export default function PartnersPage() {
   const p = (cms as any).partnersPage || {};
   const copy = { ...DEFAULTS, ...p };
   const services = Array.isArray(p.services) && p.services.length > 0 ? p.services : SERVICES;
+  const contactEmail = cms.settings?.contactEmail || "praneeth@kiwik.one";
 
   return (
     <div className="relative w-full max-w-full overflow-x-hidden">
@@ -171,12 +172,17 @@ export default function PartnersPage() {
             We take on a small number of partners at a time — enough to stay obsessive about each one.
           </p>
           <div className="pt-2">
-            <Link
-              href="/contact"
+            {/* This used to point at /contact, which has no route — the button
+                just 404'd. It now opens a pre-addressed email to the contact
+                address configured in the admin studio. */}
+            <a
+              href={`mailto:${contactEmail}?subject=${encodeURIComponent("Partnership enquiry — Kiwik")}&body=${encodeURIComponent(
+                "Hi Kiwik team,\n\nI'd like to explore a partnership.\n\nCompany:\nWhat we do:\nWhere we'd like momentum:\n\nThanks,\n"
+              )}`}
               className="inline-flex px-6 py-3 rounded-full bg-accent-blue text-white font-bold text-sm items-center gap-2 hover:scale-[1.03] transition-transform"
             >
               Become a partner <ArrowRight className="w-4 h-4" />
-            </Link>
+            </a>
           </div>
         </GlassCard>
       </section>
