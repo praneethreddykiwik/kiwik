@@ -95,16 +95,21 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
 
           <div>
-            {/* Tech Stack Pills */}
+            {/* Tech Stack Pills.
+                Guarded: a project saved from the admin studio, or read mid-write
+                from the database, can arrive without techStack. Reading .slice
+                off undefined here threw and tripped the page-level error
+                boundary — which is what surfaced as "System Diagnostics Notice"
+                over the whole projects grid. */}
             <div className="flex flex-wrap gap-1.5 mb-4">
-              {project.techStack.slice(0, 4).map((tech) => (
+              {(project.techStack || []).slice(0, 4).map((tech) => (
                 <span key={tech.name} className="px-2 py-0.5 text-[10px] font-mono rounded bg-glass-bg border border-glass-border text-text-secondary">
                   {tech.name}
                 </span>
               ))}
-              {project.techStack.length > 4 && (
+              {(project.techStack || []).length > 4 && (
                 <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-glass-bg border border-glass-border text-text-secondary">
-                  +{project.techStack.length - 4}
+                  +{(project.techStack || []).length - 4}
                 </span>
               )}
             </div>

@@ -234,7 +234,7 @@ export function PremiumShowcaseCard({ project }: PremiumShowcaseCardProps) {
           
           {/* Bottom Left: Tech Stack Pills */}
           <div className="flex flex-wrap items-center gap-1.5">
-            {project.techStack.slice(0, 4).map((tech) => (
+            {(project.techStack || []).slice(0, 4).map((tech) => (
               <span
                 key={tech.name}
                 className="px-2.5 py-1 text-[10px] font-mono font-medium rounded-full bg-white/70 dark:bg-white/10 backdrop-blur-md border border-black/10 dark:border-white/10 text-[#18181B] dark:text-white/80"
@@ -242,9 +242,9 @@ export function PremiumShowcaseCard({ project }: PremiumShowcaseCardProps) {
                 {tech.name}
               </span>
             ))}
-            {project.techStack.length > 4 && (
+            {(project.techStack || []).length > 4 && (
               <span className="px-2 py-1 text-[10px] font-mono font-medium rounded-full bg-white/70 dark:bg-white/10 border border-black/10 dark:border-white/10 text-black/60 dark:text-white/60">
-                +{project.techStack.length - 4}
+                +{(project.techStack || []).length - 4}
               </span>
             )}
           </div>

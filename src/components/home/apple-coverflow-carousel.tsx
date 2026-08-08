@@ -266,7 +266,7 @@ export function AppleCoverflowCarousel() {
 
                   {/* Tech Stack Pills */}
                   <div className="flex flex-wrap gap-1.5 pt-2">
-                    {project.techStack.slice(0, 3).map((t) => (
+                    {(project.techStack || []).slice(0, 3).map((t) => (
                       <span key={t.name} className="px-2.5 py-1 text-[10px] font-mono font-medium rounded-full bg-white/10 border border-white/10 text-white/80">
                         {t.name}
                       </span>

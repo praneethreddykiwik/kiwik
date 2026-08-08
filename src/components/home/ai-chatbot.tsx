@@ -250,7 +250,7 @@ export function AIChatbot() {
 
     if (directMatch) {
       matchedProjects = [directMatch];
-      text = `Here are details on **${directMatch.name}** (${directMatch.category} project, v${directMatch.version || "1.0.0"}): \n\n* **Status**: ${directMatch.status.replace("-", " ")} (${directMatch.completionPercent}% complete)\n* **Tagline**: ${directMatch.tagline}\n* **Stack**: ${directMatch.techStack.map(t => t.name).join(", ")}\n\nYou can click below to explore its live edge monitor or full documentation.`;
+      text = `Here are details on **${directMatch.name}** (${directMatch.category} project, v${directMatch.version || "1.0.0"}): \n\n* **Status**: ${(directMatch.status || "").replace("-", " ")} (${directMatch.completionPercent}% complete)\n* **Tagline**: ${directMatch.tagline}\n* **Stack**: ${(directMatch.techStack || []).map(t => t.name).join(", ")}\n\nYou can click below to explore its live edge monitor or full documentation.`;
       return { text, matchedProjects };
     }
 
@@ -266,7 +266,7 @@ export function AIChatbot() {
     if (query.includes("readme") || query.includes("documentation") || query.includes("doc")) {
       const matched = results.length > 0 ? results[0].item : null;
       if (matched) {
-        text = `Here is a summary of the **README.md** documentation for **${matched.name}**:\n\n* **Description**: ${matched.description}\n* **Key Stack**: ${matched.techStack.slice(0, 5).map((t: any) => t.name).join(", ")}\n* **Details**: Check out the full markdown tab on its detail page below!`;
+        text = `Here is a summary of the **README.md** documentation for **${matched.name}**:\n\n* **Description**: ${matched.description}\n* **Key Stack**: ${(matched.techStack || []).slice(0, 5).map((t: any) => t.name).join(", ")}\n* **Details**: Check out the full markdown tab on its detail page below!`;
         return { text, matchedProjects: [matched] };
       } else {
         text = "Which project's README would you like to explore? (e.g. CriskaAI, CriskaCloud, CriskaPay)";
@@ -280,7 +280,7 @@ export function AIChatbot() {
       const targets = results.length > 0 ? results.map(r => r.item) : projects;
       matchedProjects = targets.slice(0, 4);
       text = `Here is the tech stack used in our key projects:\n\n` +
-        matchedProjects.map(p => `* **${p.name}**: uses *${p.techStack.map((t: any) => t.name).slice(0, 6).join(", ")}*`).join("\n") +
+        matchedProjects.map(p => `* **${p.name}**: uses *${(p.techStack || []).map((t: any) => t.name).slice(0, 6).join(", ")}*`).join("\n") +
         `\n\nExplore any of these projects below for detailed telemetry!`;
       return { text, matchedProjects };
     }
@@ -289,7 +289,7 @@ export function AIChatbot() {
     if (results.length > 0) {
       const match = results[0].item;
       matchedProjects = [match];
-      text = `Here are details on **${match.name}** (${match.category} project, v${match.version || "1.0.0"}): \n\n* **Status**: ${match.status.replace("-", " ")} (${match.completionPercent}% complete)\n* **Tagline**: ${match.tagline}\n* **Stack**: ${match.techStack.map(t => t.name).join(", ")}\n\nYou can click below to explore its live edge monitor or full documentation.`;
+      text = `Here are details on **${match.name}** (${match.category} project, v${match.version || "1.0.0"}): \n\n* **Status**: ${(match.status || "").replace("-", " ")} (${match.completionPercent}% complete)\n* **Tagline**: ${match.tagline}\n* **Stack**: ${(match.techStack || []).map(t => t.name).join(", ")}\n\nYou can click below to explore its live edge monitor or full documentation.`;
       return { text, matchedProjects };
     }
 

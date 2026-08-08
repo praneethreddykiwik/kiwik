@@ -337,117 +337,121 @@ const defaultCMSData: SiteCMSData = {
     })
   },
   deviceShowcase: {
-    topBadgeText: "No Credit Card Required",
+    topBadgeText: "One Platform. Every Layer.",
     cards: [
       {
         id: "dev-1",
-        name: "John Richardson",
-        role: "Co-Founder",
-        quote: "Angel investor in San Antonio, TX",
-        tag: "Founder",
-        avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
-        accentColor: "#3b82f6",
-        description: "Investing in web3 companies focused on DeFi systems and infrastructure.",
-        backgroundColor: "#ffffff",
+        name: "AI & Knowledge",
+        role: "Intelligence Layer",
+        quote: "Agents that read, reason and act on your data.",
+        tag: "AI",
+        avatarUrl: "/logo.png",
+        frameOverlayUrl: "",
+        accentColor: "#8b5cf6",
+        description:
+          "Vision, pricing and matching agents running in sequence — the same pipeline that powers Clean AI, scoring a job from a photo and matching it to the right vendor.",
+        backgroundColor: "#0B0A14",
         visible: true,
         order: 1,
         template: "investor",
         subitems: [
-          { title: "Cooperative", subtitle: "Project description here." },
-          { title: "Ikigai Labs", subtitle: "Project description here." }
+          { title: "Clean AI", subtitle: "Five-agent pipeline: vision, pricing, matching." },
+          { title: "Kiwik AI", subtitle: "Semantic search across projects and documentation." }
         ],
         blocks: [
           {
             id: "blk-1",
             type: "projects",
-            title: "Projects Funded",
+            title: "Running in production",
             visible: true,
             items: [
-              { title: "Cooperative", subtitle: "Project description here." },
-              { title: "Ikigai Labs", subtitle: "Project description here." }
+              { title: "Clean AI", subtitle: "Five-agent pipeline: vision, pricing, matching." },
+              { title: "Kiwik AI", subtitle: "Semantic search across projects and documentation." }
             ]
           }
         ]
       },
       {
         id: "dev-2",
-        name: "Jet Hawken",
-        role: "Product Designer",
-        quote: "Product Designer & UI UX Expert",
+        name: "Design Systems",
+        role: "Interface Layer",
+        quote: "Interfaces engineered to age well.",
         tag: "Design",
-        avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+        avatarUrl: "/logo.png",
+        frameOverlayUrl: "",
         accentColor: "#2563eb",
-        description: "A seasoned designer with 15 years experience specializing in product design and UI/UX. Known for creating impactful experiences.",
+        description:
+          "A glassmorphism design system with tokenised colour, motion and depth — themeable end to end, so one palette change re-dyes the entire product.",
         backgroundColor: "#EBF2FE",
         visible: true,
         order: 2,
         template: "designer",
         subitems: [
-          { title: "John Richardson", subtitle: "\"Jet helped us build an incredible platform from start to finish\"" },
-          { title: "Leslie Putnam", subtitle: "\"Is so talented and designs so fast, we beat every deadline...\"" }
+          { title: "SowCha", subtitle: "\"Three palettes, applied before first paint — no flash of the wrong theme.\"" },
+          { title: "HELM Events", subtitle: "\"One command centre replacing scattered spreadsheets and disconnected tools.\"" }
         ],
         blocks: [
           {
             id: "blk-2",
             type: "testimonial",
-            title: "Testimonials",
+            title: "Shipped with it",
             visible: true,
             items: [
-              { title: "John Richardson", subtitle: "\"Jet helped us build an incredible platform from start to finish\"" },
-              { title: "Leslie Putnam", subtitle: "\"Is so talented and designs so fast, we beat every deadline...\"" }
+              { title: "SowCha", subtitle: "\"Three palettes, applied before first paint — no flash of the wrong theme.\"" },
+              { title: "HELM Events", subtitle: "\"One command centre replacing scattered spreadsheets and disconnected tools.\"" }
             ]
           }
         ]
       },
       {
         id: "dev-3",
-        name: "Leslie Putnam",
-        role: "Lead Systems Architect",
-        quote: "Product Manager with 15 years of experience.",
+        name: "Engineering",
+        role: "Build Layer",
+        quote: "Typed end to end, from schema to pixel.",
         tag: "Engineering",
-        avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
-        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+        avatarUrl: "/logo.png",
+        frameOverlayUrl: "",
         accentColor: "#3b82f6",
-        description: "Leslie Putnam is a Senior PM helping teams of designers, developers and stakeholders hit deadlines and build incredible things.",
+        description:
+          "Next.js and React on the edge, Postgres and Prisma underneath, with a CMS that writes straight to the database so content changes never need a redeploy.",
         backgroundColor: "#0C0D12",
         visible: true,
         order: 3,
         template: "pm",
         subitems: [
-          { title: "Senior Product Manager", subtitle: "Apple", date: "Jan, 2023 - Present" },
-          { title: "Product Manager", subtitle: "Meta Platforms", date: "Aug, 2021 - Jan, 2023" }
+          { title: "Next.js · React · TypeScript", subtitle: "Frontend", date: "Edge rendered" },
+          { title: "Postgres · Prisma · Redis", subtitle: "Data", date: "Pooled + cached" }
         ],
         blocks: [
           {
             id: "blk-3",
             type: "experience",
-            title: "Experience",
+            title: "The stack",
             visible: true,
             items: [
-              { title: "Senior Product Manager", subtitle: "Apple", date: "Jan, 2023 - Present" },
-              { title: "Product Manager", subtitle: "Meta Platforms", date: "Aug, 2021 - Jan, 2023" }
+              { title: "Next.js · React · TypeScript", subtitle: "Frontend", date: "Edge rendered" },
+              { title: "Postgres · Prisma · Redis", subtitle: "Data", date: "Pooled + cached" }
             ]
           }
         ]
       },
       {
         id: "dev-4",
-        name: "Taylor Brown",
-        role: "Head of AI Research",
-        quote: "Professional botanist sharing plant tips.",
-        tag: "AI & ML",
-        avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+        name: "Security",
+        role: "Trust Layer",
+        quote: "Secrets in the environment, never in the repo.",
+        tag: "Security",
+        avatarUrl: "/logo.png",
+        frameOverlayUrl: "",
         accentColor: "#047857",
-        description: "Passionate about plants and sustainability. Through social media, I share expert plant tips and advice.",
+        description:
+          "Signed sessions, role-based access and fail-closed auth. Every write is authenticated, and a failed write reports failure rather than pretending to succeed.",
         backgroundColor: "#0E1F18",
         visible: true,
         order: 4,
         template: "botanist",
         subitems: [
-          { title: "How long have you been a botanist?", subtitle: "I've been passionate about plants for over 8 years." }
+          { title: "How is content kept in sync?", subtitle: "The database is the single source of truth; every surface reads from it and reflects edits within seconds." }
         ],
         blocks: [
           {
@@ -455,11 +459,11 @@ const defaultCMSData: SiteCMSData = {
             type: "socials",
             visible: true,
             items: [
-              { title: "Globe", iconName: "Globe", link: "#" },
-              { title: "MessageSquare", iconName: "MessageSquare", link: "#" },
-              { title: "Share2", iconName: "Share2", link: "#" },
-              { title: "Send", iconName: "Send", link: "#" },
-              { title: "Lock", iconName: "Lock", link: "#" }
+              { title: "Globe", iconName: "Globe", link: "/projects" },
+              { title: "MessageSquare", iconName: "MessageSquare", link: "#ai" },
+              { title: "Share2", iconName: "Share2", link: "/partners" },
+              { title: "Send", iconName: "Send", link: "/docs" },
+              { title: "Lock", iconName: "Lock", link: "#capabilities" }
             ]
           },
           {
@@ -468,21 +472,22 @@ const defaultCMSData: SiteCMSData = {
             title: "FAQ",
             visible: true,
             items: [
-              { title: "How long have you been a botanist?", subtitle: "I've been passionate about plants for over 8 years." }
+              { title: "How is content kept in sync?", subtitle: "The database is the single source of truth; every surface reads from it and reflects edits within seconds." }
             ]
           }
         ]
       },
       {
         id: "dev-5",
-        name: "Jason Markus",
-        role: "Viral Marketer",
-        quote: "Viral marketer, helping founders grow their apps.",
+        name: "Partnerships",
+        role: "Growth Layer",
+        quote: "We take on a small number of partners at a time.",
         tag: "Growth",
-        avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
-        frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+        avatarUrl: "/logo.png",
+        frameOverlayUrl: "",
         accentColor: "#65a30d",
-        description: "I am Jason Markus, a viral marketer specializing in helping founders grow their apps through innovative strategies and modern marketing techniques.",
+        description:
+          "Kiwik operates as an embedded partner — part studio, part signal engine — turning scattered attention into durable momentum for the ventures we back.",
         backgroundColor: "#0D150B",
         visible: true,
         order: 5,
@@ -492,7 +497,7 @@ const defaultCMSData: SiteCMSData = {
           {
             id: "blk-5",
             type: "form",
-            title: "Contact Jason Markus",
+            title: "Start a conversation",
             visible: true
           }
         ]
