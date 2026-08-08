@@ -131,11 +131,10 @@ const defaultCMSData: SiteCMSData = {
     logoUrl: "/logo.png",
     items: [
       { id: "nav-1", label: "Projects", href: "/projects", iconName: "Folder", order: 1, visible: true },
-      { id: "nav-alliance", label: "Alliance", href: "/partners", iconName: "Sparkles", order: 2, visible: true },
+      { id: "nav-partner", label: "Digital Market Partner", href: "/partners", iconName: "Sparkles", order: 2, visible: true },
       { id: "nav-2", label: "Capabilities", href: "#capabilities", iconName: "Cpu", order: 3, visible: true },
-      { id: "nav-3", label: "How We Work", href: "#how-we-work", iconName: "Workflow", order: 3, visible: true },
-      { id: "nav-4", label: "Docs", href: "/docs", iconName: "FileText", order: 4, visible: true },
-      { id: "nav-5", label: "Admin CMS", href: "/admin", iconName: "Shield", badge: "CMS", order: 5, visible: true }
+      { id: "nav-3", label: "How We Work", href: "#how-we-work", iconName: "Workflow", order: 4, visible: true },
+      { id: "nav-4", label: "Docs", href: "/docs", iconName: "FileText", order: 5, visible: true }
     ],
     ctaButtonText: "Ask Kiwik AI",
     ctaButtonHref: "#ai",
@@ -1360,7 +1359,7 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
       resetCMSToDefaults: () => set({ cms: defaultCMSData })
     }),
     {
-      name: "kiwik-site-cms-v1",
+      name: "kiwik-site-cms-v3",
       storage: createJSONStorage(() => localStorage),
       merge: (persistedState: any, currentState) => ({
         ...currentState,
