@@ -80,6 +80,8 @@ import {
 } from "lucide-react";
 
 import { useProjectsStore, useProjects } from "@/stores/projects-store";
+import { useProductsStore, useProducts } from "@/stores/products-store";
+import type { PartnerProduct } from "@/types/partner";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
 import { useDocsStore } from "@/stores/docs-store";
 import { ProjectDetailContent } from "@/components/projects/project-detail-content";
@@ -100,6 +102,7 @@ type MainSidebarTab =
   | "pages"
   | "media"
   | "projects"
+  | "partners"
   | "documentation"
   | "ai"
   | "analytics"
@@ -204,6 +207,10 @@ export default function AdminPage() {
   // Store Hooks
   const projects = useProjects();
   const { addProject, updateProject, deleteProject } = useProjectsStore();
+
+  // Partner products (the Alliance showcase)
+  const partnerProductsList = useProducts();
+  const { addProduct, updateProduct, deleteProduct } = useProductsStore();
 
   // Reactive CMS state used for debounced global auto-save.
   const liveCms = useSiteCMSStore((s) => s.cms);
@@ -2563,6 +2570,16 @@ export default function AdminPage() {
                 )}
               >
                 <Folder className="w-4 h-4" /> Projects
+              </button>
+
+              <button
+                onClick={() => handleSelectTab("partners")}
+                className={cn(
+                  "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
+                  mainTab === "partners" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+                )}
+              >
+                <Sparkles className="w-4 h-4" /> Alliance / Products
               </button>
 
               <button
@@ -5369,6 +5386,165 @@ export default function AdminPage() {
                   ))}
                 </div>
               </div>
+          )}
+
+          {/* PARTNERS / ALLIANCE PRODUCTS TAB */}
+          {mainTab === "partners" && (
+            <div className="space-y-6 text-left">
+              <div className="p-6 rounded-2xl bg-glass-bg border border-glass-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-accent-blue" /> Alliance Showcase — Products
+                  </h3>
+                  <p className="text-xs text-text-secondary mt-0.5">
+                    Add and edit the products shown on the public <code className="text-accent-blue">/partners</code> page. Saved globally to the database; each card links to its own detail page.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    const ts = Date.now();
+                    const newProduct: PartnerProduct = {
+                      id: `product-${ts}`,
+                      slug: `new-product-${ts}`,
+                      name: "New Partner Product",
+                      tagline: "A short, distinctive one-liner about this work.",
+                      category: "Commerce",
+                      coverImage:
+                        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
+                      tags: ["Growth"],
+                      accentGradient: "from-accent-blue to-indigo-600",
+                      summary: "One line that sells the outcome, not the activity.",
+                      body: "## The brief\n\n## What we moved\n\n## The shape of the result\n",
+                      metrics: [],
+                      sortOrder: partnerProductsList.length,
+                    };
+                    addProduct(newProduct);
+                    showToast("Created new product — edit its details below");
+                  }}
+                  className="px-4 py-2 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-white text-xs font-bold flex items-center gap-2 shadow-lg shrink-0 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" /> Add Product
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {partnerProductsList.map((prod) => (
+                  <GlassCard key={prod.id} className="p-5 space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div className="h-20 w-28 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0">
+                        {prod.coverImage && (
+                          <img src={prod.coverImage} alt={prod.name} className="w-full h-full object-cover" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <input
+                          value={prod.name}
+                          onChange={(e) => updateProduct(prod.id, { name: e.target.value })}
+                          placeholder="Product name"
+                          className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-sm font-bold border border-white/5 focus:border-accent-blue outline-none"
+                        />
+                        <div className="flex gap-2">
+                          <input
+                            value={prod.slug}
+                            onChange={(e) =>
+                              updateProduct(prod.id, {
+                                slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+                              })
+                            }
+                            placeholder="slug"
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-bg-secondary text-[11px] font-mono text-accent-blue border border-white/5 focus:border-accent-blue outline-none"
+                          />
+                          <input
+                            value={prod.category || ""}
+                            onChange={(e) => updateProduct(prod.id, { category: e.target.value })}
+                            placeholder="Category"
+                            className="w-28 px-3 py-1.5 rounded-lg bg-bg-secondary text-[11px] font-bold border border-white/5 focus:border-accent-blue outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Tagline</label>
+                      <input
+                        value={prod.tagline}
+                        onChange={(e) => updateProduct(prod.id, { tagline: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-xs border border-white/5 focus:border-accent-blue outline-none"
+                      />
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Card summary</label>
+                      <input
+                        value={prod.summary || ""}
+                        onChange={(e) => updateProduct(prod.id, { summary: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-xs border border-white/5 focus:border-accent-blue outline-none"
+                      />
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Cover image URL</label>
+                      <div className="flex gap-2">
+                        <input
+                          value={prod.coverImage}
+                          onChange={(e) => updateProduct(prod.id, { coverImage: e.target.value })}
+                          className="flex-1 px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                        />
+                        <button
+                          onClick={() => openMediaPicker((url) => updateProduct(prod.id, { coverImage: url }), "Select cover image")}
+                          className="px-3 py-2 rounded-lg bg-bg-tertiary border border-white/10 text-[11px] font-bold hover:bg-bg-secondary cursor-pointer"
+                        >
+                          Media
+                        </button>
+                      </div>
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Tags (comma-separated)</label>
+                      <input
+                        value={(prod.tags || []).join(", ")}
+                        onChange={(e) =>
+                          updateProduct(prod.id, {
+                            tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean),
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                      />
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Detail body (Markdown)</label>
+                      <textarea
+                        rows={4}
+                        value={prod.body || ""}
+                        onChange={(e) => updateProduct(prod.id, { body: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
+                      />
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Live URL (optional)</label>
+                      <input
+                        value={prod.liveUrl || ""}
+                        onChange={(e) => updateProduct(prod.id, { liveUrl: e.target.value })}
+                        placeholder="https://..."
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-divider">
+                      <a
+                        href={`/partners/${prod.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-accent-blue flex items-center gap-1 hover:underline"
+                      >
+                        <Eye className="w-3.5 h-3.5" /> Preview
+                      </a>
+                      <button
+                        onClick={() => {
+                          deleteProduct(prod.id);
+                          showToast(`Deleted product [${prod.name}]`);
+                        }}
+                        className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </GlassCard>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* DOCUMENTATION TAB */}
