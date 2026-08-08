@@ -6,9 +6,10 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, FileDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/glass/glass-card";
+import { PartnerVideoPlayer } from "@/components/partners/partner-video";
 import { useProducts, useProductsStore } from "@/stores/products-store";
 
 export function ProductDetailContent() {
@@ -108,6 +109,23 @@ export function ProductDetailContent() {
             )}
           </div>
 
+          {/* Video walkthroughs. Poster-first, so nothing heavy downloads until
+              the visitor presses play. */}
+          {Array.isArray(product.videos) && product.videos.length > 0 && (
+            <section className="space-y-4">
+              <h3 className="text-[11px] font-mono font-bold uppercase tracking-wider text-text-muted">
+                Walkthrough
+              </h3>
+              <div className="space-y-6">
+                {product.videos
+                  .filter((v) => v && typeof v.url === "string" && v.url.trim())
+                  .map((v, i) => (
+                    <PartnerVideoPlayer key={v.url + i} video={v} />
+                  ))}
+              </div>
+            </section>
+          )}
+
           {/* Partner-supplied imagery. Lazy-loaded and given an explicit aspect
               ratio so the page doesn't reflow as each one arrives. */}
           {Array.isArray(product.gallery) && product.gallery.length > 0 && (
@@ -164,6 +182,17 @@ export function ProductDetailContent() {
               className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-2xl bg-accent-blue text-white font-bold text-sm hover:scale-[1.02] transition-transform"
             >
               Visit {product.name} <ArrowUpRight className="w-4 h-4" />
+            </a>
+          )}
+
+          {product.brochureUrl && (
+            <a
+              href={product.brochureUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-2xl bg-bg-secondary border border-glass-border text-text-primary font-bold text-sm hover:border-accent-blue/40 transition-colors"
+            >
+              <FileDown className="w-4 h-4" /> Download brochure
             </a>
           )}
         </aside>

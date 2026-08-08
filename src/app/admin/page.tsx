@@ -5559,6 +5559,86 @@ export default function AdminPage() {
                         placeholder="https://..."
                         className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
                       />
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
+                        Gallery image URLs (one per line)
+                      </label>
+                      <textarea
+                        value={(prod.gallery || []).join("\n")}
+                        onChange={(e) =>
+                          updateProduct(prod.id, {
+                            gallery: e.target.value.split("\n").map((u) => u.trim()).filter(Boolean),
+                          })
+                        }
+                        rows={4}
+                        placeholder="/partners/serenity-1.jpeg"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
+                      />
+                      <button
+                        onClick={() =>
+                          openMediaPicker(
+                            (url) => updateProduct(prod.id, { gallery: [...(prod.gallery || []), url] }),
+                            "Add gallery image"
+                          )
+                        }
+                        className="px-3 py-2 rounded-lg bg-bg-tertiary border border-white/10 text-[11px] font-bold hover:bg-bg-secondary cursor-pointer w-fit"
+                      >
+                        + Add image from Media
+                      </button>
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
+                        Videos — one per line as: url | poster url | title
+                      </label>
+                      <textarea
+                        value={(prod.videos || [])
+                          .map((v) => [v.url, v.poster || "", v.title || ""].join(" | "))
+                          .join("\n")}
+                        onChange={(e) =>
+                          updateProduct(prod.id, {
+                            videos: e.target.value
+                              .split("\n")
+                              .map((line) => line.split("|").map((s) => s.trim()))
+                              .filter((parts) => parts[0])
+                              .map(([url, poster, title]) => ({
+                                url,
+                                poster: poster || undefined,
+                                title: title || undefined,
+                              })),
+                          })
+                        }
+                        rows={3}
+                        placeholder="https://.../walkthrough.mp4 | https://.../poster.jpg | Project walkthrough"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
+                      />
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
+                        Brochure PDF URL (optional)
+                      </label>
+                      <input
+                        value={prod.brochureUrl || ""}
+                        onChange={(e) => updateProduct(prod.id, { brochureUrl: e.target.value })}
+                        placeholder="https://.../brochure.pdf"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                      />
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
+                        Metrics — one per line as: label | value
+                      </label>
+                      <textarea
+                        value={(prod.metrics || []).map((m) => `${m.label} | ${m.value}`).join("\n")}
+                        onChange={(e) =>
+                          updateProduct(prod.id, {
+                            metrics: e.target.value
+                              .split("\n")
+                              .map((line) => line.split("|").map((s) => s.trim()))
+                              .filter((parts) => parts[0] && parts[1])
+                              .map(([label, value]) => ({ label, value })),
+                          })
+                        }
+                        rows={4}
+                        placeholder="Lakeside estate | 18 Acres"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
+                      />
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-divider">

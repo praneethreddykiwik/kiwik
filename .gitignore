@@ -32,3 +32,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Source partner media kept locally only. The web-optimised versions live in
+# Supabase Storage (bucket: partner-media) — committing these ~145MB originals
+# would bloat every clone and deploy permanently.
+/public/*.mp4
+/public/SERENITY  Brochure.pdf
+/public/Glentree Serenity*.jpeg
+/public/Serenity.png
+/public/.DS_Store

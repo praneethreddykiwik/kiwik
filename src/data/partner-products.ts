@@ -1,5 +1,10 @@
 import type { PartnerProduct } from "@/types/partner";
 
+// Large partner media (video, brochure) lives in Supabase Storage rather than
+// the repository: ~145MB of video in git would bloat every clone and deploy
+// permanently, and Vercel serves these far better from the storage CDN.
+const MEDIA = "https://ynueobhylfxnilqldisy.supabase.co/storage/v1/object/public/partner-media/glentree-serenity";
+
 // Seed set for the Alliance showcase — the brands Kiwik partners with.
 // All of this is editable in the admin Partners tab and persisted to Postgres.
 export const partnerProducts: PartnerProduct[] = [
@@ -18,6 +23,20 @@ export const partnerProducts: PartnerProduct[] = [
       "/partners/serenity-5.jpeg",
       "/partners/serenity-6.jpeg",
     ],
+    logoUrl: "/partners/serenity-1.jpeg",
+    videos: [
+      {
+        url: `${MEDIA}/walkthrough.mp4`,
+        poster: `${MEDIA}/walkthrough-poster.jpg`,
+        title: "Project walkthrough — Glentree Serenity",
+      },
+      {
+        url: `${MEDIA}/promo.mp4`,
+        poster: `${MEDIA}/promo-poster.jpg`,
+        title: "Serenity in motion",
+      },
+    ],
+    brochureUrl: `${MEDIA}/brochure.pdf`,
     tags: ["Luxury Villas", "Lakeside Estate", "Nadergul"],
     accentGradient: "from-amber-400 to-emerald-600",
     summary:
