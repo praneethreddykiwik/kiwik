@@ -257,15 +257,16 @@ export default function AdminPage() {
     try {
       const currentCMS = useSiteCMSStore.getState().cms;
       const currentProjects = useProjectsStore.getState().projects;
+      const currentProducts = useProductsStore.getState().products;
 
-      // 1. Save CMS Data to Neon DB via POST /api/cms
-      const cmsRes = await fetch("/api/cms", {
+      // 1. Save CMS Data to Supabase DB via POST /api/cms
+      await fetch("/api/cms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(currentCMS)
       });
 
-      // 2. Save Projects Data to Neon DB via POST /api/projects
+      // 2. Save Projects Data to Supabase DB via POST /api/projects
       for (const p of currentProjects) {
         await fetch("/api/projects", {
           method: "POST",
@@ -274,14 +275,28 @@ export default function AdminPage() {
         });
       }
 
-      // 3. Create a snapshot in store
+      // 3. Save Partner Products Data to Supabase DB via POST /api/products
+      for (const prod of currentProducts) {
+        await fetch("/api/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(prod)
+        });
+      }
+
+      // 4. Trigger instant real-time data update across open tabs
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("kiwik-data-updated"));
+      }
+
+      // 5. Create a snapshot in store
       useSiteCMSStore.getState().createSnapshot(
         `Manual Save (${new Date().toLocaleTimeString()})`,
         "Saved via Admin Studio Save Button",
-        JSON.stringify(currentProjects)
+        JSON.stringify({ projects: currentProjects, products: currentProducts })
       );
 
-      showToast("✅ All CMS settings & Projects saved globally in Neon DB!");
+      showToast("✅ All CMS settings, Projects & Products saved globally in Supabase DB!");
     } catch (err) {
       console.error("Global save error:", err);
       showToast("⚠️ Global save failed. Check connection.", "error");

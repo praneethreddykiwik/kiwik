@@ -1474,15 +1474,17 @@ export function useSiteCMS() {
 
     tick(); // initial fetch on mount
 
-    const handleFocus = () => tick();
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleFocus);
+    const handleSync = () => tick();
+    window.addEventListener("focus", handleSync);
+    window.addEventListener("kiwik-data-updated", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
 
     return () => {
       stopped = true;
       if (timer) clearTimeout(timer);
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleFocus);
+      window.removeEventListener("focus", handleSync);
+      window.removeEventListener("kiwik-data-updated", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
     };
   }, [setCMS]);
 

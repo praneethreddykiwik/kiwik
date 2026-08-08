@@ -1,6 +1,6 @@
 "use client";
 // ─────────────────────────────────────────────────────────────
-// Kiwik.1 — Projects Store (Zustand + Persist + Neon DB Sync)
+// Kiwik.1 — Projects Store (Zustand + Persist + DB Sync)
 // ─────────────────────────────────────────────────────────────
 
 import { create } from "zustand";
@@ -19,7 +19,7 @@ const categoryFallbacks: Record<string, string> = {
   web: "/images/kiwik-cover.jpg",
 };
 
-// Async Neon DB Sync Helpers
+// Async DB Sync Helpers
 async function syncProjectToDb(project: Project) {
   try {
     await fetch("/api/projects", {
@@ -27,8 +27,11 @@ async function syncProjectToDb(project: Project) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(project),
     });
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("kiwik-data-updated"));
+    }
   } catch (err) {
-    console.error("Failed to sync project to Neon DB:", err);
+    console.error("Failed to sync project to DB:", err);
   }
 }
 
@@ -37,8 +40,11 @@ async function deleteProjectFromDb(id: string) {
     await fetch(`/api/projects?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("kiwik-data-updated"));
+    }
   } catch (err) {
-    console.error("Failed to delete project from Neon DB:", err);
+    console.error("Failed to delete project from DB:", err);
   }
 }
 
@@ -56,7 +62,7 @@ interface ProjectsState {
 
 export const useProjectsStore = create<ProjectsState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       projects: defaultProjects,
 
       setProjects: (projects) => set({ projects }),
@@ -137,7 +143,7 @@ export const useProjectsStore = create<ProjectsState>()(
   )
 );
 
-// SSR Hydration & Global Neon DB Sync Hook
+// SSR Hydration & Global DB Sync Hook
 export function useProjects() {
   const [hasHydrated, setHasHydrated] = useState(false);
   const storeProjects = useProjectsStore((s) => s.projects);
@@ -146,15 +152,12 @@ export function useProjects() {
   useEffect(() => {
     setHasHydrated(true);
 
-    // Sync the latest global Projects state from Postgres. Refresh on a gentle
-    // cadence (visibility-gated) and on focus so edits made on one device appear
-    // on others without a manual reload, while staying easy on the DB.
     const POLL_MS = 30000;
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     const schedule = (delay: number) => {
-      if (timer) clearTimeout(timer);
+      if (timer) clearTimeout(delay);
       timer = setTimeout(tick, delay);
     };
 
@@ -176,22 +179,24 @@ export function useProjects() {
       }
     }
 
-    tick(); // initial fetch on mount
+    tick();
 
-    const handleFocus = () => tick();
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleFocus);
+    const handleSync = () => tick();
+    window.addEventListener("focus", handleSync);
+    window.addEventListener("kiwik-data-updated", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
 
     return () => {
       stopped = true;
       if (timer) clearTimeout(timer);
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleFocus);
+      window.removeEventListener("focus", handleSync);
+      window.removeEventListener("kiwik-data-updated", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
     };
   }, [setProjects]);
 
   const sanitizedProjects = (hasHydrated ? storeProjects : defaultProjects).map((p) => {
-    if (!p.coverImage || p.coverImage.startsWith("/images/criska-") || !p.coverImage.includes(".")) {
+    if (!p.coverImage) {
       const defaultP = defaultProjects.find((dp) => dp.id === p.id || dp.slug === p.slug);
       return {
         ...p,

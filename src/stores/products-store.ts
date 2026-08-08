@@ -17,6 +17,9 @@ async function syncProductToDb(product: PartnerProduct) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
     });
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("kiwik-data-updated"));
+    }
   } catch (err) {
     console.error("Failed to sync product to DB:", err);
   }
@@ -25,6 +28,9 @@ async function syncProductToDb(product: PartnerProduct) {
 async function deleteProductFromDb(id: string) {
   try {
     await fetch(`/api/products?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("kiwik-data-updated"));
+    }
   } catch (err) {
     console.error("Failed to delete product from DB:", err);
   }
@@ -80,7 +86,7 @@ export const useProductsStore = create<ProductsState>()(
   )
 );
 
-// SSR-safe hydration + gentle global sync (mount + 30s + focus, quota-aware).
+// SSR-safe hydration + global sync (mount + 30s + focus + kiwik-data-updated).
 export function useProducts() {
   const [hasHydrated, setHasHydrated] = useState(false);
   const storeProducts = useProductsStore((s) => s.products);
@@ -94,7 +100,7 @@ export function useProducts() {
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     const schedule = (delay: number) => {
-      if (timer) clearTimeout(timer);
+      if (timer) clearTimeout(delay);
       timer = setTimeout(tick, delay);
     };
 
@@ -118,15 +124,17 @@ export function useProducts() {
 
     tick();
 
-    const handleFocus = () => tick();
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleFocus);
+    const handleSync = () => tick();
+    window.addEventListener("focus", handleSync);
+    window.addEventListener("kiwik-data-updated", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
 
     return () => {
       stopped = true;
       if (timer) clearTimeout(timer);
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleFocus);
+      window.removeEventListener("focus", handleSync);
+      window.removeEventListener("kiwik-data-updated", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
     };
   }, [setProducts]);
 
