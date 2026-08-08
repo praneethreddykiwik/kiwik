@@ -51,48 +51,60 @@ export function ImageRibbon() {
   const activeImageUrlsRef = useRef<Set<string>>(new Set());
 
   const cms = useSiteCMS();
-  const hero = cms.hero;
+  const hero = cms?.hero;
   const cmsGalleryImages = hero?.galleryImages;
-  const currentPool = cmsGalleryImages && cmsGalleryImages.length > 0 ? cmsGalleryImages : MASTER_GALLERY_POOL;
 
+  // Defensive sanitization: ensure pool only contains valid non-empty items
+  const validCmsGallery = Array.isArray(cmsGalleryImages)
+    ? cmsGalleryImages.filter((item) => item && typeof item.url === "string" && item.url.trim().length > 0)
+    : [];
+
+  const currentPool = validCmsGallery.length > 0 ? validCmsGallery : MASTER_GALLERY_POOL;
   const poolRef = useRef([...currentPool]);
 
+  useEffect(() => {
+    poolRef.current = [...currentPool];
+  }, [currentPool]);
+
   const shufflePool = () => {
-    const arr = [...currentPool];
+    const arr = [...poolRef.current];
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    return arr;
+    return arr.length > 0 ? arr : MASTER_GALLERY_POOL;
   };
 
   const getNextUniqueImage = () => {
+    const rawPool = poolRef.current.filter((item) => item && typeof item.url === "string" && item.url.trim().length > 0);
+    const activePool = rawPool.length > 0 ? rawPool : MASTER_GALLERY_POOL;
+
     let attempts = 0;
-    while (attempts < MASTER_GALLERY_POOL.length) {
-      const item = poolRef.current[poolIndexRef.current % poolRef.current.length];
+    while (attempts < activePool.length) {
+      const item = activePool[poolIndexRef.current % activePool.length];
       poolIndexRef.current++;
 
-      if (poolIndexRef.current >= poolRef.current.length) {
+      if (poolIndexRef.current >= activePool.length) {
         poolRef.current = shufflePool();
         poolIndexRef.current = 0;
       }
 
-      if (!activeImageUrlsRef.current.has(item.url)) {
+      if (item && item.url && !activeImageUrlsRef.current.has(item.url)) {
         activeImageUrlsRef.current.add(item.url);
         return item;
       }
       attempts++;
     }
+
     const fallback = MASTER_GALLERY_POOL[Math.floor(Math.random() * MASTER_GALLERY_POOL.length)];
-    activeImageUrlsRef.current.add(fallback.url);
+    if (fallback && fallback.url) activeImageUrlsRef.current.add(fallback.url);
     return fallback;
   };
 
   const releaseImage = (url: string) => {
-    activeImageUrlsRef.current.delete(url);
+    if (url) activeImageUrlsRef.current.delete(url);
   };
 
-  // Generate initial cards data in ref
   const cardsDataRef = useRef<EmitterCardState[]>([]);
 
   useEffect(() => {
@@ -112,7 +124,7 @@ export function ImageRibbon() {
         lane: "left",
         progress,
         imageUrl: img.url,
-        title: img.title,
+        title: img.title || "Technology Showcase",
         linkUrl: img.linkUrl || "/projects",
         rotation: (Math.random() - 0.5) * 8,
       });
@@ -126,7 +138,7 @@ export function ImageRibbon() {
         lane: "right",
         progress,
         imageUrl: img.url,
-        title: img.title,
+        title: img.title || "Technology Showcase",
         linkUrl: img.linkUrl || "/projects",
         rotation: (Math.random() - 0.5) * 8,
       });
@@ -135,26 +147,23 @@ export function ImageRibbon() {
     cardsDataRef.current = initialCards;
   }, []);
 
-  // 60 FPS Procedural Emitter RAF Loop mutating DOM elements directly (ZERO REACT RE-RENDERS)
   useEffect(() => {
     let animId: number | null = null;
     let isVisible = true;
     let lastTime = performance.now();
 
-    // Card width/height used to be written on every card on every frame. Those
-    // properties dirty layout, which turned an otherwise composited animation
-    // into a layout pass per frame. The size is now a plain responsive class on
-    // the element (see the `sm:` sizes below) and the frame loop touches nothing
-    // but `transform`, `opacity` and `z-index` — all composited.
     const mobileQuery = window.matchMedia("(max-width: 639px)");
     let isMobile = mobileQuery.matches;
-    const onBreakpoint = (e: MediaQueryListEvent) => { isMobile = e.matches; };
+    const onBreakpoint = (e: MediaQueryListEvent) => {
+      isMobile = e.matches;
+    };
     mobileQuery.addEventListener("change", onBreakpoint);
 
     const updateEmitter = (now: number) => {
-      // Pause all work when the hero is scrolled out of view so scrolling the
-      // rest of the page stays smooth (the loop restarts when it re-enters view).
-      if (!isVisible) { animId = null; return; }
+      if (!isVisible) {
+        animId = null;
+        return;
+      }
       const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
 
@@ -178,13 +187,12 @@ export function ImageRibbon() {
           const newImg = getNextUniqueImage();
           card.progress = p - 1.0;
           card.imageUrl = newImg.url;
-          card.title = newImg.title;
+          card.title = newImg.title || "Technology Showcase";
           card.linkUrl = newImg.linkUrl || "/projects";
           card.rotation = (Math.random() - 0.5) * 8;
 
-          // Update image src and title text directly on DOM node
           const imgEl = imageElementRefs.current[i];
-          if (imgEl) imgEl.src = card.imageUrl;
+          if (imgEl && newImg.url) imgEl.src = newImg.url;
           const titleEl = titleElementRefs.current[i];
           if (titleEl) titleEl.textContent = card.title;
         } else {
@@ -196,8 +204,7 @@ export function ImageRibbon() {
         const direction = card.lane === "left" ? -1 : 1;
         const translateX = direction * Math.pow(clampedP, 1.25) * maxDistancePx;
         const zIndex = Math.floor(clampedP * 100) + 10;
-        
-        // Continuous smooth fade in at center (0-0.12) & smooth fade out at edge (0.88-1.0)
+
         let fadeIn = Math.min(clampedP / 0.12, 1.0);
         let fadeOut = Math.min((1.0 - clampedP) / 0.12, 1.0);
         const opacity = Math.max(0, fadeIn * fadeOut * baseOpacity);
@@ -213,9 +220,6 @@ export function ImageRibbon() {
       animId = requestAnimationFrame(updateEmitter);
     };
 
-    // `will-change` permanently promotes each card to its own compositor layer.
-    // 24 of them is a lot of GPU memory to hold while the hero is off-screen, so
-    // the hint is only set while the loop is actually running.
     const setWillChange = (value: string) => {
       for (const el of cardElementRefs.current) {
         if (el) el.style.willChange = value;
@@ -237,7 +241,6 @@ export function ImageRibbon() {
       setWillChange("auto");
     };
 
-    // Only animate while on-screen and the tab is visible.
     const io = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
@@ -275,7 +278,9 @@ export function ImageRibbon() {
         {Array.from({ length: initialCardsCount }).map((_, idx) => (
           <a
             key={idx}
-            ref={(el) => { cardElementRefs.current[idx] = el; }}
+            ref={(el) => {
+              cardElementRefs.current[idx] = el;
+            }}
             href="/projects"
             style={{
               position: "absolute",
@@ -287,17 +292,26 @@ export function ImageRibbon() {
             className="group block w-[150px] h-[185px] sm:w-[260px] sm:h-[320px] overflow-hidden rounded-[16px] sm:rounded-[20px] bg-bg-secondary border border-glass-border transition-colors duration-300 transform-gpu shadow-xl cursor-pointer"
           >
             <img
-              ref={(el) => { imageElementRefs.current[idx] = el; }}
-              src={MASTER_GALLERY_POOL[idx % MASTER_GALLERY_POOL.length].url}
+              ref={(el) => {
+                imageElementRefs.current[idx] = el;
+              }}
+              src={MASTER_GALLERY_POOL[idx % MASTER_GALLERY_POOL.length]?.url || "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop"}
               alt="Showcase Product"
-              onError={(e) => { e.currentTarget.src = "/images/kiwik-hero.jpg"; }}
+              onError={(e) => {
+                e.currentTarget.src = "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop";
+              }}
               className="w-full h-full object-cover transform-gpu group-hover:scale-105 transition-transform duration-500"
               loading="eager"
               decoding="async"
             />
             <div className="absolute inset-x-0 bottom-0 p-2 sm:p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-between text-white">
-              <span ref={(el) => { titleElementRefs.current[idx] = el; }} className="text-[10px] sm:text-xs font-bold font-sans truncate">
-                {MASTER_GALLERY_POOL[idx % MASTER_GALLERY_POOL.length].title}
+              <span
+                ref={(el) => {
+                  titleElementRefs.current[idx] = el;
+                }}
+                className="text-[10px] sm:text-xs font-bold font-sans truncate"
+              >
+                {MASTER_GALLERY_POOL[idx % MASTER_GALLERY_POOL.length]?.title || "Technology Showcase"}
               </span>
               <span className="text-[9px] sm:text-[10px] font-mono text-accent-blue underline">Open ↗</span>
             </div>
