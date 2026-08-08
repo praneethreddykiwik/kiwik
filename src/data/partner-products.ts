@@ -40,42 +40,67 @@ export const partnerProducts: PartnerProduct[] = [
     tags: ["Luxury Villas", "Lakeside Estate", "Nadergul"],
     accentGradient: "from-amber-400 to-emerald-600",
     summary:
-      "An 18-acre lakeside villa estate in Nadergul — 184 families, 85+ amenities, premium triplex villas from ₹2.26 Cr.",
+      "An 18-acre lakeside villa estate in Nadergul — 184 families, 85+ amenities, premium triplex villas from ₹2.26 Cr* (T&C apply).",
     body: `## Exclusive living, without being isolated
 
-Glentree Serenity is an 18-acre lakeside estate in **Nadergul, South Hyderabad** — a peaceful sanctuary for your family that never disconnects you from the city. Premium triplex villas sit next to established neighbourhoods, so daily life stays convenient while the address keeps growing.
+Glentree Serenity is an 18-acre lakeside estate in **Nadergul, South Hyderabad** — a peaceful lakeside sanctuary for your family, without disconnecting from your world. Premium triplex villas sit next to established neighbourhoods, on a 150 ft wide road.
 
 ## The villas
 
-- **3 & 4 BHK** premium triplex villas
-- Plot sizes from **200 to 300 sq yds**
-- Starting at **₹2.26 Cr**\\*
-- Only **184 limited families** across the estate
+G+2 premium triplex villas, 100% Vastu-compliant, in three plot sizes:
 
-## The community
+| Plot | Configuration | Built-up area |
+| --- | --- | --- |
+| 200 sq yds | 3 BHK + multipurpose | 2,836 – 2,876 sq ft |
+| 267 sq yds | 4 BHK + multipurpose | 3,685 – 3,715 sq ft |
+| 300 sq yds | 4 BHK + maid room + multipurpose | 4,276 – 4,286 sq ft |
 
-Serenity offers spaces for every generation — not just a home, but everything around it.
+Starting at **₹2.26 Cr**\\*. Only **184 villas** across the estate.
 
-- **85+ amenities**
-- **2 clubhouses**
-- **5 themed parks**
-- **18-acre** lakeside estate with immediate access to everything
+## Two clubhouses, 42,000+ sq ft
 
-## Why the location works
+- **Club Serene** (~29,479 sq ft) — banquet hall, swimming pool, gym, salon & spa, library, crèche, co-working, 3 guest suites
+- **Veranda Pavilion** (~12,866 sq ft) — 2 badminton courts, squash court, indoor games
 
-Many villa projects offer greenery. Few offer convenience. Serenity sits within South Hyderabad's growing corridor, next to established neighbourhoods — convenient today, and appreciating for tomorrow.
+## 85+ amenities and 5 themed parks
 
-## Approvals
+**Sahavas** (social), **Veer Garden** (sports), **Aranya** (forest), **Ekaanth** (serene) and **Ananda Vana** (wellness) — across **83,000+ sq ft of green space**, with a vehicle-free podium zone.
 
-- **RERA:** P02400010707
+Also included: pickleball court, cricket pitch, amphitheatre, home theatre, temple, cloud kitchen, EV charging, IoT smart water meters, integrated solar, senior citizen garden, pet park, cycling track and barrier-free access.
+
+## Connectivity
+
+| Destination | Time |
+| --- | --- |
+| TSIIC Aerospace SEZ · DPS Nadergul · MVSR Engineering | 5 min |
+| TCS Adibatla | 12 min |
+| Wonderla | 16 min |
+| Foxconn (KK Park) | 20 min |
+| RGI Airport · DRDO | 24 min |
+| LB Nagar | 28 min |
+| Future City | 45 min |
+
+A 150 ft road is proposed to the ORR, Srisailam Road and the airport; 120 ft to Srisailam Road and Hayathnagar.
+
+## Build & sustainability
+
+**IGBC Gold pre-certified (proposed).** 100% DG power backup, STP with treated-water reuse, rainwater harvesting, CCTV, dedicated parking per villa, hydraulic-lift provision, Grohe/Jaquar fittings and UPVC windows.
+
+## Approvals & possession
+
+- **RERA:** P02400010707 — delivery timeline of **October 2029** under RERA registration
 - **HMDA Permit:** 012013/LO/HMDA/3194/SMD/2024
+- **GHMC Permit:** 1638/GHMC/SWBP/SEC1/2025
 - Verify at [rera.telangana.gov.in](https://rera.telangana.gov.in)
 
 ## Enquire
 
-Book a private site visit — [sales@glentreehomes.in](mailto:sales@glentreehomes.in)
+Sy. No. 578, Nadergul Village, Balapur Mandal, Ranga Reddy, Telangana 501510
+Glentree Villas LLP, Jubilee Hills, Hyderabad 500033
 
-\\*T&C apply.`,
+[sales@glentreehomes.in](mailto:sales@glentreehomes.in) · 96466 44644
+
+\\*T&C apply. Images are artistic impressions.`,
     metrics: [
       { label: "Lakeside estate", value: "18 Acres" },
       { label: "Limited families", value: "184" },

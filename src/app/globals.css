@@ -713,6 +713,34 @@ p {
   color: var(--text-primary);
   line-height: 1.8;
   font-size: 1rem;
+  /* Authors can write arbitrarily wide content (tables, long URLs). Keep it
+     inside the column instead of letting it widen the page. */
+  min-width: 0;
+}
+
+/* A wide table scrolls within itself; the page body never scrolls sideways. */
+.markdown-body table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 1.25em 0;
+  font-size: 0.9rem;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  border: 1px solid var(--divider);
+  padding: 0.55em 0.85em;
+  text-align: left;
+  vertical-align: top;
+}
+
+.markdown-body table th {
+  background: var(--glass-bg);
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .markdown-body h1,

@@ -171,6 +171,50 @@ const emptyProject: Project = {
   deploymentStatus: "live"
 };
 
+/**
+ * Textarea for list-style fields (one item per line).
+ *
+ * These fields serialise a parsed array back into text, and a naive controlled
+ * textarea makes them impossible to type in: the parser drops the trailing
+ * empty line, so pressing Enter is erased on the very next render, and a
+ * half-typed row disappears before it can be completed. The raw text therefore
+ * lives here in local state while the parsed value propagates outward, and the
+ * text is only re-seeded from the parent when the field isn't being edited.
+ */
+function LineListTextarea({
+  serialized,
+  onText,
+  rows = 4,
+  placeholder,
+}: {
+  serialized: string;
+  onText: (text: string) => void;
+  rows?: number;
+  placeholder?: string;
+}) {
+  const [text, setText] = React.useState(serialized);
+  const [editing, setEditing] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!editing) setText(serialized);
+  }, [serialized, editing]);
+
+  return (
+    <textarea
+      value={text}
+      rows={rows}
+      placeholder={placeholder}
+      onFocus={() => setEditing(true)}
+      onBlur={() => setEditing(false)}
+      onChange={(e) => {
+        setText(e.target.value);
+        onText(e.target.value);
+      }}
+      className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
+    />
+  );
+}
+
 export default function AdminPage() {
   // Navigation State
   const [mainTab, setMainTab] = useState<MainSidebarTab>("pages");
@@ -5563,16 +5607,14 @@ export default function AdminPage() {
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
                         Gallery image URLs (one per line)
                       </label>
-                      <textarea
-                        value={(prod.gallery || []).join("\n")}
-                        onChange={(e) =>
+                      <LineListTextarea
+                        serialized={(prod.gallery || []).join("\n")}
+                        placeholder="/partners/serenity-1.jpeg"
+                        onText={(text) =>
                           updateProduct(prod.id, {
-                            gallery: e.target.value.split("\n").map((u) => u.trim()).filter(Boolean),
+                            gallery: text.split("\n").map((u) => u.trim()).filter(Boolean),
                           })
                         }
-                        rows={4}
-                        placeholder="/partners/serenity-1.jpeg"
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
                       />
                       <button
                         onClick={() =>
@@ -5589,26 +5631,30 @@ export default function AdminPage() {
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
                         Videos — one per line as: url | poster url | title
                       </label>
-                      <textarea
-                        value={(prod.videos || [])
+                      <LineListTextarea
+                        rows={3}
+                        serialized={(prod.videos || [])
                           .map((v) => [v.url, v.poster || "", v.title || ""].join(" | "))
                           .join("\n")}
-                        onChange={(e) =>
+                        placeholder="https://.../walkthrough.mp4 | https://.../poster.jpg | Project walkthrough"
+                        onText={(text) =>
                           updateProduct(prod.id, {
-                            videos: e.target.value
+                            videos: text
                               .split("\n")
-                              .map((line) => line.split("|").map((s) => s.trim()))
-                              .filter((parts) => parts[0])
-                              .map(([url, poster, title]) => ({
-                                url,
-                                poster: poster || undefined,
-                                title: title || undefined,
-                              })),
+                              .map((line) => {
+                                // Only the first two separators are structural;
+                                // the rest belong to the title, so a title
+                                // containing "|" survives a re-save.
+                                const parts = line.split("|");
+                                return {
+                                  url: (parts[0] || "").trim(),
+                                  poster: (parts[1] || "").trim() || undefined,
+                                  title: parts.slice(2).join("|").trim() || undefined,
+                                };
+                              })
+                              .filter((v) => v.url),
                           })
                         }
-                        rows={3}
-                        placeholder="https://.../walkthrough.mp4 | https://.../poster.jpg | Project walkthrough"
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
                       />
 
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
@@ -5624,20 +5670,26 @@ export default function AdminPage() {
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
                         Metrics — one per line as: label | value
                       </label>
-                      <textarea
-                        value={(prod.metrics || []).map((m) => `${m.label} | ${m.value}`).join("\n")}
-                        onChange={(e) =>
+                      <LineListTextarea
+                        serialized={(prod.metrics || []).map((m) => `${m.label} | ${m.value}`).join("\n")}
+                        placeholder="Lakeside estate | 18 Acres"
+                        onText={(text) =>
                           updateProduct(prod.id, {
-                            metrics: e.target.value
+                            metrics: text
                               .split("\n")
-                              .map((line) => line.split("|").map((s) => s.trim()))
-                              .filter((parts) => parts[0] && parts[1])
-                              .map(([label, value]) => ({ label, value })),
+                              .map((line) => {
+                                // Split on the first separator only, so a value
+                                // containing "|" is preserved intact.
+                                const i = line.indexOf("|");
+                                if (i === -1) return null;
+                                return {
+                                  label: line.slice(0, i).trim(),
+                                  value: line.slice(i + 1).trim(),
+                                };
+                              })
+                              .filter((m): m is { label: string; value: string } => !!m && !!m.label && !!m.value),
                           })
                         }
-                        rows={4}
-                        placeholder="Lakeside estate | 18 Acres"
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
                       />
                     </div>
 
