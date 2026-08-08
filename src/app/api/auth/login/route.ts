@@ -15,6 +15,12 @@ export async function POST(request: Request) {
   }
 
   const token = await createSessionToken();
+  if (!token) {
+    return NextResponse.json(
+      { error: "Admin auth is not configured on this deployment (AUTH_SECRET missing)." },
+      { status: 503 }
+    );
+  }
   const res = NextResponse.json({ status: "success" });
   res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
   return res;
