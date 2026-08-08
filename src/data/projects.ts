@@ -21,11 +21,11 @@ export const projects: Project[] = [
     completionPercent: 72,
     liveUrl: "https://kiwik.one",
     githubUrl: "https://github.com/shagantivivekgoud/kiwik",
-    coverImage: "/images/kiwik-cover.jpg",
+    coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
     images: [
-      { src: "/images/kiwik-hero.jpg", alt: "Kiwik Hero", caption: "The hero section with aurora background" },
-      { src: "/images/kiwik-projects.jpg", alt: "Project Grid", caption: "Beautiful project showcase grid" },
-      { src: "/images/kiwik-detail.jpg", alt: "Project Detail", caption: "Immersive project detail page" },
+      { src: "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=1200&q=80", alt: "AI Neural Core", caption: "AI Neural Core & Telemetry" },
+      { src: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80", alt: "Cyber Security Grid", caption: "Zero-Trust Encryption Grid" },
+      { src: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80", alt: "Blockchain Node", caption: "Cryptographic Blockchain Ledger" },
     ],
     techStack: [
       { name: "Next.js 15", category: "frontend", color: "#000000" },
@@ -253,10 +253,10 @@ npm run dev
     completionPercent: 100,
     liveUrl: "https://pay.criska.dev",
     githubUrl: "https://github.com/criska/criska-pay",
-    coverImage: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80",
     images: [
-      { src: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80", alt: "Checkout", caption: "Beautiful checkout experience" },
-      { src: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80", alt: "Dashboard", caption: "Transaction analytics" },
+      { src: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80", alt: "Checkout", caption: "Cryptographic Checkout Pipeline" },
+      { src: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1200&q=80", alt: "Web3 Ledger", caption: "Decentralized Settlement Network" },
     ],
     techStack: [
       { name: "React 19", category: "frontend", color: "#61DAFB" },

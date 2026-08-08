@@ -11,7 +11,7 @@ export const partnerProducts: PartnerProduct[] = [
     tagline: "A storefront that sells while you sleep — and learns while it does.",
     category: "Commerce",
     coverImage:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1677442136019-21780efad99a?q=80&w=1200&auto=format&fit=crop",
     tags: ["Storefront", "Attribution", "Lifecycle"],
     accentGradient: "from-amber-400 to-rose-500",
     summary: "We rebuilt the buying path around intent, not clicks — conversions followed.",
@@ -32,7 +32,7 @@ export const partnerProducts: PartnerProduct[] = [
     tagline: "Turning a creator's scattered output into a compounding audience engine.",
     category: "Creator",
     coverImage:
-      "https://images.unsplash.com/photo-1492724441997-5dc865305da7?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1200&auto=format&fit=crop",
     tags: ["Audience", "Distribution", "Signal"],
     accentGradient: "from-indigo-500 to-purple-600",
     summary: "Distribution designed so momentum carries, not resets, between drops.",
@@ -52,7 +52,7 @@ export const partnerProducts: PartnerProduct[] = [
     tagline: "Revenue-aligned partnerships where our upside is your growth.",
     category: "Partnerships",
     coverImage:
-      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=1200&auto=format&fit=crop",
     tags: ["Affiliate", "Economics", "Scale"],
     accentGradient: "from-emerald-400 to-teal-500",
     summary: "An affiliate structure built on aligned incentives instead of ad spend.",
