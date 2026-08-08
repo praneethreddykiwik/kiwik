@@ -5623,6 +5623,22 @@ export default function AdminPage() {
                         className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
                       />
 
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Repository URL (optional)</label>
+                      <input
+                        value={prod.repoUrl || ""}
+                        onChange={(e) => updateProduct(prod.id, { repoUrl: e.target.value })}
+                        placeholder="https://github.com/..."
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                      />
+
+                      <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Logo URL (optional)</label>
+                      <input
+                        value={prod.logoUrl || ""}
+                        onChange={(e) => updateProduct(prod.id, { logoUrl: e.target.value })}
+                        placeholder="https://.../logo.svg"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                      />
+
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
                         Gallery image URLs (one per line)
                       </label>

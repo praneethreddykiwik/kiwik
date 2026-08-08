@@ -22,12 +22,22 @@ export function PartnerCard({ product, index = 0 }: { product: PartnerProduct; i
       >
         {/* Cover */}
         <div className="relative h-44 sm:h-48 w-full overflow-hidden">
-          <img
-            src={product.coverImage}
-            alt={product.name}
-            loading="lazy"
-            className="w-full h-full object-cover transform-gpu group-hover:scale-105 transition-transform duration-500"
-          />
+          {/* A partner without cover art gets its accent gradient and initial
+              rather than a broken image tile. */}
+          {product.coverImage ? (
+            <img
+              src={product.coverImage}
+              alt={product.name}
+              loading="lazy"
+              className="w-full h-full object-cover transform-gpu group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", gradient)}>
+              <span className="text-5xl font-serif font-bold text-white/90">
+                {product.name.charAt(0)}
+              </span>
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
           <div className={cn("absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r", gradient)} />
           {product.category && (

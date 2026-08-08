@@ -41,6 +41,8 @@ export interface PartnerProduct {
   body?: string;
   metrics?: PartnerMetric[];
   liveUrl?: string;
+  /** Source repository, shown alongside the live link when present. */
+  repoUrl?: string;
   featured?: boolean;
   sortOrder?: number;
   createdAt?: string;
