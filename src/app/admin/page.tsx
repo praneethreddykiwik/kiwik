@@ -242,12 +242,28 @@ export default function AdminPage() {
   // Debounced global auto-save of CMS edits to Postgres (Neon/Supabase).
   useEffect(() => {
     if (!autoSaveArmedRef.current) return;
-    const t = setTimeout(() => {
-      fetch("/api/cms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(useSiteCMSStore.getState().cms),
-      }).catch((err) => console.error("CMS auto-save error:", err));
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/cms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(useSiteCMSStore.getState().cms),
+        });
+        // A non-2xx here (401 session expired, 503 database down) is not a
+        // thrown error, so it has to be checked explicitly — otherwise the
+        // studio keeps accepting edits that are being silently dropped.
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          showToast(
+            res.status === 401
+              ? "⚠️ Session expired — your edits are NOT being saved. Sign in again."
+              : `⚠️ Auto-save failed — edits are NOT saved. ${data.error || `HTTP ${res.status}`}`
+          );
+        }
+      } catch (err) {
+        console.error("CMS auto-save error:", err);
+        showToast("⚠️ Auto-save failed — edits are NOT saved (network error).");
+      }
     }, 1000);
     return () => clearTimeout(t);
   }, [liveCms]);
@@ -259,29 +275,34 @@ export default function AdminPage() {
       const currentProjects = useProjectsStore.getState().projects;
       const currentProducts = useProductsStore.getState().products;
 
+      // `fetch` only rejects on a network-level failure, so an HTTP 401/503 used
+      // to sail straight through and the save was reported as successful while
+      // nothing had been written. Every response is now checked.
+      const postJSON = async (url: string, body: unknown) => {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (res.status === 401) throw new Error("Session expired — sign in again.");
+          throw new Error(data.error || `${url} failed (HTTP ${res.status})`);
+        }
+        return res.json().catch(() => ({}));
+      };
+
       // 1. Save CMS Data to Supabase DB via POST /api/cms
-      await fetch("/api/cms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentCMS)
-      });
+      await postJSON("/api/cms", currentCMS);
 
       // 2. Save Projects Data to Supabase DB via POST /api/projects
       for (const p of currentProjects) {
-        await fetch("/api/projects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(p)
-        });
+        await postJSON("/api/projects", p);
       }
 
       // 3. Save Partner Products Data to Supabase DB via POST /api/products
       for (const prod of currentProducts) {
-        await fetch("/api/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(prod)
-        });
+        await postJSON("/api/products", prod);
       }
 
       // 4. Trigger instant real-time data update across open tabs
@@ -299,7 +320,9 @@ export default function AdminPage() {
       showToast("✅ All CMS settings, Projects & Products saved globally in Supabase DB!");
     } catch (err) {
       console.error("Global save error:", err);
-      showToast("⚠️ Global save failed. Check connection.", "error");
+      showToast(
+        `⚠️ Save failed — nothing was written. ${err instanceof Error ? err.message : "Check the database connection."}`
+      );
     } finally {
       setIsSavingGlobal(false);
     }

@@ -59,8 +59,19 @@ export async function POST(request: Request) {
     `;
     return NextResponse.json({ status: "success", message: `Product ${p.name} saved globally` });
   } catch (error) {
-    console.warn("POST /api/products DB error fallback:", error);
-    return NextResponse.json({ status: "ok", message: "Product saved locally (DB offline)", fallback: true });
+    // A write that never reached the database must never report success. The
+    // previous 200/"saved locally" response made every failed save look like it
+    // worked, so content silently vanished on reload.
+    console.error("POST /api/products failed:", error);
+    return NextResponse.json(
+      {
+        status: "error",
+        persisted: false,
+        error: "Database unavailable — the product was not saved.",
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 503 }
+    );
   }
 }
 
@@ -75,7 +86,15 @@ export async function DELETE(request: Request) {
     await sql`DELETE FROM products WHERE id = ${id};`;
     return NextResponse.json({ status: "success", message: `Product ${id} deleted` });
   } catch (error) {
-    console.warn("DELETE /api/products DB error fallback:", error);
-    return NextResponse.json({ status: "ok", message: "Product deleted locally (DB offline)", fallback: true });
+    console.error("DELETE /api/products failed:", error);
+    return NextResponse.json(
+      {
+        status: "error",
+        persisted: false,
+        error: "Database unavailable — the product was not deleted.",
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 503 }
+    );
   }
 }

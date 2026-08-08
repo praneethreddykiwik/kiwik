@@ -33,11 +33,22 @@ export async function POST(request: Request) {
     `;
     return NextResponse.json({
       status: "success",
-      message: "CMS state updated globally in Neon database",
+      message: "CMS state updated globally in the database",
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.warn("POST /api/cms DB error fallback:", error);
-    return NextResponse.json({ status: "ok", message: "CMS state saved locally (DB offline/quota limit)", fallback: true });
+    // A write that never reached the database must never report success. The
+    // previous 200/"saved locally" response is why admin edits appeared to save
+    // and then silently failed to show up anywhere else.
+    console.error("POST /api/cms failed:", error);
+    return NextResponse.json(
+      {
+        status: "error",
+        persisted: false,
+        error: "Database unavailable — CMS changes were not saved.",
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 503 }
+    );
   }
 }

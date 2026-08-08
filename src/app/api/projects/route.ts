@@ -73,11 +73,20 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       status: "success",
-      message: `Project ${p.name} updated globally in Neon database`
+      message: `Project ${p.name} updated globally in the database`
     });
   } catch (error) {
-    console.warn("POST /api/projects DB error fallback:", error);
-    return NextResponse.json({ status: "ok", message: "Project saved locally (DB quota limit)", fallback: true });
+    // A write that never reached the database must never report success.
+    console.error("POST /api/projects failed:", error);
+    return NextResponse.json(
+      {
+        status: "error",
+        persisted: false,
+        error: "Database unavailable — the project was not saved.",
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 503 }
+    );
   }
 }
 
@@ -95,10 +104,18 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({
       status: "success",
-      message: `Project ${id} deleted from Neon database`
+      message: `Project ${id} deleted from the database`
     });
   } catch (error) {
-    console.warn("DELETE /api/projects DB error fallback:", error);
-    return NextResponse.json({ status: "ok", message: `Project deleted locally (DB quota limit)`, fallback: true });
+    console.error("DELETE /api/projects failed:", error);
+    return NextResponse.json(
+      {
+        status: "error",
+        persisted: false,
+        error: "Database unavailable — the project was not deleted.",
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 503 }
+    );
   }
 }

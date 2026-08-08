@@ -1287,7 +1287,14 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
       },
 
       createSnapshot: (name, note = "", projectsData, type = "manual") => {
-        const cmsData = JSON.stringify(get().cms);
+        // Snapshots must not contain the snapshot history, or every save embeds
+        // a copy of every earlier save and the CMS blob grows exponentially —
+        // which eventually pushes the POST body past the 4.5MB serverless
+        // request limit and breaks saving entirely. `rollbackSnapshot` already
+        // restores `snapshots`/`auditLogs` from live state, so dropping them
+        // here loses nothing.
+        const { snapshots: _snapshots, auditLogs: _auditLogs, ...cmsWithoutHistory } = get().cms;
+        const cmsData = JSON.stringify(cmsWithoutHistory);
         const snapshot: VersionSnapshot = {
           id: `snap-${Date.now()}`,
           timestamp: new Date().toISOString(),
