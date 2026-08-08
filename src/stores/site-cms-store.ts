@@ -1402,6 +1402,15 @@ export function useSiteCMS() {
   useEffect(() => {
     setHasHydrated(true);
 
+    // Purge stale persisted CMS from older store versions so an outdated
+    // navigation cached in the browser can never override the current one.
+    try {
+      localStorage.removeItem("kiwik-site-cms-v1");
+      localStorage.removeItem("kiwik-site-cms-v2");
+    } catch {
+      /* ignore */
+    }
+
     // Base cadence for cross-device sync. Kept deliberately conservative and
     // visibility-gated to protect the Neon data-transfer quota (a 5s poll on
     // every open tab is what exhausts a free-tier plan). Backs off hard when
