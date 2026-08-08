@@ -1,12 +1,13 @@
 import postgres from "postgres";
 import { projects as defaultProjects } from "@/data/projects";
 
+const CLIENT_SUPABASE_URL = "postgresql://postgres.ynueobhylfxnilqldisy:HkpXHT8%25cuL_-Yb@aws-0-ap-south-1.pooler.supabase.com:6543/postgres";
+
 const getDbUrl = () => {
   const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error(
-      "DATABASE_URL is not set. Configure it in your environment (.env locally, Vercel Project Settings in production)."
-    );
+  // If process.env.DATABASE_URL is missing or still points to old Neon DB, use client Supabase account
+  if (!url || url.includes("neon.tech")) {
+    return CLIENT_SUPABASE_URL;
   }
   return url;
 };
