@@ -222,6 +222,7 @@
 }
 
 html {
+  scroll-behavior: smooth;
   background: var(--bg-primary);
   min-height: 100%;
   scroll-padding-top: 6rem;
@@ -231,6 +232,26 @@ html {
 html.lenis, html.lenis body {
   height: auto;
   scroll-behavior: auto !important;
+}
+
+/* Custom Smooth Obsidian & Glass Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  border: 2px solid var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent, #3b82f6);
 }
 
 html, body {

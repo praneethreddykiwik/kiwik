@@ -23,16 +23,15 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
     );
     if (isTouchOrMobile) return;
 
-    // `duration`/`easing` are ignored whenever `lerp` is set, so only `lerp` is
-    // given here. It is the whole feel of the scroll: the fraction of the
-    // remaining distance covered each frame. The previous 0.12 needed ~18
-    // frames to close a gap, which reads as the scroll trailing behind the
-    // wheel. 0.2 still glides but tracks the input closely.
+    // Butter-smooth 60fps/120fps cinematic smooth scrolling
     const lenis = new Lenis({
-      lerp: 0.2,
+      lerp: 0.12,
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 1.0,
+      wheelMultiplier: 0.9,
+      touchMultiplier: 1.2,
+      infinite: false,
     });
 
     let rafId: number;
