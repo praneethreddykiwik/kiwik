@@ -1,23 +1,35 @@
 import { NextResponse } from "next/server";
 import { sql, ensureDbTables } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0"
+};
+
 export async function GET() {
   try {
     await ensureDbTables();
     const rows = await sql`SELECT data FROM site_cms WHERE key = 'main' LIMIT 1;`;
     if (rows.length > 0 && rows[0].data) {
-      return NextResponse.json({
-        status: "ok",
-        cms: rows[0].data
-      });
+      return NextResponse.json(
+        { status: "ok", cms: rows[0].data },
+        { headers: NO_CACHE_HEADERS }
+      );
     }
-    return NextResponse.json({
-      status: "ok",
-      cms: null
-    });
+    return NextResponse.json(
+      { status: "ok", cms: null },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
-    console.warn("GET /api/cms DB query fallback (Quota/DB Limit):", error);
-    return NextResponse.json({ status: "ok", cms: null, fallback: true });
+    console.warn("GET /api/cms DB query fallback:", error);
+    return NextResponse.json(
+      { status: "ok", cms: null, fallback: true },
+      { headers: NO_CACHE_HEADERS }
+    );
   }
 }
 
@@ -31,15 +43,15 @@ export async function POST(request: Request) {
       ON CONFLICT (key) DO UPDATE
       SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP;
     `;
-    return NextResponse.json({
-      status: "success",
-      message: "CMS state updated globally in the database",
-      timestamp: new Date().toISOString()
-    });
+    return NextResponse.json(
+      {
+        status: "success",
+        message: "CMS state updated globally in the database",
+        timestamp: new Date().toISOString()
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
-    // A write that never reached the database must never report success. The
-    // previous 200/"saved locally" response is why admin edits appeared to save
-    // and then silently failed to show up anywhere else.
     console.error("POST /api/cms failed:", error);
     return NextResponse.json(
       {
@@ -48,7 +60,7 @@ export async function POST(request: Request) {
         error: "Database unavailable — CMS changes were not saved.",
         detail: error instanceof Error ? error.message : String(error),
       },
-      { status: 503 }
+      { status: 503, headers: NO_CACHE_HEADERS }
     );
   }
 }

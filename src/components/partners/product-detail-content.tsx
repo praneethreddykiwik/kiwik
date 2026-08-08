@@ -9,13 +9,13 @@ import remarkGfm from "remark-gfm";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/glass/glass-card";
-import { useProductsStore } from "@/stores/products-store";
+import { useProducts, useProductsStore } from "@/stores/products-store";
 
 export function ProductDetailContent() {
   const params = useParams();
   const slug = (params?.slug as string) || "";
   const [hasMounted, setHasMounted] = useState(false);
-  const products = useProductsStore((s) => s.products);
+  const products = useProducts();
 
   useEffect(() => {
     setHasMounted(true);

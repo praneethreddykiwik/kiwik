@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { sql, ensureDbTables } from "@/lib/db";
 import { partnerProducts as defaultProducts } from "@/data/partner-products";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0"
+};
+
 async function seedProductsIfEmpty() {
   const existing = await sql`SELECT count(*)::int AS count FROM products;`;
   if (existing[0]?.count === 0) {
@@ -31,12 +40,21 @@ export async function GET() {
           ? { ...r.data, id: r.id, slug: r.slug }
           : { id: r.id, slug: r.slug }
       );
-      return NextResponse.json({ status: "ok", products });
+      return NextResponse.json(
+        { status: "ok", products },
+        { headers: NO_CACHE_HEADERS }
+      );
     }
-    return NextResponse.json({ status: "ok", products: defaultProducts });
+    return NextResponse.json(
+      { status: "ok", products: defaultProducts },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
     console.warn("GET /api/products DB error fallback:", error);
-    return NextResponse.json({ status: "ok", products: defaultProducts, fallback: true });
+    return NextResponse.json(
+      { status: "ok", products: defaultProducts, fallback: true },
+      { headers: NO_CACHE_HEADERS }
+    );
   }
 }
 
@@ -57,11 +75,11 @@ export async function POST(request: Request) {
         sort_order = COALESCE(EXCLUDED.sort_order, products.sort_order),
         updated_at = CURRENT_TIMESTAMP;
     `;
-    return NextResponse.json({ status: "success", message: `Product ${p.name} saved globally` });
+    return NextResponse.json(
+      { status: "success", message: `Product ${p.name} saved globally` },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
-    // A write that never reached the database must never report success. The
-    // previous 200/"saved locally" response made every failed save look like it
-    // worked, so content silently vanished on reload.
     console.error("POST /api/products failed:", error);
     return NextResponse.json(
       {
@@ -70,7 +88,7 @@ export async function POST(request: Request) {
         error: "Database unavailable — the product was not saved.",
         detail: error instanceof Error ? error.message : String(error),
       },
-      { status: 503 }
+      { status: 503, headers: NO_CACHE_HEADERS }
     );
   }
 }
@@ -84,7 +102,10 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
     await sql`DELETE FROM products WHERE id = ${id};`;
-    return NextResponse.json({ status: "success", message: `Product ${id} deleted` });
+    return NextResponse.json(
+      { status: "success", message: `Product ${id} deleted` },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
     console.error("DELETE /api/products failed:", error);
     return NextResponse.json(
@@ -94,7 +115,7 @@ export async function DELETE(request: Request) {
         error: "Database unavailable — the product was not deleted.",
         detail: error instanceof Error ? error.message : String(error),
       },
-      { status: 503 }
+      { status: 503, headers: NO_CACHE_HEADERS }
     );
   }
 }

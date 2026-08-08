@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { sql, ensureDbTables } from "@/lib/db";
 import { projects as defaultProjects } from "@/data/projects";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0"
+};
+
 export async function GET() {
   try {
     await ensureDbTables();
@@ -13,26 +22,27 @@ export async function GET() {
       ORDER BY sort_order ASC NULLS LAST, created_at DESC;
     `;
     if (rows && rows.length > 0) {
-      // Prefer the full `data` JSONB (lossless). Fall back to the flat columns
-      // for legacy rows written before the `data` column existed.
       const projects = rows.map((r: any) => {
         const { data, ...flat } = r;
         return data && typeof data === "object"
           ? { ...data, id: r.id, slug: r.slug, lastUpdated: r.lastUpdated }
           : flat;
       });
-      return NextResponse.json({
-        status: "ok",
-        projects
-      });
+      return NextResponse.json(
+        { status: "ok", projects },
+        { headers: NO_CACHE_HEADERS }
+      );
     }
-    return NextResponse.json({
-      status: "ok",
-      projects: defaultProjects
-    });
+    return NextResponse.json(
+      { status: "ok", projects: defaultProjects },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
     console.warn("GET /api/projects DB error fallback:", error);
-    return NextResponse.json({ status: "ok", projects: defaultProjects, fallback: true });
+    return NextResponse.json(
+      { status: "ok", projects: defaultProjects, fallback: true },
+      { headers: NO_CACHE_HEADERS }
+    );
   }
 }
 
@@ -71,12 +81,14 @@ export async function POST(request: Request) {
         updated_at = CURRENT_TIMESTAMP;
     `;
 
-    return NextResponse.json({
-      status: "success",
-      message: `Project ${p.name} updated globally in the database`
-    });
+    return NextResponse.json(
+      {
+        status: "success",
+        message: `Project ${p.name} updated globally in the database`
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
-    // A write that never reached the database must never report success.
     console.error("POST /api/projects failed:", error);
     return NextResponse.json(
       {
@@ -85,7 +97,7 @@ export async function POST(request: Request) {
         error: "Database unavailable — the project was not saved.",
         detail: error instanceof Error ? error.message : String(error),
       },
-      { status: 503 }
+      { status: 503, headers: NO_CACHE_HEADERS }
     );
   }
 }
@@ -102,10 +114,13 @@ export async function DELETE(request: Request) {
 
     await sql`DELETE FROM projects WHERE id = ${id};`;
 
-    return NextResponse.json({
-      status: "success",
-      message: `Project ${id} deleted from the database`
-    });
+    return NextResponse.json(
+      {
+        status: "success",
+        message: `Project ${id} deleted from the database`
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
     console.error("DELETE /api/projects failed:", error);
     return NextResponse.json(
@@ -115,7 +130,7 @@ export async function DELETE(request: Request) {
         error: "Database unavailable — the project was not deleted.",
         detail: error instanceof Error ? error.message : String(error),
       },
-      { status: 503 }
+      { status: 503, headers: NO_CACHE_HEADERS }
     );
   }
 }
