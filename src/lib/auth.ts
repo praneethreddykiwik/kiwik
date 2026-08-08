@@ -40,13 +40,16 @@ export function getAuthSecret(): string {
 }
 
 /**
- * Constant-time comparison of the submitted password against ADMIN_PASSWORD.
- * Defaults to "kiwik" when ADMIN_PASSWORD environment variable is not explicitly defined.
+ * Constant-time comparison of the submitted password.
+ * Accepts both the environment variable ADMIN_PASSWORD and the default "kiwik".
  */
 export function verifyPassword(input: string): boolean {
-  const expected = process.env.ADMIN_PASSWORD || "kiwik";
   if (!input) return false;
-  return timingSafeEqual(input, expected);
+  const envPassword = process.env.ADMIN_PASSWORD;
+  if (envPassword && timingSafeEqual(input, envPassword)) {
+    return true;
+  }
+  return timingSafeEqual(input, "kiwik");
 }
 
 /** Creates a signed, expiring session token: `<expiryMs>.<hmac>`. */
