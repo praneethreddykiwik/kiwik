@@ -510,7 +510,7 @@ const defaultCMSData: SiteCMSData = {
       { id: "st-4", value: "3M+", label: "Daily Events", description: "Daily edge events processed and synced." }
     ],
     cta1Text: "Book a demo",
-    cta1Href: "/docs",
+    cta1Href: "mailto:praneeth@kiwik.one?subject=Book%20a%20Demo%20-%20Kiwik%20Platform&body=Hi%20Praneeth%2C%0A%0AI%20would%20like%20to%20book%20a%20demo%20for%20the%20Kiwik%20platform.%0A%0ACompany%2FTeam%3A%20%0APreferred%20Time%3A%20%0A%0AThanks!",
     cta2Text: "Telemetry integration",
     cta2Href: "/projects",
     overlayOpacity: 0.7,

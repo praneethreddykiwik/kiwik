@@ -26,21 +26,17 @@ function loadEnv() {
 
 loadEnv();
 
-const SUPABASE_DB_URL = process.env.DATABASE_URL;
+const SUPABASE_DB_URL = "postgresql://postgres.ynueobhylfxnilqldisy:HkpXHT8%25cuL_-Yb@aws-0-ap-south-1.pooler.supabase.com:6543/postgres";
 
 console.log("=== POPULATING CLIENT SUPABASE DATABASE WITH ALL DATA ===");
 console.log("Target Database:", SUPABASE_DB_URL ? SUPABASE_DB_URL.replace(/:[^:@]+@/, ":****@") : "MISSING");
 
-if (!SUPABASE_DB_URL) {
-  console.error("DATABASE_URL is not set.");
-  process.exit(1);
-}
-
 const sql = postgres(SUPABASE_DB_URL, {
   prepare: false,
   ssl: "require",
-  idle_timeout: 10,
-  connect_timeout: 20
+  max: 1,
+  idle_timeout: 5,
+  connect_timeout: 10
 });
 
 import { projects as defaultProjects } from "../src/data/projects";
