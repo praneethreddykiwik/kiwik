@@ -1,13 +1,15 @@
 import postgres from "postgres";
 import { projects as defaultProjects } from "@/data/projects";
 
-const CLIENT_SUPABASE_URL = "postgresql://postgres.ynueobhylfxnilqldisy:HkpXHT8%25cuL_-Yb@aws-0-ap-south-1.pooler.supabase.com:6543/postgres";
-
+// No connection string is ever hardcoded here. A committed credential is a
+// published credential — this repository is public, and a leaked URL grants
+// full read/write/delete on the production database.
 const getDbUrl = () => {
   const url = process.env.DATABASE_URL;
-  // If process.env.DATABASE_URL is missing or still points to old Neon DB, use client Supabase account
-  if (!url || url.includes("neon.tech")) {
-    return CLIENT_SUPABASE_URL;
+  if (!url) {
+    throw new Error(
+      "DATABASE_URL is not set. Configure it in your environment (.env locally, Vercel Project Settings in production)."
+    );
   }
   return url;
 };

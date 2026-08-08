@@ -35,26 +35,39 @@ async function hmacHex(secret: string, data: string): Promise<string> {
   return toHex(signature);
 }
 
-export function getAuthSecret(): string {
-  return process.env.AUTH_SECRET || "5adcef323766ad324b3ffdc5fa0c7fa715b99e0bce69afd89d9d4b43489535df";
+/**
+ * The HMAC key that signs admin session cookies. Never give this a fallback:
+ * a session token is just HMAC(secret, expiry), so anyone who can read the
+ * secret can mint an admin cookie and write to every content endpoint. In a
+ * public repository a hardcoded default is equivalent to no auth at all.
+ */
+export function getAuthSecret(): string | null {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    console.error("AUTH_SECRET is not set — admin authentication is disabled.");
+    return null;
+  }
+  return secret;
 }
 
 /**
- * Constant-time comparison of the submitted password.
- * Accepts both the environment variable ADMIN_PASSWORD and the default "kiwik".
+ * Constant-time comparison against ADMIN_PASSWORD. Fails closed when unset,
+ * rather than accepting a publicly-known default.
  */
 export function verifyPassword(input: string): boolean {
-  if (!input) return false;
-  const envPassword = process.env.ADMIN_PASSWORD;
-  if (envPassword && timingSafeEqual(input, envPassword)) {
-    return true;
+  const expected = process.env.ADMIN_PASSWORD;
+  if (!expected) {
+    console.error("ADMIN_PASSWORD is not set — admin login is disabled.");
+    return false;
   }
-  return timingSafeEqual(input, "kiwik");
+  if (!input) return false;
+  return timingSafeEqual(input, expected);
 }
 
 /** Creates a signed, expiring session token: `<expiryMs>.<hmac>`. */
-export async function createSessionToken(): Promise<string> {
+export async function createSessionToken(): Promise<string | null> {
   const secret = getAuthSecret();
+  if (!secret) return null;
   const exp = String(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
   const sig = await hmacHex(secret, exp);
   return `${exp}.${sig}`;
