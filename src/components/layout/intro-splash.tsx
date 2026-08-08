@@ -2,11 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Logo } from "./logo";
 
 export function IntroSplash() {
-  // Start visible so the logo covers the very first paint (before the hero
-  // gallery). It's hidden immediately on repeat navigations in the same session.
   const [show, setShow] = useState(true);
 
   useEffect(() => {
@@ -15,13 +12,13 @@ export function IntroSplash() {
       setShow(false);
       return;
     }
-    // Lock scroll while the intro plays so the page underneath can't move.
+    // Lock scroll briefly while the intro plays
     document.body.style.overflow = "hidden";
     const timer = setTimeout(() => {
       setShow(false);
       sessionStorage.setItem("kiwik-intro-played", "true");
       document.body.style.overflow = "";
-    }, 2200);
+    }, 1100);
     return () => {
       clearTimeout(timer);
       document.body.style.overflow = "";
@@ -35,51 +32,50 @@ export function IntroSplash() {
       {show && (
         <motion.div
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.6, ease: "easeInOut" } }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-bg-primary/98 backdrop-blur-2xl select-none"
+          exit={{ opacity: 0, transition: { duration: 0.35, ease: "easeInOut" } }}
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-bg-primary select-none"
         >
-          {/* Glowing background blob behind the logo */}
-          <div className="absolute w-[300px] h-[300px] rounded-full bg-accent-blue/10 blur-[80px] animate-pulse pointer-events-none" />
+          {/* Subtle ambient light behind logo */}
+          <div className="absolute w-[240px] h-[240px] rounded-full bg-accent-blue/10 blur-[60px] animate-pulse pointer-events-none" />
           
-          <div className="relative flex flex-col items-center gap-6">
+          <div className="relative flex flex-col items-center gap-5">
             <motion.div
-              initial={{ scale: 0.3, opacity: 0, rotate: -45 }}
+              initial={{ scale: 0.6, opacity: 0 }}
               animate={{ 
-                scale: [0.3, 1.1, 1], 
-                opacity: 1, 
-                rotate: 0 
+                scale: 1, 
+                opacity: 1 
               }}
               transition={{ 
-                duration: 1.5,
-                ease: [0.16, 1, 0.3, 1] // easeOutExpo
+                duration: 0.6,
+                ease: [0.16, 1, 0.3, 1]
               }}
-              className="relative filter drop-shadow-2xl"
+              className="relative"
             >
-              <img src="/logo.png" alt="Kiwik Logo" className="w-32 h-32 md:w-40 md:h-40 object-contain dark:hidden" style={{ imageRendering: "auto" }} />
-              <img src="/logo-dark.png" alt="Kiwik Logo" className="w-32 h-32 md:w-40 md:h-40 object-contain hidden dark:block" style={{ imageRendering: "auto" }} />
+              <img src="/logo.png" alt="Kiwik Logo" className="w-28 h-28 md:w-32 md:h-32 object-contain dark:hidden" style={{ imageRendering: "auto" }} />
+              <img src="/logo-dark.png" alt="Kiwik Logo" className="w-28 h-28 md:w-32 md:h-32 object-contain hidden dark:block" style={{ imageRendering: "auto" }} />
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              className="text-center space-y-1.5"
+              transition={{ delay: 0.3, duration: 0.4 }}
+              className="text-center space-y-1"
             >
-              <h1 className="text-3xl font-serif font-bold tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-text-secondary">
+              <h1 className="text-2xl font-serif font-bold tracking-widest text-text-primary">
                 KIWIK
               </h1>
-              <p className="text-[10px] font-mono tracking-[0.25em] text-text-secondary uppercase">
-                Initializing Edge Core OS...
+              <p className="text-[9px] font-mono tracking-[0.2em] text-text-secondary uppercase">
+                Initializing Edge Core...
               </p>
             </motion.div>
           </div>
 
           {/* Loader bar */}
-          <div className="absolute bottom-16 w-48 h-[2px] bg-divider rounded-full overflow-hidden">
+          <div className="absolute bottom-16 w-36 h-[2px] bg-divider rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: "100%" }}
-              transition={{ duration: 2.4, ease: "easeInOut" }}
+              transition={{ duration: 1.0, ease: "easeInOut" }}
               className="h-full bg-gradient-to-r from-accent-blue to-teal-400"
             />
           </div>

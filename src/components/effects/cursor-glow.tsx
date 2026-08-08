@@ -10,12 +10,11 @@ export function CursorGlow() {
   const mouseX = useMotionValue(-500);
   const mouseY = useMotionValue(-500);
 
-  const springConfig = { damping: 40, stiffness: 200, mass: 0.5 };
+  const springConfig = { damping: 50, stiffness: 350, mass: 0.2 };
   const springX = useSpring(mouseX, springConfig);
   const springY = useSpring(mouseY, springConfig);
 
   useEffect(() => {
-    // Skip entirely on touch pointers and when the visitor asked for less motion.
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (isTouch || reducedMotion) return;
@@ -31,13 +30,10 @@ export function CursorGlow() {
 
     const handleMouseLeave = () => setIsVisible(false);
 
-    // The glow is a large composited layer sitting above the whole page; keeping
-    // it out of the way while the page scrolls leaves the compositor free to do
-    // nothing but scroll.
     const handleScroll = () => {
       setIsVisible(false);
       if (scrollTimer) clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(() => setIsVisible(true), 140);
+      scrollTimer = setTimeout(() => setIsVisible(true), 100);
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
@@ -54,9 +50,6 @@ export function CursorGlow() {
 
   if (!isDesktop) return null;
 
-  // No `mix-blend-mode` on the layer below: a blended element at this scale forces
-  // the compositor to re-blend everything beneath it on every scrolled frame, and
-  // over the near-black canvas `screen` looked the same as plain source-over.
   return (
     <motion.div
       style={{
@@ -64,11 +57,11 @@ export function CursorGlow() {
         y: springY,
         opacity: isVisible ? 1 : 0,
       }}
-      className="fixed top-0 left-0 w-[480px] h-[480px] -ml-[240px] -mt-[240px] rounded-full pointer-events-none z-50 transition-opacity duration-300 will-change-transform"
+      className="fixed top-0 left-0 w-[380px] h-[380px] -ml-[190px] -mt-[190px] rounded-full pointer-events-none z-50 transition-opacity duration-200"
     >
       <div
         className="w-full h-full rounded-full"
-        style={{ background: "radial-gradient(circle at center, hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.13) 0%, transparent 55%)" }}
+        style={{ background: "radial-gradient(circle at center, hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.12) 0%, transparent 60%)" }}
       />
     </motion.div>
   );
