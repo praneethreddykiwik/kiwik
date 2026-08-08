@@ -2,11 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // hostname "**" turned /_next/image into an open proxy for any https URL:
+    // bandwidth abuse, content laundering through this domain, and an SSRF probe
+    // against internal https hosts. Restricted to the hosts actually referenced.
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
+      { protocol: "https", hostname: "ynueobhylfxnilqldisy.supabase.co" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "framerusercontent.com" },
+      { protocol: "https", hostname: "cdn.prod.website-files.com" },
+      { protocol: "https", hostname: "helm.events" },
     ],
   },
   turbopack: {

@@ -33,8 +33,12 @@ export async function GET() {
         { headers: NO_CACHE_HEADERS }
       );
     }
+    // An empty table is a real, intentional state — the operator deleted every
+    // project. Returning the seed array here made the client repopulate its
+    // store with defaults and then POST them all back, so deletions undid
+    // themselves. Only a genuine DB failure falls back to seeds (below).
     return NextResponse.json(
-      { status: "ok", projects: defaultProjects },
+      { status: "ok", projects: [] },
       { headers: NO_CACHE_HEADERS }
     );
   } catch (error) {
@@ -95,7 +99,6 @@ export async function POST(request: Request) {
         status: "error",
         persisted: false,
         error: "Database unavailable — the project was not saved.",
-        detail: error instanceof Error ? error.message : String(error),
       },
       { status: 503, headers: NO_CACHE_HEADERS }
     );
@@ -128,7 +131,6 @@ export async function DELETE(request: Request) {
         status: "error",
         persisted: false,
         error: "Database unavailable — the project was not deleted.",
-        detail: error instanceof Error ? error.message : String(error),
       },
       { status: 503, headers: NO_CACHE_HEADERS }
     );

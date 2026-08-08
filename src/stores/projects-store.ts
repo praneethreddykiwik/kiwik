@@ -248,16 +248,27 @@ export function useProjects() {
     };
   }, [setProjects]);
 
-  const sanitizedProjects = (hasHydrated ? storeProjects : defaultProjects).map((p) => {
-    if (!p.coverImage) {
-      const defaultP = defaultProjects.find((dp) => dp.id === p.id || dp.slug === p.slug);
-      return {
-        ...p,
-        coverImage: defaultP?.coverImage || categoryFallbacks[p.category] || "/images/kiwik-cover.jpg",
-      };
-    }
-    return p;
-  });
+  // Filtering happens here rather than at each call site: this hook is mounted
+  // globally (the command palette lives in the root layout), so a single
+  // malformed entry — a null element, or one with no slug — used to throw on
+  // every route, not just /projects. Anything unusable is dropped before it can
+  // reach a component.
+  const source = hasHydrated ? storeProjects : defaultProjects;
+  const sanitizedProjects = (Array.isArray(source) ? source : [])
+    .filter((p): p is Project => Boolean(p && typeof p === "object" && p.id && p.slug))
+    .map((p) => {
+      if (!p.coverImage) {
+        const defaultP = defaultProjects.find((dp) => dp.id === p.id || dp.slug === p.slug);
+        return {
+          ...p,
+          coverImage:
+            defaultP?.coverImage ||
+            categoryFallbacks[p.category || ""] ||
+            "/images/kiwik-cover.jpg",
+        };
+      }
+      return p;
+    });
 
   return sanitizedProjects;
 }

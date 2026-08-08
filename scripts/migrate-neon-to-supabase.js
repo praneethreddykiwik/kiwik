@@ -28,7 +28,8 @@ function loadEnv() {
 
 loadEnv();
 
-const NEON_DB_URL = "postgresql://neondb_owner:npg_a1nVOCkRD9wI@ep-aged-cloud-auski0i0-pooler.c-10.us-east-1.aws.neon.tech/neondb?sslmode=require";
+const NEON_DB_URL = process.env.NEON_DB_URL;
+if (!NEON_DB_URL) throw new Error("NEON_DB_URL is not set — export it before running this script.");
 const SUPABASE_DB_URL = process.env.DATABASE_URL;
 
 console.log("=== NEON DB TO SUPABASE DATA MIGRATION ENGINE ===");

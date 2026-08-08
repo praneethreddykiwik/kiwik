@@ -26,7 +26,8 @@ function loadEnv() {
 
 loadEnv();
 
-const SUPABASE_DB_URL = "postgresql://postgres.ynueobhylfxnilqldisy:HkpXHT8%25cuL_-Yb@aws-0-ap-south-1.pooler.supabase.com:6543/postgres";
+const SUPABASE_DB_URL = process.env.DATABASE_URL;
+if (!SUPABASE_DB_URL) throw new Error("DATABASE_URL is not set — export it before running this script.");
 
 console.log("=== POPULATING CLIENT SUPABASE DATABASE WITH ALL DATA ===");
 console.log("Target Database:", SUPABASE_DB_URL ? SUPABASE_DB_URL.replace(/:[^:@]+@/, ":****@") : "MISSING");

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql, ensureDbTables } from "@/lib/db";
+import { cookies } from "next/headers";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 
 // Fallback in-memory map for fast response when DB is initializing
 const globalForVisitors = globalThis as unknown as {
@@ -15,6 +17,7 @@ if (typeof globalForVisitors.totalVisits === "undefined") {
 }
 
 export async function GET() {
+  const isAdmin = await verifySessionToken((await cookies()).get(SESSION_COOKIE)?.value);
   try {
     await ensureDbTables();
 
@@ -57,7 +60,10 @@ export async function GET() {
       active: activeCount,
       totalUnique: totalUnique,
       totalPageviews: totalPageviews,
-      recentSessions: sessionsRes || []
+      // Per-visitor rows (paths they browsed, timings, device) are admin
+      // telemetry, not public data. Aggregate counts stay open because the
+      // public site renders the live visitor count.
+      recentSessions: isAdmin ? (sessionsRes || []) : []
     });
   } catch (error) {
     console.error("GET /api/visitors DB error, falling back to memory:", error);

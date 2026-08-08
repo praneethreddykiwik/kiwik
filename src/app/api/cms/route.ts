@@ -58,7 +58,6 @@ export async function POST(request: Request) {
         status: "error",
         persisted: false,
         error: "Database unavailable — CMS changes were not saved.",
-        detail: error instanceof Error ? error.message : String(error),
       },
       { status: 503, headers: NO_CACHE_HEADERS }
     );

@@ -310,53 +310,56 @@ export default function AdminPage() {
     };
   }, []);
 
-  // Debounced global auto-save of CMS, Projects, and Products edits to Postgres (Supabase).
+  // Debounced auto-save of CMS content only.
+  //
+  // This previously re-POSTed every project and every product on each run, and
+  // ran whenever `liveCms` changed — which includes `cms.analytics`, mutated
+  // continuously by visitor and search telemetry. The effect therefore fired on
+  // its own every couple of seconds and rewrote the entire projects table from
+  // whatever this browser had cached. Deleting a project anywhere — the studio,
+  // the API, even straight from Supabase — was undone within seconds by the
+  // next tick. That is the whole reason deletions kept reappearing.
+  //
+  // Projects and products already persist individually the moment they are
+  // edited (syncProjectToDb / syncProductToDb in their stores), so the bulk
+  // re-post was redundant as well as destructive. A deletion is now permanent.
   useEffect(() => {
     if (!autoSaveArmedRef.current) return;
     const t = setTimeout(async () => {
       try {
-        const currentCMS = useSiteCMSStore.getState().cms;
-        const currentProjects = useProjectsStore.getState().projects;
-        const currentProducts = useProductsStore.getState().products;
+        const res = await fetch("/api/cms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(useSiteCMSStore.getState().cms),
+        });
 
-        const postJSON = async (url: string, body: unknown) => {
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          });
-          return res;
-        };
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          showToast(
+            res.status === 401
+              ? "⚠️ Session expired — your edits are NOT being saved. Sign in again."
+              : `⚠️ Auto-save failed — edits are NOT saved. ${data.error || `HTTP ${res.status}`}`
+          );
+          return;
+        }
 
-        const results = await Promise.all([
-          postJSON("/api/cms", currentCMS),
-          ...currentProjects.map((p) => postJSON("/api/projects", p)),
-          ...currentProducts.map((prod) => postJSON("/api/products", prod))
-        ]);
-
-        const failed = results.find((res) => !res.ok);
-        if (failed) {
-          if (failed.status === 401) {
-            showToast("⚠️ Session expired — your edits are NOT being saved. Sign in again.");
-          }
-        } else {
-          if (typeof window !== "undefined") {
-            window.dispatchEvent(new Event("kiwik-data-updated"));
-            try {
-              const bc = new BroadcastChannel("kiwik-global-sync");
-              bc.postMessage("kiwik-data-updated");
-              bc.close();
-            } catch {
-              /* ignore */
-            }
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("kiwik-data-updated"));
+          try {
+            const bc = new BroadcastChannel("kiwik-global-sync");
+            bc.postMessage("kiwik-data-updated");
+            bc.close();
+          } catch {
+            /* ignore */
           }
         }
       } catch (err) {
-        console.error("Global auto-save error:", err);
+        console.error("CMS auto-save error:", err);
+        showToast("⚠️ Auto-save failed — edits are NOT saved (network error).");
       }
     }, 1200);
     return () => clearTimeout(t);
-  }, [liveCms, projects, partnerProductsList]);
+  }, [liveCms]);
 
   const handleSaveGlobalCMS = async () => {
     setIsSavingGlobal(true);

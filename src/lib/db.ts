@@ -1,18 +1,21 @@
 import postgres from "postgres";
 import { projects as defaultProjects } from "@/data/projects";
 
-// Client Supabase PostgreSQL direct connection string
-const CLIENT_SUPABASE_URL = "postgresql://postgres.ynueobhylfxnilqldisy:HkpXHT8%25cuL_-Yb@aws-0-ap-south-1.pooler.supabase.com:6543/postgres";
-
+// No connection string is ever hardcoded here. A committed credential in a
+// public repository is a published credential: it grants full read/write/DROP
+// over every table, including admin password hashes and visitor IP addresses.
 // Lazily create the Postgres client connected directly to the client's Supabase instance.
 // `prepare: false` is required for Supabase's transaction pooler (port 6543).
 let _sql: postgres.Sql | null = null;
 function getSql(): postgres.Sql {
   if (!_sql) {
-    const targetUrl = (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("neon") && !process.env.DATABASE_URL.includes("neondb"))
-      ? process.env.DATABASE_URL
-      : CLIENT_SUPABASE_URL;
-      
+    const targetUrl = process.env.DATABASE_URL;
+    if (!targetUrl) {
+      throw new Error(
+        "DATABASE_URL is not set. Configure it in your environment (.env locally, Vercel Project Settings in production)."
+      );
+    }
+
     _sql = postgres(targetUrl, {
       prepare: false,
       ssl: "require",

@@ -29,7 +29,6 @@ async function seedProductsIfEmpty() {
 export async function GET() {
   try {
     await ensureDbTables();
-    await seedProductsIfEmpty();
     const rows = await sql`
       SELECT id, slug, data FROM products
       ORDER BY sort_order ASC NULLS LAST, created_at ASC;
@@ -86,7 +85,6 @@ export async function POST(request: Request) {
         status: "error",
         persisted: false,
         error: "Database unavailable — the product was not saved.",
-        detail: error instanceof Error ? error.message : String(error),
       },
       { status: 503, headers: NO_CACHE_HEADERS }
     );
@@ -113,7 +111,6 @@ export async function DELETE(request: Request) {
         status: "error",
         persisted: false,
         error: "Database unavailable — the product was not deleted.",
-        detail: error instanceof Error ? error.message : String(error),
       },
       { status: 503, headers: NO_CACHE_HEADERS }
     );

@@ -148,7 +148,7 @@ export default function ProjectsPage() {
         <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
           <span className="text-xs font-mono font-bold uppercase tracking-wider text-black/50 dark:text-white/50 whitespace-nowrap">Status:</span>
           <div className="flex gap-2">
-            {(["all", "live", "completed", "in-progress", "archived"] as const).map(status => (
+            {(["all", "completed", "in-progress", "archived"] as const).map(status => (
               <button 
                 key={status}
                 onClick={() => setStatusFilter(status as any)}

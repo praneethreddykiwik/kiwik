@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import { cookies } from "next/headers";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,19 @@ export const dynamic = "force-dynamic";
  * connection string, credentials, or raw driver output.
  */
 export async function GET() {
+  // Which secrets are configured, how many rows exist, and raw driver errors are
+  // all reconnaissance for an attacker — notably, reporting AUTH_SECRET as unset
+  // told them session cookies were forgeable. Anonymous callers get liveness only.
+  const isAdmin = await verifySessionToken((await cookies()).get(SESSION_COOKIE)?.value);
+  if (!isAdmin) {
+    try {
+      await sql`SELECT 1;`;
+      return NextResponse.json({ ok: true, connected: true });
+    } catch {
+      return NextResponse.json({ ok: false, connected: false }, { status: 503 });
+    }
+  }
+
   const configured = {
     DATABASE_URL: Boolean(process.env.DATABASE_URL),
     AUTH_SECRET: Boolean(process.env.AUTH_SECRET),

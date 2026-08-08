@@ -105,7 +105,7 @@ export default function PartnersPage() {
             See the work <ArrowRight className="w-4 h-4" />
           </a>
           <Link
-            href="/contact"
+            href={`mailto:${contactEmail}?subject=${encodeURIComponent("Partnership enquiry — Kiwik")}`}
             className="px-5 py-2.5 rounded-full bg-glass-bg border border-glass-border text-text-primary font-bold text-sm hover:bg-bg-secondary transition-colors"
           >
             Start a conversation

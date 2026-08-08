@@ -194,5 +194,10 @@ export function useProducts() {
     };
   }, [setProducts]);
 
-  return hasHydrated ? storeProducts : defaultProducts;
+  // Same guard as the projects hook: drop unusable entries before they reach a
+  // component, since this hook is rendered on public pages.
+  const source = hasHydrated ? storeProducts : defaultProducts;
+  return (Array.isArray(source) ? source : []).filter(
+    (p): p is PartnerProduct => Boolean(p && typeof p === "object" && p.id && p.slug)
+  );
 }

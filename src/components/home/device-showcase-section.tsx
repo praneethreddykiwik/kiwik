@@ -51,12 +51,16 @@ export function DeviceShowcaseSection() {
       .slice(0, 2);
   };
 
+  // Widths are sized so the whole fan fits a standard desktop viewport. The
+  // previous md sizes totalled ~1650px before gaps, which overflowed a 1440px
+  // screen and clipped the outermost phones — the row looked off-centre because
+  // it genuinely was, scrolled to its left edge. These total ~1300px + gaps.
   const cardSettings = [
-    { width: "w-[250px] sm:w-[280px] md:w-[300px]", height: "h-[520px] sm:h-[590px] md:h-[630px]", baseScale: 0.82, hoverScale: 0.86, yOffset: 0, zIndex: "z-10" },
-    { width: "w-[255px] sm:w-[285px] md:w-[310px]", height: "h-[535px] sm:h-[610px] md:h-[650px]", baseScale: 0.89, hoverScale: 0.94, yOffset: -8, zIndex: "z-20" },
-    { width: "w-[275px] sm:w-[310px] md:w-[335px]", height: "h-[570px] sm:h-[650px] md:h-[690px]", baseScale: 1.00, hoverScale: 1.05, yOffset: -18, zIndex: "z-40" },
-    { width: "w-[255px] sm:w-[285px] md:w-[310px]", height: "h-[535px] sm:h-[610px] md:h-[650px]", baseScale: 0.89, hoverScale: 0.94, yOffset: -8, zIndex: "z-20" },
-    { width: "w-[250px] sm:w-[280px] md:w-[300px]", height: "h-[520px] sm:h-[590px] md:h-[630px]", baseScale: 0.82, hoverScale: 0.86, yOffset: 0, zIndex: "z-10" },
+    { width: "w-[230px] sm:w-[250px] md:w-[250px] xl:w-[270px]", height: "h-[480px] sm:h-[525px] md:h-[525px] xl:h-[565px]", baseScale: 0.82, hoverScale: 0.86, yOffset: 0, zIndex: "z-10" },
+    { width: "w-[235px] sm:w-[258px] md:w-[262px] xl:w-[282px]", height: "h-[495px] sm:h-[542px] md:h-[550px] xl:h-[592px]", baseScale: 0.89, hoverScale: 0.94, yOffset: -8, zIndex: "z-20" },
+    { width: "w-[255px] sm:w-[280px] md:w-[285px] xl:w-[310px]", height: "h-[530px] sm:h-[585px] md:h-[595px] xl:h-[645px]", baseScale: 1.00, hoverScale: 1.05, yOffset: -18, zIndex: "z-40" },
+    { width: "w-[235px] sm:w-[258px] md:w-[262px] xl:w-[282px]", height: "h-[495px] sm:h-[542px] md:h-[550px] xl:h-[592px]", baseScale: 0.89, hoverScale: 0.94, yOffset: -8, zIndex: "z-20" },
+    { width: "w-[230px] sm:w-[250px] md:w-[250px] xl:w-[270px]", height: "h-[480px] sm:h-[525px] md:h-[525px] xl:h-[565px]", baseScale: 0.82, hoverScale: 0.86, yOffset: 0, zIndex: "z-10" },
   ];
 
   return (

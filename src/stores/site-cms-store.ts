@@ -210,27 +210,27 @@ const defaultCMSData: SiteCMSData = {
           { id: "fl-1", label: "Projects Ecosystem", href: "/projects" },
           { id: "fl-2", label: "Desktop Dashboard", href: "/#macos-dashboard-widget" },
           { id: "fl-3", label: "AI Assistant Panel", href: "/#ai" },
-          { id: "fl-4", label: "Telemetry Engine", href: "/admin" }
+          { id: "fl-4", label: "Partner Showcase", href: "/partners" }
         ]
       },
       {
         id: "col-2",
         title: "Documentation",
         links: [
-          { id: "fl-5", label: "Getting Started", href: "/#docs" },
-          { id: "fl-6", label: "Architecture Spec", href: "/#docs" },
-          { id: "fl-7", label: "Kiwik CLI v2.0", href: "/#docs" },
-          { id: "fl-8", label: "API Reference", href: "/#docs" }
+          { id: "fl-5", label: "Getting Started", href: "/docs" },
+          { id: "fl-6", label: "Architecture Spec", href: "/docs" },
+          { id: "fl-7", label: "Kiwik CLI v2.0", href: "/docs" },
+          { id: "fl-8", label: "API Reference", href: "/docs" }
         ]
       },
       {
         id: "col-3",
         title: "Company & Legal",
         links: [
-          { id: "fl-9", label: "About Kiwik", href: "/#about" },
-          { id: "fl-10", label: "Privacy Policy", href: "/privacy" },
-          { id: "fl-11", label: "Terms of Service", href: "/terms" },
-          { id: "fl-12", label: "Security & SOC 2", href: "/security" }
+          { id: "fl-9", label: "About Kiwik", href: "/#how-we-work" },
+          { id: "fl-10", label: "Documentation", href: "/docs" },
+          { id: "fl-11", label: "Digital Market Partner", href: "/partners" },
+          { id: "fl-12", label: "Capabilities", href: "/#capabilities" }
         ]
       }
     ],
@@ -252,8 +252,8 @@ const defaultCMSData: SiteCMSData = {
     contactPhone: "+1 (800) 555-KIWIK",
     address: "Internet, Everywhere",
     bottomLinks: [
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Terms of Service", href: "/terms" }
+      { label: "Projects", href: "/projects" },
+      { label: "Docs", href: "/docs" }
     ],
     newsletterPlaceholder: "Enter your email",
     newsletterApiEndpoint: "/api/subscribe",
@@ -776,12 +776,38 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
       setCMS: (newCMS) => {
         set((state) => ({
           cms: {
+            // Each section is defaulted individually rather than top-level
+            // spread. A `site_cms` row that predates a section — or has it as
+            // null — would otherwise land in state as `undefined`, and every
+            // consumer that maps over it (media, footer columns, hero gallery)
+            // threw on render. Defaults fill the gaps; stored values still win.
+            ...defaultCMSData,
             ...state.cms,
             ...newCMS,
+            hero: { ...defaultCMSData.hero, ...(newCMS?.hero || state.cms.hero) },
+            promptBar: { ...defaultCMSData.promptBar, ...(newCMS?.promptBar || state.cms.promptBar) },
+            capabilities: { ...defaultCMSData.capabilities, ...(newCMS?.capabilities || state.cms.capabilities) },
+            trust: { ...defaultCMSData.trust, ...(newCMS?.trust || state.cms.trust) },
+            howWeWork: { ...defaultCMSData.howWeWork, ...(newCMS?.howWeWork || state.cms.howWeWork) },
+            featuredSection: { ...defaultCMSData.featuredSection, ...(newCMS?.featuredSection || state.cms.featuredSection) },
+            deviceShowcase: { ...defaultCMSData.deviceShowcase, ...(newCMS?.deviceShowcase || state.cms.deviceShowcase) },
+            earthShowcase: { ...defaultCMSData.earthShowcase, ...(newCMS?.earthShowcase || state.cms.earthShowcase) },
+            dashboardShowcase: { ...defaultCMSData.dashboardShowcase, ...(newCMS?.dashboardShowcase || state.cms.dashboardShowcase) },
+            projectsPage: { ...defaultCMSData.projectsPage, ...(newCMS?.projectsPage || state.cms.projectsPage) },
+            theme: { ...defaultCMSData.theme, ...(newCMS?.theme || state.cms.theme) },
+            seo: { ...defaultCMSData.seo, ...(newCMS?.seo || state.cms.seo) },
+            aiKnowledge: { ...defaultCMSData.aiKnowledge, ...(newCMS?.aiKnowledge || state.cms.aiKnowledge) },
+            analytics: { ...defaultCMSData.analytics, ...(newCMS?.analytics || state.cms.analytics) },
+            media: Array.isArray(newCMS?.media) ? newCMS.media : (state.cms.media || defaultCMSData.media),
+            architectureNodes: Array.isArray(newCMS?.architectureNodes) ? newCMS.architectureNodes : (state.cms.architectureNodes || defaultCMSData.architectureNodes),
+            whyCriskaPills: Array.isArray(newCMS?.whyCriskaPills) ? newCMS.whyCriskaPills : (state.cms.whyCriskaPills || defaultCMSData.whyCriskaPills),
+            auditLogs: Array.isArray(newCMS?.auditLogs) ? newCMS.auditLogs : (state.cms.auditLogs || []),
+            snapshots: [],
             // The DB blob is the source of truth for editable content, but not
             // for a navbar or contact address that shipped before this build.
             navigation: reconcileNavigation(newCMS?.navigation),
             settings: {
+              ...defaultCMSData.settings,
               ...(newCMS?.settings || state.cms.settings),
               contactEmail: reconcileContactEmail(
                 newCMS?.settings?.contactEmail,
@@ -789,13 +815,14 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
               ),
             },
             footer: {
+              ...defaultCMSData.footer,
               ...(newCMS?.footer || state.cms.footer),
               contactEmail: reconcileContactEmail(
                 newCMS?.footer?.contactEmail,
                 defaultCMSData.footer.contactEmail!
               ),
             }
-          }
+          } as SiteCMSData
         }));
       },
 

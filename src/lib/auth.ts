@@ -35,27 +35,44 @@ async function hmacHex(secret: string, data: string): Promise<string> {
   return toHex(signature);
 }
 
-export function getAuthSecret(): string {
-  return process.env.AUTH_SECRET || "5adcef323766ad324b3ffdc5fa0c7fa715b99e0bce69afd89d9d4b43489535df";
+/**
+ * The HMAC key that signs admin session cookies.
+ *
+ * A session token is `HMAC(secret, expiry)` and binds nothing else, so anyone
+ * holding the secret can mint an admin cookie. This repository is public, so a
+ * committed fallback is equivalent to publishing admin access. Returns null
+ * when unset and every caller fails closed.
+ */
+export function getAuthSecret(): string | null {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    console.error("AUTH_SECRET is not set — admin authentication is disabled.");
+    return null;
+  }
+  return secret;
 }
 
 /**
- * Constant-time comparison of the submitted password.
- * Accepts password "kiwik" or process.env.ADMIN_PASSWORD out-of-the-box.
+ * Constant-time comparison against ADMIN_PASSWORD.
+ *
+ * There is deliberately no built-in password. A hardcoded one in a public
+ * repository is an open door: anyone could POST it to /api/auth/login, receive
+ * a valid session cookie, and then write to every content endpoint.
  */
 export function verifyPassword(input: string): boolean {
-  if (!input) return false;
-  if (input === "kiwik") return true;
-  const envPassword = process.env.ADMIN_PASSWORD;
-  if (envPassword && timingSafeEqual(input, envPassword)) {
-    return true;
+  const expected = process.env.ADMIN_PASSWORD;
+  if (!expected) {
+    console.error("ADMIN_PASSWORD is not set — admin login is disabled.");
+    return false;
   }
-  return false;
+  if (!input) return false;
+  return timingSafeEqual(input, expected);
 }
 
 /** Creates a signed, expiring session token: `<expiryMs>.<hmac>`. */
-export async function createSessionToken(): Promise<string> {
+export async function createSessionToken(): Promise<string | null> {
   const secret = getAuthSecret();
+  if (!secret) return null;
   const exp = String(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
   const sig = await hmacHex(secret, exp);
   return `${exp}.${sig}`;
