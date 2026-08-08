@@ -265,19 +265,46 @@ export default function AdminPage() {
   // immediately re-post the state we just loaded.
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/cms")
-      .then((r) => r.json())
-      .then((d) => {
-        if (!cancelled && d.status === "ok" && d.cms) {
-          useSiteCMSStore.getState().setCMS(d.cms);
+
+    // Projects and products must be hydrated here too, not just the CMS.
+    // Auto-save below posts all three, so if only the CMS were loaded from the
+    // database this tab would keep overwriting the stored projects and products
+    // with whatever stale copy happened to be in its localStorage — which is
+    // exactly how deleted entries kept coming back minutes after being removed.
+    (async () => {
+      const load = async (url: string, apply: (data: any) => void) => {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          const data = await res.json();
+          if (!cancelled && data.status === "ok" && !data.fallback) apply(data);
+        } catch {
+          /* leave the local copy alone if the database is unreachable */
         }
-      })
-      .catch(() => {})
-      .finally(() => {
+      };
+
+      await Promise.all([
+        load("/api/cms", (d) => d.cms && useSiteCMSStore.getState().setCMS(d.cms)),
+        load("/api/projects", (d) => {
+          if (Array.isArray(d.projects) && d.projects.length > 0) {
+            useProjectsStore.getState().setProjects(d.projects);
+          }
+        }),
+        load("/api/products", (d) => {
+          if (Array.isArray(d.products) && d.products.length > 0) {
+            useProductsStore.getState().setProducts(d.products);
+          }
+        }),
+      ]);
+
+      if (!cancelled) {
+        // Armed only after all three are loaded, so the first auto-save can
+        // never re-post pre-hydration state.
         setTimeout(() => {
           autoSaveArmedRef.current = true;
         }, 1500);
-      });
+      }
+    })();
+
     return () => {
       cancelled = true;
     };
