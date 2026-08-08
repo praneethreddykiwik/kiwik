@@ -3,20 +3,32 @@
 import React, { useEffect, useRef } from "react";
 import { useSiteCMS } from "@/stores/site-cms-store";
 
-// 12 Curated Unique High-Resolution Art-Directed Tech Gallery Pool (AI, Blockchain, Cyber Security)
+// 24 Curated Unique High-Resolution Art-Directed Tech Gallery Pool (AI, Blockchain, Cyber Security, Quantum)
 const MASTER_GALLERY_POOL = [
+  { url: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop", title: "Neon AI Synapses", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=600&auto=format&fit=crop", title: "Cryptographic Web3 Node", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=600&auto=format&fit=crop", title: "Cyber Shield Matrix", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", title: "Quantum Prism Wave", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1677442136019-21780efad99a?q=80&w=600&auto=format&fit=crop", title: "AI Neural Core", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=600&auto=format&fit=crop", title: "Blockchain Ledger", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=600&auto=format&fit=crop", title: "Cyber Security Grid", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", title: "Quantum Photonic Chip", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop", title: "Autonomous Agent Core", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop", title: "Holographic Data Stream", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=600&auto=format&fit=crop", title: "High-Speed Fiber Telemetry", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop", title: "Holographic Data Laser", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=600&auto=format&fit=crop", title: "Rainbow Fiber Telemetry", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?q=80&w=600&auto=format&fit=crop", title: "Cybernetic Microchip", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=600&auto=format&fit=crop", title: "Decentralized Web3 Node", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop", title: "Global Edge Telemetry", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=600&auto=format&fit=crop", title: "Decentralized Cluster", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop", title: "Global Satellite Mesh", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=600&auto=format&fit=crop", title: "Cryptographic Security Vault", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=600&auto=format&fit=crop", title: "Autonomous Robotics Engine", linkUrl: "/projects" }
+  { url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=600&auto=format&fit=crop", title: "Autonomous Robotics Engine", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", title: "Matrix Code Waterfall", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", title: "Server Rack Network", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600&auto=format&fit=crop", title: "Laser Prism Spectrum", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop", title: "Fluid Energy Waves", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?q=80&w=600&auto=format&fit=crop", title: "Digital Neural Interface", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=600&auto=format&fit=crop", title: "Cyberpunk Digital City", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=600&auto=format&fit=crop", title: "Neon 3D Geometric Prism", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", title: "Quantum Particle Collider", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", title: "Cybernetic AI Core", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1618172193763-c511deb635ca?q=80&w=600&auto=format&fit=crop", title: "Vibrant Liquid Waves", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1633167606207-d840b5070fc2?q=80&w=600&auto=format&fit=crop", title: "Web3 Crypto Asset Token", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?q=80&w=600&auto=format&fit=crop", title: "Developer Coding IDE", linkUrl: "/projects" }
 ];
 
 interface EmitterCardState {
