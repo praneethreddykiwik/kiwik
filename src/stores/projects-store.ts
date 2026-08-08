@@ -146,15 +146,48 @@ export function useProjects() {
   useEffect(() => {
     setHasHydrated(true);
 
-    // Sync latest global Projects state from Neon PostgreSQL
-    fetch("/api/projects")
-      .then((res) => res.json())
-      .then((data) => {
+    // Sync the latest global Projects state from Postgres. Refresh on a gentle
+    // cadence (visibility-gated) and on focus so edits made on one device appear
+    // on others without a manual reload, while staying easy on the DB.
+    const POLL_MS = 30000;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const schedule = (delay: number) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(tick, delay);
+    };
+
+    async function tick() {
+      if (stopped) return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        schedule(POLL_MS);
+        return;
+      }
+      try {
+        const res = await fetch("/api/projects");
+        const data = await res.json();
         if (data.status === "ok" && Array.isArray(data.projects) && data.projects.length > 0) {
           setProjects(data.projects);
         }
-      })
-      .catch((err) => console.error("Neon DB projects fetch error:", err));
+        schedule(data.fallback ? POLL_MS * 10 : POLL_MS);
+      } catch {
+        schedule(POLL_MS * 4);
+      }
+    }
+
+    tick(); // initial fetch on mount
+
+    const handleFocus = () => tick();
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
   }, [setProjects]);
 
   const sanitizedProjects = (hasHydrated ? storeProjects : defaultProjects).map((p) => {

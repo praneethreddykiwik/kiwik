@@ -1402,30 +1402,46 @@ export function useSiteCMS() {
   useEffect(() => {
     setHasHydrated(true);
 
-    const fetchCMS = () => {
-      fetch("/api/cms")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.status === "ok" && data.cms) {
-            setCMS(data.cms);
-          }
-        })
-        .catch((err) => console.error("Neon DB CMS fetch error:", err));
+    // Base cadence for cross-device sync. Kept deliberately conservative and
+    // visibility-gated to protect the Neon data-transfer quota (a 5s poll on
+    // every open tab is what exhausts a free-tier plan). Backs off hard when
+    // the API reports a DB fallback (offline / over quota).
+    const POLL_MS = 30000;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const schedule = (delay: number) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(tick, delay);
     };
 
-    // Initial fetch on mount
-    fetchCMS();
+    async function tick() {
+      if (stopped) return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        schedule(POLL_MS);
+        return;
+      }
+      try {
+        const res = await fetch("/api/cms");
+        const data = await res.json();
+        if (data.status === "ok" && data.cms) setCMS(data.cms);
+        schedule(data.fallback ? POLL_MS * 10 : POLL_MS);
+      } catch {
+        schedule(POLL_MS * 4);
+      }
+    }
 
-    // Poll every 5 seconds to sync cross-device edits
-    const interval = setInterval(fetchCMS, 5000);
+    tick(); // initial fetch on mount
 
-    // Sync on window focus
-    const handleFocus = () => fetchCMS();
+    const handleFocus = () => tick();
     window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
 
     return () => {
-      clearInterval(interval);
+      stopped = true;
+      if (timer) clearTimeout(timer);
       window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
     };
   }, [setCMS]);
 

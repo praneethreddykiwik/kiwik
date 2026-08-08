@@ -1,7 +1,7 @@
 "use client";
 
 import * as LucideIcons from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProjectImage } from "@/components/ui/project-image";
@@ -205,6 +205,46 @@ export default function AdminPage() {
   const projects = useProjects();
   const { addProject, updateProject, deleteProject } = useProjectsStore();
 
+  // Reactive CMS state used for debounced global auto-save.
+  const liveCms = useSiteCMSStore((s) => s.cms);
+  const autoSaveArmedRef = useRef(false);
+
+  // Hydrate the editor from the global DB state on mount (the DB is the source
+  // of truth across devices). Auto-save is armed shortly after so we don't
+  // immediately re-post the state we just loaded.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/cms")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d.status === "ok" && d.cms) {
+          useSiteCMSStore.getState().setCMS(d.cms);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setTimeout(() => {
+          autoSaveArmedRef.current = true;
+        }, 1500);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Debounced global auto-save of CMS edits to Postgres (Neon/Supabase).
+  useEffect(() => {
+    if (!autoSaveArmedRef.current) return;
+    const t = setTimeout(() => {
+      fetch("/api/cms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(useSiteCMSStore.getState().cms),
+      }).catch((err) => console.error("CMS auto-save error:", err));
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [liveCms]);
+
   const handleSaveGlobalCMS = async () => {
     setIsSavingGlobal(true);
     try {
@@ -341,13 +381,12 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+  // Validate the httpOnly session cookie on mount (server is the source of truth).
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("kiwik_admin_session_token");
-      if (token) {
-        setIsAuthenticated(true);
-      }
-    }
+    fetch("/api/auth/session")
+      .then((r) => r.json())
+      .then((d) => setIsAuthenticated(!!d.authenticated))
+      .catch(() => setIsAuthenticated(false));
   }, []);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -355,19 +394,19 @@ export default function AdminPage() {
     setIsLoggingIn(true);
     setLoginError(null);
     try {
-      const res = await fetch("/api/admin/auth", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword })
+        body: JSON.stringify({ password: loginPassword }),
       });
       const data = await res.json();
       if (res.ok && data.status === "success") {
-        localStorage.setItem("kiwik_admin_session_token", data.token);
+        // Session lives in a secure httpOnly cookie — no token in localStorage.
         setIsAuthenticated(true);
         setToastMessage("✓ Authenticated Admin Session Established");
         setTimeout(() => setToastMessage(null), 3000);
       } else {
-        setLoginError(data.error || "Invalid credentials");
+        setLoginError(data.error || "Invalid password");
       }
     } catch (err) {
       setLoginError("Connection failure to auth server");
@@ -376,9 +415,11 @@ export default function AdminPage() {
     }
   };
 
-  const handleAdminLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("kiwik_admin_session_token");
+  const handleAdminLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      /* ignore */
     }
     setIsAuthenticated(false);
   };
@@ -389,13 +430,8 @@ export default function AdminPage() {
     const fullMsg = detail ? `${msg}: ${detail}` : msg;
     setToastMessage(fullMsg);
     setTimeout(() => setToastMessage(null), 3000);
-
-    // Neon DB Global Synchronization Trigger
-    fetch("/api/cms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(useSiteCMSStore.getState().cms)
-    }).catch((err) => console.error("Neon DB CMS sync error:", err));
+    // CMS persistence is handled by the debounced auto-save effect below,
+    // not coupled to toasts (which fire inconsistently).
   };
 
   const openMediaPicker = (onSelect: (selectedUrl: string) => void, title: string = "Select Media Asset") => {
@@ -2240,22 +2276,7 @@ export default function AdminPage() {
             )}
 
             <div className="space-y-1">
-              <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-400">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-                <input
-                  type="email"
-                  required
-                  placeholder="admin@kiwik.one"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-950/60 border border-white/10 focus:border-accent-blue text-xs text-white placeholder-neutral-500 focus:outline-none transition-all"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-400">Security Key / Password</label>
+              <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-400">Admin Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
                 <input
@@ -2290,7 +2311,7 @@ export default function AdminPage() {
 
           <div className="pt-2 text-center border-t border-white/5">
             <span className="text-[10px] text-neutral-500 font-mono">
-              Default Admin: <code className="text-neutral-300">shagantivivekgoud@gmail.com</code> / <code className="text-neutral-300">admin123</code>
+              Authorized access only · Kiwik OS Studio
             </span>
           </div>
         </motion.div>

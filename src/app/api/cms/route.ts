@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     await sql`
       INSERT INTO site_cms (key, data, updated_at)
-      VALUES ('main', ${JSON.stringify(body)}::jsonb, CURRENT_TIMESTAMP)
+      VALUES ('main', ${sql.json(body)}, CURRENT_TIMESTAMP)
       ON CONFLICT (key) DO UPDATE
       SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP;
     `;
