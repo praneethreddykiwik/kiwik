@@ -5,27 +5,30 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "./logo";
 
 export function IntroSplash() {
-  const [show, setShow] = useState(false);
-  const [hasChecked, setHasChecked] = useState(false);
+  // Start visible so the logo covers the very first paint (before the hero
+  // gallery). It's hidden immediately on repeat navigations in the same session.
+  const [show, setShow] = useState(true);
 
   useEffect(() => {
-    // Check if splash has played in this tab session
     const hasPlayed = sessionStorage.getItem("kiwik-intro-played");
-    if (!hasPlayed) {
-      setShow(true);
-      // Automatically disable after 2.4 seconds
-      const timer = setTimeout(() => {
-        setShow(false);
-        sessionStorage.setItem("kiwik-intro-played", "true");
-      }, 2400);
-      setHasChecked(true);
-      return () => clearTimeout(timer);
-    } else {
-      setHasChecked(true);
+    if (hasPlayed) {
+      setShow(false);
+      return;
     }
+    // Lock scroll while the intro plays so the page underneath can't move.
+    document.body.style.overflow = "hidden";
+    const timer = setTimeout(() => {
+      setShow(false);
+      sessionStorage.setItem("kiwik-intro-played", "true");
+      document.body.style.overflow = "";
+    }, 2200);
+    return () => {
+      clearTimeout(timer);
+      document.body.style.overflow = "";
+    };
   }, []);
 
-  if (!hasChecked || !show) return null;
+  if (!show) return null;
 
   return (
     <AnimatePresence>

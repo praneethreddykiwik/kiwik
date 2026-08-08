@@ -123,10 +123,14 @@ export function ImageRibbon() {
 
   // 60 FPS Procedural Emitter RAF Loop mutating DOM elements directly (ZERO REACT RE-RENDERS)
   useEffect(() => {
-    let animId: number;
+    let animId: number | null = null;
+    let isVisible = true;
     let lastTime = performance.now();
 
     const updateEmitter = (now: number) => {
+      // Pause all work when the hero is scrolled out of view so scrolling the
+      // rest of the page stays smooth (the loop restarts when it re-enters view).
+      if (!isVisible) { animId = null; return; }
       const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
 
@@ -191,8 +195,43 @@ export function ImageRibbon() {
       animId = requestAnimationFrame(updateEmitter);
     };
 
-    animId = requestAnimationFrame(updateEmitter);
-    return () => cancelAnimationFrame(animId);
+    const start = () => {
+      if (animId == null) {
+        lastTime = performance.now();
+        animId = requestAnimationFrame(updateEmitter);
+      }
+    };
+    const stop = () => {
+      if (animId != null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+    };
+
+    // Only animate while on-screen and the tab is visible.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible && document.visibilityState === "visible") start();
+        else stop();
+      },
+      { threshold: 0 }
+    );
+    if (containerRef.current) io.observe(containerRef.current);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible" && isVisible) start();
+      else stop();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    start();
+
+    return () => {
+      stop();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [hero?.gallerySpeed, hero?.galleryPerspective, hero?.galleryScale, hero?.galleryOpacity]);
 
   const initialCardsCount = 24;
