@@ -1,24 +1,19 @@
 import postgres from "postgres";
 import { projects as defaultProjects } from "@/data/projects";
 
+// Client Supabase PostgreSQL direct connection string
 const CLIENT_SUPABASE_URL = "postgresql://postgres.ynueobhylfxnilqldisy:HkpXHT8%25cuL_-Yb@aws-0-ap-south-1.pooler.supabase.com:6543/postgres";
 
-const getDbUrl = () => {
-  const url = process.env.DATABASE_URL;
-  if (!url || url.includes("neon") || url.includes("neon.tech") || url.includes("neondb")) {
-    return CLIENT_SUPABASE_URL;
-  }
-  return url;
-};
-
-// Lazily create the Postgres client so a missing DATABASE_URL surfaces a clear
-// error at query time rather than crashing module load / the whole app.
-// `prepare: false` is required for Supabase's transaction pooler (port 6543);
-// it is also harmless on a session pooler / direct connection.
+// Lazily create the Postgres client connected directly to the client's Supabase instance.
+// `prepare: false` is required for Supabase's transaction pooler (port 6543).
 let _sql: postgres.Sql | null = null;
 function getSql(): postgres.Sql {
   if (!_sql) {
-    _sql = postgres(getDbUrl(), {
+    const targetUrl = (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("neon") && !process.env.DATABASE_URL.includes("neondb"))
+      ? process.env.DATABASE_URL
+      : CLIENT_SUPABASE_URL;
+      
+    _sql = postgres(targetUrl, {
       prepare: false,
       ssl: "require",
       idle_timeout: 20,
@@ -41,10 +36,7 @@ export const sql: postgres.Sql = new Proxy((() => {}) as any, {
   },
 }) as postgres.Sql;
 
-// Best-effort DDL. On a managed database (e.g. Supabase) the app role may lack
-// DDL privileges and the schema is provisioned via migrations instead — so each
-// statement is isolated and permission errors are swallowed. On a self-managed
-// database these create the schema on first run.
+// Best-effort DDL for table creation.
 async function runDDL() {
   const statements: Array<() => Promise<unknown>> = [
     () => sql`
@@ -110,7 +102,7 @@ async function runDDL() {
     try {
       await stmt();
     } catch {
-      /* schema is migration-managed / role lacks DDL — ignore */
+      /* ignore permission errors */
     }
   }
 }
@@ -137,7 +129,6 @@ async function seedProjectsIfEmpty() {
   }
 }
 
-// Runs once per server instance (cached promise) to keep DB traffic minimal.
 let ensured: Promise<void> | null = null;
 export function ensureDbTables(): Promise<void> {
   if (!ensured) {
@@ -146,7 +137,7 @@ export function ensureDbTables(): Promise<void> {
       await seedProjectsIfEmpty();
     })().catch((err) => {
       console.error("ensureDbTables error:", err);
-      ensured = null; // allow a retry on the next request after a hard failure
+      ensured = null;
     });
   }
   return ensured;
