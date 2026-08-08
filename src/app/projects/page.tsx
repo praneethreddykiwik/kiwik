@@ -22,34 +22,51 @@ export default function ProjectsPage() {
   const [categoryFilter, setCategoryFilter] = useState<ProjectCategory | "all">("all");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
   
+  // Every field below is treated as optional. Projects are authored in the admin
+  // studio and stored as free-form JSON, so a row can legitimately arrive
+  // without a tagline, category or date — and calling .toLowerCase() on one of
+  // those threw during render, which the page error boundary turned into a
+  // full-page "System Diagnostics Notice" instead of one imperfect card.
+  const safeProjects = useMemo(
+    () => (Array.isArray(projects) ? projects.filter(Boolean) : []),
+    [projects]
+  );
+
   const categories = useMemo(() => {
     const cats = new Set<string>();
-    projects.forEach(p => cats.add(p.category));
+    safeProjects.forEach(p => { if (p.category) cats.add(p.category); });
     return ["all", ...Array.from(cats)] as (ProjectCategory | "all")[];
-  }, [projects]);
-  
+  }, [safeProjects]);
+
   const filteredAndSorted = useMemo(() => {
-    let result = projects.filter(p => {
-      const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.tagline.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    let result = safeProjects.filter(p => {
+      const haystack = `${p.name || ""} ${p.tagline || ""}`.toLowerCase();
+      const matchSearch = haystack.includes(q);
       const matchStatus = statusFilter === "all" || p.status === statusFilter;
       const matchCategory = categoryFilter === "all" || p.category === categoryFilter;
       return matchSearch && matchStatus && matchCategory;
     });
-    
+
+    const time = (v?: string) => {
+      const t = v ? new Date(v).getTime() : 0;
+      return Number.isFinite(t) ? t : 0;
+    };
+
     result.sort((a, b) => {
       switch (sortMode) {
-        case "newest": return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case "oldest": return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        case "recently-updated": return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
-        case "alphabetical": return a.name.localeCompare(b.name);
+        case "newest": return time(b.createdAt) - time(a.createdAt);
+        case "oldest": return time(a.createdAt) - time(b.createdAt);
+        case "recently-updated": return time(b.lastUpdated) - time(a.lastUpdated);
+        case "alphabetical": return (a.name || "").localeCompare(b.name || "");
         case "most-viewed": return (b.views || 0) - (a.views || 0);
         case "popularity": return (b.stars || 0) - (a.stars || 0);
         default: return 0;
       }
     });
-    
+
     return result;
-  }, [projects, search, statusFilter, categoryFilter, sortMode]);
+  }, [safeProjects, search, statusFilter, categoryFilter, sortMode]);
 
   const projectsPageCMS = cms.projectsPage || {
     badgeText: "FEATURED PRODUCTS",

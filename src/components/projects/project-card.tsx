@@ -66,7 +66,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                   "bg-rose-500": project.status === "archived",
                 })}
               />
-              <span className="text-[11px] font-semibold text-text-primary capitalize">{project.status.replace("-", " ")}</span>
+              <span className="text-[11px] font-semibold text-text-primary capitalize">{(project.status || "").replace("-", " ")}</span>
             </div>
 
             {project.version && (

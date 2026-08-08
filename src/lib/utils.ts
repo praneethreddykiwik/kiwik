@@ -17,9 +17,13 @@ export function formatDate(dateString: string): string {
   });
 }
 
-export function relativeTime(dateString: string): string {
+export function relativeTime(dateString?: string | null): string {
+  // Dates come from admin-authored records and can be absent or malformed;
+  // returning a placeholder keeps a bad value from throwing mid-render.
+  if (!dateString) return "—";
   const now = new Date();
   const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "—";
   const diff = now.getTime() - date.getTime();
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);

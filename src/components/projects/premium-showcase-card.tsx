@@ -101,7 +101,7 @@ export function PremiumShowcaseCard({ project }: PremiumShowcaseCardProps) {
     mouseY.set(0);
   };
 
-  const categoryKey = project.category.toLowerCase();
+  const categoryKey = (project.category || "").toLowerCase();
   const style = CATEGORY_STYLES[categoryKey] || DEFAULT_STYLE;
 
   const getCategoryIcon = (cat: string) => {
@@ -172,7 +172,7 @@ export function PremiumShowcaseCard({ project }: PremiumShowcaseCardProps) {
                   <span className={cn("relative inline-flex rounded-full h-2 w-2", style.pulseColor)} />
                 </span>
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#18181B] dark:text-white/90">
-                  {project.status.replace("-", " ")}
+                  {(project.status || "").replace("-", " ")}
                 </span>
               </div>
 

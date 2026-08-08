@@ -97,8 +97,13 @@ export function AppleCoverflowCarousel() {
     }
   };
 
+  // Both guards matter: the list is empty on first paint before the store
+  // hydrates, and a project authored in the admin studio may have no category.
   const activeProject = displayProjects[activeIndex];
-  const colorStyle = CATEGORY_COLORS[activeProject.category.toLowerCase()] || DEFAULT_COLOR;
+  const colorStyle =
+    CATEGORY_COLORS[(activeProject?.category || "").toLowerCase()] || DEFAULT_COLOR;
+
+  if (displayProjects.length === 0) return null;
 
   return (
     <div
@@ -159,8 +164,24 @@ export function AppleCoverflowCarousel() {
                 {/* Background Specular Grid */}
                 <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.04] pointer-events-none" />
 
+                {/* A project's own screenshot is the best visual it has, so it
+                    wins whenever one is set. The category mock-ups below are the
+                    fallback for entries that have no cover art yet. */}
+                {project.coverImage && (
+                  <div className="absolute inset-0">
+                    <img
+                      src={project.coverImage}
+                      alt={project.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0E1017] via-[#0E1017]/20 to-transparent" />
+                  </div>
+                )}
+
                 {/* Visual Variant per Category */}
-                {project.category.toLowerCase() === "ai" && (
+                {!project.coverImage && (project.category || "").toLowerCase() === "ai" && (
                   <div className="relative w-full h-full flex items-center justify-center">
                     <div className="w-44 h-44 sm:w-60 sm:h-60 rounded-full bg-gradient-to-tr from-purple-600 via-rose-600 to-amber-500 opacity-80 blur-xl" />
                     <div className="absolute w-36 h-36 sm:w-48 sm:h-48 rounded-full bg-gradient-to-br from-purple-500 via-rose-500 to-amber-400 shadow-[0_0_80px_rgba(168,85,247,0.6)] flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
@@ -178,7 +199,7 @@ export function AppleCoverflowCarousel() {
                   </div>
                 )}
 
-                {project.category.toLowerCase() === "cloud" && (
+                {!project.coverImage && (project.category || "").toLowerCase() === "cloud" && (
                   <div className="relative w-full h-full flex items-center justify-center">
                     <div className="absolute inset-0 bg-gradient-to-tr from-blue-950 via-slate-900 to-slate-950 opacity-90" />
                     <div className="w-52 h-52 rounded-3xl bg-gradient-to-br from-blue-600/30 to-indigo-900/40 border border-blue-500/20 rotate-12" />
@@ -197,7 +218,7 @@ export function AppleCoverflowCarousel() {
                   </div>
                 )}
 
-                {project.category.toLowerCase() === "payments" && (
+                {!project.coverImage && (project.category || "").toLowerCase() === "payments" && (
                   <div className="relative w-full h-full flex items-center justify-center p-4">
                     <div className="w-full h-full p-5 rounded-2xl bg-[#090A0F] border border-white/15 flex flex-col justify-between">
                       <div className="flex items-center justify-between pb-3 border-b border-white/10">
@@ -220,7 +241,7 @@ export function AppleCoverflowCarousel() {
                   </div>
                 )}
 
-                {project.category.toLowerCase() !== "ai" && project.category.toLowerCase() !== "cloud" && project.category.toLowerCase() !== "payments" && (
+                {!project.coverImage && (project.category || "").toLowerCase() !== "ai" && (project.category || "").toLowerCase() !== "cloud" && (project.category || "").toLowerCase() !== "payments" && (
                   <div className="relative w-full h-full flex items-center justify-center p-4">
                     <div className="w-full h-full p-5 rounded-2xl bg-[#0B0C10] border border-white/15 font-mono text-xs text-white/80 flex flex-col justify-between">
                       <div className="flex items-center gap-2 pb-2 border-b border-white/10 text-white/40">
@@ -247,7 +268,7 @@ export function AppleCoverflowCarousel() {
                   {/* Status & Category Badge */}
                   <div className="flex items-center gap-2">
                     <span className={cn("text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border", colorStyle.badge)}>
-                      ● {project.status.replace("-", " ")}
+                      ● {(project.status || "").replace("-", " ")}
                     </span>
                     <span className="text-xs font-mono uppercase tracking-wider text-white/40">
                       {project.category}

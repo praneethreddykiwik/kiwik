@@ -143,20 +143,27 @@ export default function HomePage() {
                   {earthShowcase.description || "Kiwik connects the edge telemetry, managed node clusters, and database replication pipelines on every cloud stack you operate."}
                 </p>
                 <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
-                  {earthShowcase.cta1Text && (
-                    <a 
-                      href={
-                        earthShowcase.cta1Href && earthShowcase.cta1Href !== "/docs"
-                          ? earthShowcase.cta1Href
-                          : "mailto:praneeth@kiwik.one?subject=Book%20a%20Demo%20-%20Kiwik%20Platform&body=Hi%20Praneeth%2C%0A%0AI%20would%20like%20to%20book%20a%20demo%20for%20the%20Kiwik%20platform.%0A%0ACompany%2FTeam%3A%20%0APreferred%20Time%3A%20%0A%0AThanks!"
-                      } 
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-6 py-2.5 rounded-full bg-white text-black font-sans font-bold text-xs hover:bg-neutral-200 transition-colors shadow-lg cursor-pointer"
-                    >
-                      {earthShowcase.cta1Text}
-                    </a>
-                  )}
+                  {earthShowcase.cta1Text && (() => {
+                    const demoMailto =
+                      "mailto:praneeth@kiwik.one?subject=Book%20a%20Demo%20-%20Kiwik%20Platform&body=Hi%20Praneeth%2C%0A%0AI%20would%20like%20to%20book%20a%20demo%20for%20the%20Kiwik%20platform.%0A%0ACompany%2FTeam%3A%20%0APreferred%20Time%3A%20%0A%0AThanks!";
+                    const href =
+                      earthShowcase.cta1Href && earthShowcase.cta1Href !== "/docs"
+                        ? earthShowcase.cta1Href
+                        : demoMailto;
+                    // `target="_blank"` on a mailto: opens an empty tab that never
+                    // hands off to the mail client — the link looks dead. Only
+                    // http(s) destinations get a new tab.
+                    const isExternal = /^https?:\/\//i.test(href);
+                    return (
+                      <a
+                        href={href}
+                        {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className="px-6 py-2.5 rounded-full bg-white text-black font-sans font-bold text-xs hover:bg-neutral-200 transition-colors shadow-lg cursor-pointer"
+                      >
+                        {earthShowcase.cta1Text}
+                      </a>
+                    );
+                  })()}
                   {earthShowcase.cta2Text && (
                     <Link 
                       href={earthShowcase.cta2Href || "/projects"} 
