@@ -235,8 +235,8 @@ export function AIChatbot() {
 
     // 5. Handle direct substring scans for projects (highest priority match)
     const directMatch = projects.find(p => {
-      const pName = p.name.toLowerCase();
-      const pSlug = p.slug.toLowerCase();
+      const pName = (p.name || "").toLowerCase();
+      const pSlug = (p.slug || "").toLowerCase();
       // Compare without spaces/dots/dashes
       const cleanPName = pName.replace(/[\.\-\s]/g, "");
       const cleanPSlug = pSlug.replace(/[\.\-\s]/g, "");

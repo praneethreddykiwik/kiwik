@@ -79,7 +79,7 @@ import {
   Laptop
 } from "lucide-react";
 
-import { useProjectsStore, useProjects } from "@/stores/projects-store";
+import { useProjectsStore, useProjects, SYNC_ERROR_EVENT } from "@/stores/projects-store";
 import { useProductsStore, useProducts } from "@/stores/products-store";
 import type { PartnerProduct } from "@/types/partner";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
@@ -551,6 +551,20 @@ export default function AdminPage() {
 
   // Toast Notification State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Surface store-level sync failures. Saves and deletes are fired from the
+  // Zustand stores, not from this component, so without this a rejected write
+  // (expired session, database down) would only ever reach the console — the
+  // studio would keep showing the edit as though it had been stored.
+  useEffect(() => {
+    const onSyncError = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setToastMessage(`⚠️ ${typeof detail === "string" ? detail : "Change was not saved."}`);
+      setTimeout(() => setToastMessage(null), 6000);
+    };
+    window.addEventListener(SYNC_ERROR_EVENT, onSyncError);
+    return () => window.removeEventListener(SYNC_ERROR_EVENT, onSyncError);
+  }, []);
   const showToast = (msg: string, detail?: string) => {
     const fullMsg = detail ? `${msg}: ${detail}` : msg;
     setToastMessage(fullMsg);
@@ -649,8 +663,8 @@ export default function AdminPage() {
 
   const filteredProjects = projects.filter((p) => {
     const matchesSearch =
-      p.name.toLowerCase().includes(projectSearch.toLowerCase()) ||
-      p.slug.toLowerCase().includes(projectSearch.toLowerCase());
+      (p.name || "").toLowerCase().includes(projectSearch.toLowerCase()) ||
+      (p.slug || "").toLowerCase().includes(projectSearch.toLowerCase());
     const matchesStatus =
       projectStatusFilter === "all" || p.status === projectStatusFilter;
     return matchesSearch && matchesStatus;
@@ -4911,9 +4925,9 @@ export default function AdminPage() {
                       {projects
                         .filter((p) => {
                           const matchesSearch =
-                            p.name.toLowerCase().includes(projectSearchQuery.toLowerCase()) ||
-                            p.tagline.toLowerCase().includes(projectSearchQuery.toLowerCase()) ||
-                            p.slug.toLowerCase().includes(projectSearchQuery.toLowerCase());
+                            (p.name || "").toLowerCase().includes(projectSearchQuery.toLowerCase()) ||
+                            (p.tagline || "").toLowerCase().includes(projectSearchQuery.toLowerCase()) ||
+                            (p.slug || "").toLowerCase().includes(projectSearchQuery.toLowerCase());
                           const matchesCategory = projectCategoryFilter === "all" || p.category === projectCategoryFilter;
                           return matchesSearch && matchesCategory;
                         })

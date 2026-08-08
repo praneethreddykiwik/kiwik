@@ -104,8 +104,11 @@ export function PremiumShowcaseCard({ project }: PremiumShowcaseCardProps) {
   const categoryKey = (project.category || "").toLowerCase();
   const style = CATEGORY_STYLES[categoryKey] || DEFAULT_STYLE;
 
-  const getCategoryIcon = (cat: string) => {
-    switch (cat.toLowerCase()) {
+  // `cat` is passed straight from project.category, which is optional on
+  // admin-authored records — calling .toLowerCase() on an absent one threw here
+  // and took the whole projects page down via the error boundary.
+  const getCategoryIcon = (cat?: string) => {
+    switch ((cat || "").toLowerCase()) {
       case "ai": return <Cpu className="w-5 h-5 text-purple-600 dark:text-purple-400" />;
       case "cloud": return <Cloud className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
       case "payments": return <CreditCard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />;

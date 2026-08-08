@@ -20,30 +20,63 @@ const categoryFallbacks: Record<string, string> = {
 };
 
 // Async DB Sync Helpers
+//
+// `fetch` only rejects on a network-level failure, so an HTTP 401 (expired
+// admin session) or 503 (database down) used to pass through unnoticed here.
+// The local store had already been mutated, so a delete looked like it worked
+// while the row survived in the database and reappeared on the next sync —
+// which is exactly why deleted projects kept coming back. Every response is
+// now inspected, and a failure is announced so the studio can surface it.
+export const SYNC_ERROR_EVENT = "kiwik-sync-error";
+
+function reportSyncFailure(action: string, detail: string) {
+  const message = `${action} failed — ${detail}`;
+  console.error(`[kiwik] ${message}`);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(SYNC_ERROR_EVENT, { detail: message }));
+  }
+}
+
+async function describeFailure(res: Response): Promise<string> {
+  if (res.status === 401) return "your admin session expired, sign in again";
+  const body = await res.json().catch(() => ({} as any));
+  return body?.error || `HTTP ${res.status}`;
+}
+
 async function syncProjectToDb(project: Project) {
   try {
-    await fetch("/api/projects", {
+    const res = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(project),
     });
+    if (!res.ok) {
+      reportSyncFailure(`Saving "${project.name}"`, await describeFailure(res));
+      return;
+    }
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("kiwik-data-updated"));
     }
   } catch (err) {
+    reportSyncFailure(`Saving "${project.name}"`, "network error");
     console.error("Failed to sync project to DB:", err);
   }
 }
 
 async function deleteProjectFromDb(id: string) {
   try {
-    await fetch(`/api/projects?id=${encodeURIComponent(id)}`, {
+    const res = await fetch(`/api/projects?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
+    if (!res.ok) {
+      reportSyncFailure("Deleting the project", await describeFailure(res));
+      return;
+    }
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("kiwik-data-updated"));
     }
   } catch (err) {
+    reportSyncFailure("Deleting the project", "network error");
     console.error("Failed to delete project from DB:", err);
   }
 }

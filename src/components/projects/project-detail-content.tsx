@@ -188,7 +188,7 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
                   <img src={project.logo} alt={project.name} className="w-12 h-12 rounded-xl object-cover border border-white/10" />
                 ) : (
                   <div className="w-12 h-12 rounded-xl bg-accent-blue/20 flex items-center justify-center text-accent-blue font-bold text-lg">
-                    {project.name.charAt(0)}
+                    {(project.name || "?").charAt(0)}
                   </div>
                 )}
                 <div>

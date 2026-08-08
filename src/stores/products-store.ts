@@ -10,28 +10,57 @@ import { useEffect, useState } from "react";
 import type { PartnerProduct } from "@/types/partner";
 import { partnerProducts as defaultProducts } from "@/data/partner-products";
 
+// See the note in projects-store: a non-2xx response here is not a thrown
+// error, so an expired session or an unreachable database silently discarded
+// the write while the local store carried on as if it had succeeded.
+import { SYNC_ERROR_EVENT } from "@/stores/projects-store";
+
+function reportSyncFailure(action: string, detail: string) {
+  const message = `${action} failed — ${detail}`;
+  console.error(`[kiwik] ${message}`);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(SYNC_ERROR_EVENT, { detail: message }));
+  }
+}
+
+async function describeFailure(res: Response): Promise<string> {
+  if (res.status === 401) return "your admin session expired, sign in again";
+  const body = await res.json().catch(() => ({} as any));
+  return body?.error || `HTTP ${res.status}`;
+}
+
 async function syncProductToDb(product: PartnerProduct) {
   try {
-    await fetch("/api/products", {
+    const res = await fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
     });
+    if (!res.ok) {
+      reportSyncFailure(`Saving "${product.name}"`, await describeFailure(res));
+      return;
+    }
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("kiwik-data-updated"));
     }
   } catch (err) {
+    reportSyncFailure(`Saving "${product.name}"`, "network error");
     console.error("Failed to sync product to DB:", err);
   }
 }
 
 async function deleteProductFromDb(id: string) {
   try {
-    await fetch(`/api/products?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    const res = await fetch(`/api/products?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (!res.ok) {
+      reportSyncFailure("Deleting the product", await describeFailure(res));
+      return;
+    }
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("kiwik-data-updated"));
     }
   } catch (err) {
+    reportSyncFailure("Deleting the product", "network error");
     console.error("Failed to delete product from DB:", err);
   }
 }
