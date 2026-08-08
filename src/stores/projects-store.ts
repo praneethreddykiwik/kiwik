@@ -152,12 +152,12 @@ export function useProjects() {
   useEffect(() => {
     setHasHydrated(true);
 
-    const POLL_MS = 30000;
+    const POLL_MS = 3000;
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     const schedule = (delay: number) => {
-      if (timer) clearTimeout(delay);
+      if (timer) clearTimeout(timer);
       timer = setTimeout(tick, delay);
     };
 
@@ -167,19 +167,18 @@ export function useProjects() {
         schedule(POLL_MS);
         return;
       }
-      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
-        schedule(POLL_MS);
-        return;
-      }
       try {
-        const res = await fetch("/api/projects");
+        const res = await fetch("/api/projects", {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache, no-store, must-revalidate" }
+        });
         const data = await res.json();
         if (data.status === "ok" && Array.isArray(data.projects) && data.projects.length > 0) {
           setProjects(data.projects);
         }
-        schedule(data.fallback ? POLL_MS * 10 : POLL_MS);
+        schedule(POLL_MS);
       } catch {
-        schedule(POLL_MS * 4);
+        schedule(POLL_MS);
       }
     }
 
@@ -190,9 +189,22 @@ export function useProjects() {
     window.addEventListener("kiwik-data-updated", handleSync);
     document.addEventListener("visibilitychange", handleSync);
 
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("kiwik-global-sync");
+        bc.onmessage = (msg) => {
+          if (msg.data === "kiwik-data-updated") tick();
+        };
+      } catch {
+        /* ignore */
+      }
+    }
+
     return () => {
       stopped = true;
       if (timer) clearTimeout(timer);
+      if (bc) bc.close();
       window.removeEventListener("focus", handleSync);
       window.removeEventListener("kiwik-data-updated", handleSync);
       document.removeEventListener("visibilitychange", handleSync);

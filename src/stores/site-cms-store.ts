@@ -1501,7 +1501,8 @@ export function useSiteCMS() {
     // visibility-gated to protect the Neon data-transfer quota (a 5s poll on
     // every open tab is what exhausts a free-tier plan). Backs off hard when
     // the API reports a DB fallback (offline / over quota).
-    const POLL_MS = 30000;
+    // Fast 3-second cadence for instant cross-device and cross-profile sync.
+    const POLL_MS = 3000;
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -1522,12 +1523,15 @@ export function useSiteCMS() {
         return;
       }
       try {
-        const res = await fetch("/api/cms");
+        const res = await fetch("/api/cms", {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache, no-store, must-revalidate" }
+        });
         const data = await res.json();
         if (data.status === "ok" && data.cms) setCMS(data.cms);
-        schedule(data.fallback ? POLL_MS * 10 : POLL_MS);
+        schedule(POLL_MS);
       } catch {
-        schedule(POLL_MS * 4);
+        schedule(POLL_MS);
       }
     }
 
@@ -1538,9 +1542,23 @@ export function useSiteCMS() {
     window.addEventListener("kiwik-data-updated", handleSync);
     document.addEventListener("visibilitychange", handleSync);
 
+    // Cross-tab BroadcastChannel listener for 0ms instant sync across browser tabs
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("kiwik-global-sync");
+        bc.onmessage = (msg) => {
+          if (msg.data === "kiwik-data-updated") tick();
+        };
+      } catch {
+        /* ignore */
+      }
+    }
+
     return () => {
       stopped = true;
       if (timer) clearTimeout(timer);
+      if (bc) bc.close();
       window.removeEventListener("focus", handleSync);
       window.removeEventListener("kiwik-data-updated", handleSync);
       document.removeEventListener("visibilitychange", handleSync);

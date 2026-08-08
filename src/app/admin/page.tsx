@@ -299,9 +299,16 @@ export default function AdminPage() {
         ...currentProducts.map((prod) => postJSON("/api/products", prod))
       ]);
 
-      // 4. Trigger instant real-time data update across open tabs
+      // 4. Trigger instant real-time data update across open tabs & windows
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("kiwik-data-updated"));
+        try {
+          const bc = new BroadcastChannel("kiwik-global-sync");
+          bc.postMessage("kiwik-data-updated");
+          bc.close();
+        } catch {
+          /* ignore */
+        }
       }
 
       // 5. Create a snapshot in store

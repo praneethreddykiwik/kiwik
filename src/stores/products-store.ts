@@ -95,12 +95,12 @@ export function useProducts() {
   useEffect(() => {
     setHasHydrated(true);
 
-    const POLL_MS = 30000;
+    const POLL_MS = 3000;
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     const schedule = (delay: number) => {
-      if (timer) clearTimeout(delay);
+      if (timer) clearTimeout(timer);
       timer = setTimeout(tick, delay);
     };
 
@@ -115,14 +115,17 @@ export function useProducts() {
         return;
       }
       try {
-        const res = await fetch("/api/products");
+        const res = await fetch("/api/products", {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache, no-store, must-revalidate" }
+        });
         const data = await res.json();
         if (data.status === "ok" && Array.isArray(data.products) && data.products.length > 0) {
           setProducts(data.products);
         }
-        schedule(data.fallback ? POLL_MS * 10 : POLL_MS);
+        schedule(POLL_MS);
       } catch {
-        schedule(POLL_MS * 4);
+        schedule(POLL_MS);
       }
     }
 
@@ -133,9 +136,22 @@ export function useProducts() {
     window.addEventListener("kiwik-data-updated", handleSync);
     document.addEventListener("visibilitychange", handleSync);
 
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("kiwik-global-sync");
+        bc.onmessage = (msg) => {
+          if (msg.data === "kiwik-data-updated") tick();
+        };
+      } catch {
+        /* ignore */
+      }
+    }
+
     return () => {
       stopped = true;
       if (timer) clearTimeout(timer);
+      if (bc) bc.close();
       window.removeEventListener("focus", handleSync);
       window.removeEventListener("kiwik-data-updated", handleSync);
       document.removeEventListener("visibilitychange", handleSync);
