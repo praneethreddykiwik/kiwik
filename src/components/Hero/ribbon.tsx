@@ -127,6 +127,16 @@ export function ImageRibbon() {
     let isVisible = true;
     let lastTime = performance.now();
 
+    // Card width/height used to be written on every card on every frame. Those
+    // properties dirty layout, which turned an otherwise composited animation
+    // into a layout pass per frame. The size is now a plain responsive class on
+    // the element (see the `sm:` sizes below) and the frame loop touches nothing
+    // but `transform`, `opacity` and `z-index` — all composited.
+    const mobileQuery = window.matchMedia("(max-width: 639px)");
+    let isMobile = mobileQuery.matches;
+    const onBreakpoint = (e: MediaQueryListEvent) => { isMobile = e.matches; };
+    mobileQuery.addEventListener("change", onBreakpoint);
+
     const updateEmitter = (now: number) => {
       // Pause all work when the hero is scrolled out of view so scrolling the
       // rest of the page stays smooth (the loop restarts when it re-enters view).
@@ -139,11 +149,7 @@ export function ImageRibbon() {
       const maxScale = hero?.galleryScale !== undefined ? hero.galleryScale : 1.35;
       const baseOpacity = hero?.galleryOpacity !== undefined ? hero.galleryOpacity : 0.95;
 
-      const windowWidth = typeof window !== "undefined" ? window.innerWidth : 1200;
-      const isMobile = windowWidth < 640;
       const maxDistancePx = isMobile ? 220 : 820;
-      const cardWidth = isMobile ? 150 : 260;
-      const cardHeight = isMobile ? 185 : 320;
 
       const cards = cardsDataRef.current;
 
@@ -184,8 +190,6 @@ export function ImageRibbon() {
 
         const el = cardElementRefs.current[i];
         if (el) {
-          el.style.width = `${cardWidth}px`;
-          el.style.height = `${cardHeight}px`;
           el.style.transform = `translate3d(calc(-50% + ${translateX.toFixed(1)}px), -50%, 0px) scale(${scale.toFixed(3)}) rotate(${card.rotation.toFixed(1)}deg)`;
           el.style.zIndex = `${zIndex}`;
           el.style.opacity = `${opacity.toFixed(2)}`;
@@ -195,8 +199,18 @@ export function ImageRibbon() {
       animId = requestAnimationFrame(updateEmitter);
     };
 
+    // `will-change` permanently promotes each card to its own compositor layer.
+    // 24 of them is a lot of GPU memory to hold while the hero is off-screen, so
+    // the hint is only set while the loop is actually running.
+    const setWillChange = (value: string) => {
+      for (const el of cardElementRefs.current) {
+        if (el) el.style.willChange = value;
+      }
+    };
+
     const start = () => {
       if (animId == null) {
+        setWillChange("transform, opacity");
         lastTime = performance.now();
         animId = requestAnimationFrame(updateEmitter);
       }
@@ -206,6 +220,7 @@ export function ImageRibbon() {
         cancelAnimationFrame(animId);
         animId = null;
       }
+      setWillChange("auto");
     };
 
     // Only animate while on-screen and the tab is visible.
@@ -230,6 +245,7 @@ export function ImageRibbon() {
     return () => {
       stop();
       io.disconnect();
+      mobileQuery.removeEventListener("change", onBreakpoint);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [hero?.gallerySpeed, hero?.galleryPerspective, hero?.galleryScale, hero?.galleryOpacity]);
@@ -253,9 +269,8 @@ export function ImageRibbon() {
               top: "50%",
               transform: "translate3d(-50%, -50%, 0px) scale(0.3)",
               transformOrigin: "center center",
-              willChange: "transform, opacity",
             }}
-            className="group block overflow-hidden rounded-[16px] sm:rounded-[20px] bg-bg-secondary border border-glass-border transition-colors duration-300 transform-gpu shadow-xl cursor-pointer"
+            className="group block w-[150px] h-[185px] sm:w-[260px] sm:h-[320px] overflow-hidden rounded-[16px] sm:rounded-[20px] bg-bg-secondary border border-glass-border transition-colors duration-300 transform-gpu shadow-xl cursor-pointer"
           >
             <img
               ref={(el) => { imageElementRefs.current[idx] = el; }}

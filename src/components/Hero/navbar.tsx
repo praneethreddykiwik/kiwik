@@ -16,7 +16,7 @@ export function HeroNavbar() {
     { id: "n-1", label: "Home", href: "/", order: 1, visible: true },
     { id: "n-2", label: "Explore Projects", href: "/projects", order: 2, visible: true },
     { id: "n-3", label: "Developer Documentation", href: "/docs", order: 3, visible: true },
-    { id: "n-4", label: "Admin CMS Console", href: "/admin", order: 4, visible: true }
+    { id: "n-4", label: "Digital Market Partner", href: "/partners", order: 4, visible: true }
   ];
 
   return (

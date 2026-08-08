@@ -21,11 +21,22 @@ export function Navbar() {
   const { mode } = useThemeStore();
 
   React.useEffect(() => {
+    // Passive (so the listener can never delay the scroll itself) and coalesced
+    // into one rAF, so `scrollY` is read at most once per frame instead of once
+    // per scroll event.
+    let frame: number | null = null;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 25);
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        setScrolled(window.scrollY > 25);
+      });
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const navItems = (navCMS.items || []).filter(item => item.visible !== false);
@@ -53,9 +64,14 @@ export function Navbar() {
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
           'pointer-events-auto w-[92%] max-w-[1500px] h-[54px] sm:h-[58px] rounded-full transition-all duration-400 border flex items-center justify-between px-3 sm:px-5 relative select-none',
-          scrolled 
-            ? 'scale-[0.99] bg-[#FAFAF8]/90 dark:bg-[#0A0C10]/90 backdrop-blur-[24px] backdrop-saturate-[180%] border-black/[0.08] dark:border-white/15 shadow-[0_16px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.7)]' 
-            : 'bg-[#FAFAF8]/85 dark:bg-[#0A0C10]/85 backdrop-blur-[20px] backdrop-saturate-[180%] border-black/[0.06] dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.5)]'
+          // The navbar is fixed above the scrolling page, so its backdrop-filter is
+          // re-rasterised on every scrolled frame — the one place where the blur
+          // radius is paid continuously. Trimmed to 12px and the extra
+          // `saturate()` pass dropped; at 85-90% background opacity the
+          // difference is not visible, the per-frame cost is.
+          scrolled
+            ? 'scale-[0.99] bg-[#FAFAF8]/90 dark:bg-[#0A0C10]/90 backdrop-blur-[12px] border-black/[0.08] dark:border-white/15 shadow-[0_16px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.7)]'
+            : 'bg-[#FAFAF8]/85 dark:bg-[#0A0C10]/85 backdrop-blur-[12px] border-black/[0.06] dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.5)]'
         )}
       >
         {/* ─────────────────────────────────────────────────────────────

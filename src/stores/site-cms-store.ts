@@ -27,6 +27,19 @@ import type {
   ArchitectureNodeCMS
 } from "@/types/site-cms-types";
 
+/**
+ * Bump this whenever the shipped navbar changes.
+ *
+ * The navbar is CMS-driven, and the CMS is persisted in two places that both
+ * outlive a deployment: `localStorage` in each visitor's browser, and the
+ * `site_cms` row in Postgres (the admin studio auto-saves the whole blob).
+ * Either copy can therefore hand an outdated navbar back to a browser running
+ * current code. Anything whose `schemaVersion` doesn't match is replaced with
+ * the defaults below; admin edits carry the current version forward and so are
+ * preserved. See `reconcileNavigation`.
+ */
+const NAV_SCHEMA_VERSION = 4;
+
 const defaultCMSData: SiteCMSData = {
   settings: {
     siteName: "Kiwik",
@@ -127,6 +140,7 @@ const defaultCMSData: SiteCMSData = {
     buttonLink: "/projects"
   },
   navigation: {
+    schemaVersion: NAV_SCHEMA_VERSION,
     logoText: "Kiwik.1",
     logoUrl: "/logo.png",
     items: [
@@ -618,6 +632,18 @@ const defaultCMSData: SiteCMSData = {
   }
 };
 
+/**
+ * Returns the navigation to actually render: the incoming one when it was
+ * saved by the current code, otherwise the current defaults. This is what
+ * stops a stale persisted/DB navbar from resurrecting removed entries.
+ */
+function reconcileNavigation(incoming: Partial<NavigationCMS> | undefined): NavigationCMS {
+  if (!incoming || incoming.schemaVersion !== NAV_SCHEMA_VERSION) {
+    return defaultCMSData.navigation;
+  }
+  return { ...defaultCMSData.navigation, ...incoming };
+}
+
 interface SiteCMSStoreState {
   cms: SiteCMSData;
 
@@ -711,7 +737,13 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
 
       setCMS: (newCMS) => {
         set((state) => ({
-          cms: { ...state.cms, ...newCMS }
+          cms: {
+            ...state.cms,
+            ...newCMS,
+            // The DB blob is the source of truth for editable content, but not
+            // for a navbar that shipped before the current build.
+            navigation: reconcileNavigation(newCMS?.navigation)
+          }
         }));
       },
 
@@ -1369,7 +1401,7 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
           settings: { ...defaultCMSData.settings, ...(persistedState?.cms?.settings || {}) },
           hero: { ...defaultCMSData.hero, ...(persistedState?.cms?.hero || {}) },
           promptBar: { ...defaultCMSData.promptBar, ...(persistedState?.cms?.promptBar || {}) },
-          navigation: { ...defaultCMSData.navigation, ...(persistedState?.cms?.navigation || {}) },
+          navigation: reconcileNavigation(persistedState?.cms?.navigation),
           footer: { ...defaultCMSData.footer, ...(persistedState?.cms?.footer || {}) },
           featuredSection: { ...defaultCMSData.featuredSection, ...(persistedState?.cms?.featuredSection || {}) },
           capabilities: { ...defaultCMSData.capabilities, ...(persistedState?.cms?.capabilities || {}) },

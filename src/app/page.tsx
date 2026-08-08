@@ -117,8 +117,11 @@ export default function HomePage() {
         return (
           <section className="relative w-full overflow-hidden bg-[#050608] text-white py-28 sm:py-36 md:py-40 lg:py-44 px-6 md:px-12 border-t border-b border-white/[0.06] select-none">
             {/* Immersive Curved Earth Background */}
-            <div 
-              className="absolute inset-0 bg-cover bg-left md:bg-center mix-blend-screen pointer-events-none z-0 scale-[1.05]"
+            {/* No `mix-blend-screen`: on a backdrop this large (~1.2M px²) it forces
+                the whole section to re-blend while scrolling, and over the near-black
+                #050608 canvas below, screen and normal render the same. */}
+            <div
+              className="absolute inset-0 bg-cover bg-left md:bg-center pointer-events-none z-0 scale-[1.05]"
               style={{ 
                 backgroundImage: `url('${earthShowcase.earthImageUrl || "https://cdn.prod.website-files.com/68513e75563291f5d48ada9b/696df7aeb646a7a2198327de_36fa0c4d18a844367e1911df246f6613_earth.webp"}')`,
                 backgroundRepeat: "no-repeat",

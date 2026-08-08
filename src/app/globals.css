@@ -303,16 +303,27 @@ p {
    GLASSMORPHISM SYSTEM
    ═══════════════════════════════════════════════════════════════ */
 
+/* ── Backdrop-filter budget ──────────────────────────────────────
+   backdrop-filter is the most expensive effect on this page: every instance
+   in view has its backdrop snapshotted, blurred and recomposited on each
+   scrolled frame, and this site carries ~2x the viewport area of it. Cost
+   scales with the blur radius and with the number of filter functions, so the
+   radii below are kept modest and the extra `saturate()` pass is gone. The
+   panels sit on 75-85% opaque backgrounds, so the visible difference is
+   marginal while the compositor cost is not. */
+
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(10px) saturate(1.3);
-  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   position: relative;
   overflow: hidden;
   transform: translateZ(0);
   backface-visibility: hidden;
+  /* Confines style/layout/paint invalidation inside the panel. */
+  contain: paint;
 }
 
 .gpu-layer {
@@ -328,8 +339,8 @@ p {
 
 .vision-glass {
   background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px) saturate(1.4);
-  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.65);
   box-shadow: 
     0 8px 32px rgba(15, 23, 42, 0.04), 
@@ -340,6 +351,12 @@ p {
 
 [data-theme="dark"] .vision-glass {
   background: rgba(18, 26, 36, 0.85);
+  /* These panels are the largest backdrop-filter surfaces on the site (the
+     dashboard alone is ~624,000 px²) and in dark mode they sit at 85% opacity
+     on the flat --bg-primary canvas. Blurring a uniform backdrop returns that
+     same uniform colour, so the filter was pure cost for no pixels changed. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.35), 
@@ -373,8 +390,8 @@ p {
 
 .glass-elevated {
   background: var(--glass-bg);
-  backdrop-filter: blur(40px) saturate(1.8);
-  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--glass-border);
   box-shadow:
     var(--glass-shadow-lg),

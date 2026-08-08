@@ -87,6 +87,12 @@ export interface NavigationItem {
 }
 
 export interface NavigationCMS {
+  /**
+   * Bumped in code whenever the shipped navbar changes. Any persisted or
+   * database-stored navigation carrying an older value is discarded on load,
+   * so a stale cached navbar can never override the current one.
+   */
+  schemaVersion?: number;
   logoText: string;
   logoUrl: string;
   items: NavigationItem[];
