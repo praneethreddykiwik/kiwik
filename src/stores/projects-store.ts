@@ -167,6 +167,10 @@ export function useProjects() {
         schedule(POLL_MS);
         return;
       }
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+        schedule(POLL_MS);
+        return;
+      }
       try {
         const res = await fetch("/api/projects", {
           cache: "no-store",

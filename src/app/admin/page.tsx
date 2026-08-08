@@ -283,34 +283,53 @@ export default function AdminPage() {
     };
   }, []);
 
-  // Debounced global auto-save of CMS edits to Postgres (Neon/Supabase).
+  // Debounced global auto-save of CMS, Projects, and Products edits to Postgres (Supabase).
   useEffect(() => {
     if (!autoSaveArmedRef.current) return;
     const t = setTimeout(async () => {
       try {
-        const res = await fetch("/api/cms", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(useSiteCMSStore.getState().cms),
-        });
-        // A non-2xx here (401 session expired, 503 database down) is not a
-        // thrown error, so it has to be checked explicitly — otherwise the
-        // studio keeps accepting edits that are being silently dropped.
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          showToast(
-            res.status === 401
-              ? "⚠️ Session expired — your edits are NOT being saved. Sign in again."
-              : `⚠️ Auto-save failed — edits are NOT saved. ${data.error || `HTTP ${res.status}`}`
-          );
+        const currentCMS = useSiteCMSStore.getState().cms;
+        const currentProjects = useProjectsStore.getState().projects;
+        const currentProducts = useProductsStore.getState().products;
+
+        const postJSON = async (url: string, body: unknown) => {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          return res;
+        };
+
+        const results = await Promise.all([
+          postJSON("/api/cms", currentCMS),
+          ...currentProjects.map((p) => postJSON("/api/projects", p)),
+          ...currentProducts.map((prod) => postJSON("/api/products", prod))
+        ]);
+
+        const failed = results.find((res) => !res.ok);
+        if (failed) {
+          if (failed.status === 401) {
+            showToast("⚠️ Session expired — your edits are NOT being saved. Sign in again.");
+          }
+        } else {
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event("kiwik-data-updated"));
+            try {
+              const bc = new BroadcastChannel("kiwik-global-sync");
+              bc.postMessage("kiwik-data-updated");
+              bc.close();
+            } catch {
+              /* ignore */
+            }
+          }
         }
       } catch (err) {
-        console.error("CMS auto-save error:", err);
-        showToast("⚠️ Auto-save failed — edits are NOT saved (network error).");
+        console.error("Global auto-save error:", err);
       }
-    }, 1000);
+    }, 1200);
     return () => clearTimeout(t);
-  }, [liveCms]);
+  }, [liveCms, projects, partnerProductsList]);
 
   const handleSaveGlobalCMS = async () => {
     setIsSavingGlobal(true);
