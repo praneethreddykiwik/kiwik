@@ -110,6 +110,10 @@ export function useProducts() {
         schedule(POLL_MS);
         return;
       }
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+        schedule(POLL_MS);
+        return;
+      }
       try {
         const res = await fetch("/api/products");
         const data = await res.json();

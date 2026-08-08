@@ -1516,6 +1516,11 @@ export function useSiteCMS() {
         schedule(POLL_MS);
         return;
       }
+      // Never overwrite the active editing draft while the user is inside /admin
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+        schedule(POLL_MS);
+        return;
+      }
       try {
         const res = await fetch("/api/cms");
         const data = await res.json();
