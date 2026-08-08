@@ -65,7 +65,7 @@ export function AiRaycastPanel() {
     let welcome = "";
     switch (id) {
       case "summarize":
-        welcome = "🤖 Selected: Summarize Project. Ask me about any of our 6 projects (Kiwik.1, CriskaAI, CriskaCloud, CriskaPay, CriskaOS, CriskaBot) to compile a summary.";
+        welcome = "🤖 Selected: Summarize Project. Ask me about any published Kiwik project to compile a summary.";
         break;
       case "find_doc":
         welcome = "🤖 Selected: Find Documentation. Ask about technical features (e.g. Next.js, Prisma, Tailwind version, or rules) to query manual logs.";
@@ -118,22 +118,45 @@ export function AiRaycastPanel() {
         let reply = "";
         const lower = userText.toLowerCase();
 
+        // Answers are derived from the live projects list. These branches used
+        // to return hardcoded summaries for CriskaAI, CriskaCloud, CriskaPay,
+        // CriskaOS, CriskaBot and Kiwik.1 — none of which exist any more — with
+        // invented versions and telemetry. Because the LLM route was failing,
+        // this fallback was what visitors actually saw.
+        const names = projects.map((p) => p.name).filter(Boolean);
+        const match = projects.find(
+          (p) =>
+            (p.name && lower.includes(p.name.toLowerCase())) ||
+            (p.slug && lower.includes(p.slug.toLowerCase()))
+        );
+
         if (activeAction === "summarize" || lower.includes("project") || lower.includes("summar")) {
-          if (lower.includes("criskaai") || lower.includes("criska ai")) {
-            reply = "🤖 **CriskaAI Summary**:\n- **Status**: Completed (100%)\n- **Version**: v2.3.1\n- **Stack**: Next.js, Python, Tailwind\n- **Use**: State-of-the-art AI assistant orchestrator resolving file context queries.";
-          } else if (lower.includes("criskacloud") || lower.includes("criska cloud")) {
-            reply = "🤖 **CriskaCloud Summary**:\n- **Status**: Completed (100%)\n- **Version**: v3.0.0\n- **Stack**: Next.js, Prisma, Vercel Edge\n- **Use**: Managed serverless workflow execution engine and telemetry collector.";
-          } else if (lower.includes("kiwik")) {
-            reply = "🤖 **Kiwik.1 Summary**:\n- **Status**: Active Beta\n- **Version**: v1.0.0\n- **Stack**: Next.js 16, Framer Motion, Tailwind v4\n- **Use**: Frosted Glassmorphism digital control deck for all Kiwik projects.";
+          if (match) {
+            const stack = (match.techStack || []).map((t: any) => t?.name).filter(Boolean).slice(0, 6);
+            reply =
+              `🤖 **${match.name} Summary**:\n` +
+              `- **Status**: ${(match.status || "unknown").replace("-", " ")} (${match.completionPercent ?? 0}% complete)\n` +
+              (match.version ? `- **Version**: ${match.version}\n` : "") +
+              (stack.length ? `- **Stack**: ${stack.join(", ")}\n` : "") +
+              (match.tagline ? `- **Use**: ${match.tagline}` : "");
+          } else if (names.length) {
+            reply = `🤖 I can compile summaries for ${names.join(", ")}. Which one would you like to explore?`;
           } else {
-            reply = "🤖 I can compile project summaries for Kiwik.1, CriskaAI, CriskaCloud, CriskaPay, CriskaOS, and CriskaBot. Which one would you like to explore?";
+            reply = "🤖 No projects are published yet.";
           }
         } else if (activeAction === "health" || lower.includes("deploy") || lower.includes("health") || lower.includes("latency")) {
-          reply = "🤖 **System Telemetry Logs**:\n- **Uptime**: 99.99%\n- **Average Latency**: 14ms (Frankfurt/Singapore Edge)\n- **Active CDN nodes**: 47 active serverless aliases. All routes report 100% cache execution.";
-        } else if (lower.includes("people") || lower.includes("team") || lower.includes("worked")) {
-          reply = "🤖 **Kiwik Dev Team**:\n- **Lead Architect**: Vivek Shaganti (Lead Product & Motion Designer)\n- **Scope**: Next.js client engineering, custom glass styling, and Firestore security configurations.";
+          const live = projects.filter((p) => p.deploymentStatus === "live").length;
+          reply =
+            `🤖 **Deployment status**:\n- **Projects tracked**: ${projects.length}\n` +
+            `- **Live deployments**: ${live}\n` +
+            `- **Detail**: open any project for its live and source links.`;
         } else if (lower.includes("tech") || lower.includes("stack") || lower.includes("database")) {
-          reply = "🤖 **Kiwik.1 Tech Stack**:\n- **Frontend**: Next.js 16, React 19, Tailwind CSS v4\n- **Motion**: Framer Motion spring physics\n- **Database**: Cloud Firestore, Prisma ORM, PostgreSQL\n- **Deploy**: Vercel Serverless Edge";
+          const allStack = Array.from(
+            new Set(projects.flatMap((p) => (p.techStack || []).map((t: any) => t?.name)).filter(Boolean))
+          ).slice(0, 12);
+          reply = allStack.length
+            ? `🤖 **Stack across Kiwik projects**:\n- ${allStack.join("\n- ")}`
+            : "🤖 No stack information is published yet.";
         } else {
           reply = `🤖 Chatbot context active under [${activeActionLabel}]. Ask about project metrics, team credentials, or technical documentation parameters!`;
         }

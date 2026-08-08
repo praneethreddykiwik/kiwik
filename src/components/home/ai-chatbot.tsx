@@ -269,7 +269,7 @@ export function AIChatbot() {
         text = `Here is a summary of the **README.md** documentation for **${matched.name}**:\n\n* **Description**: ${matched.description}\n* **Key Stack**: ${(matched.techStack || []).slice(0, 5).map((t: any) => t.name).join(", ")}\n* **Details**: Check out the full markdown tab on its detail page below!`;
         return { text, matchedProjects: [matched] };
       } else {
-        text = "Which project's README would you like to explore? (e.g. CriskaAI, CriskaCloud, CriskaPay)";
+        text = `Which project's README would you like to explore?${projects.length ? ` (e.g. ${projects.slice(0, 3).map(p => p.name).join(", ")})` : ""}`;
         return { text, matchedProjects };
       }
     }
@@ -295,7 +295,7 @@ export function AIChatbot() {
 
     // Fallbacks
     if (query.includes("hello") || query.includes("hi ") || query.includes("hey")) {
-      text = "Hi there! Welcome to Kiwik.1. Ask me about our projects (like CriskaAI, CriskaCloud), tech stack, or edge latency stats!";
+      text = `Hi there! Welcome to Kiwik.1. Ask me about our projects${projects.length ? ` (like ${projects.slice(0, 2).map(p => p.name).join(", ")})` : ""}, their tech stack, or the partner showcase at /partners.`;
     } else {
       text = `I'm here to help you navigate our ecosystems! I'm indexing **${projects.length} Kiwik projects**: ${projects.map(p => p.name).join(", ")}. Ask me about their tech stacks, README files, or team members!`;
     }
