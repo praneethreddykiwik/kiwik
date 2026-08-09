@@ -25,12 +25,10 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
 
     // Butter-smooth 60fps/120fps cinematic smooth scrolling
     const lenis = new Lenis({
-      lerp: 0.12,
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.16,
       smoothWheel: true,
-      wheelMultiplier: 0.9,
-      touchMultiplier: 1.2,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.0,
       infinite: false,
     });
 

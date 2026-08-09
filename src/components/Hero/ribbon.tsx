@@ -211,7 +211,7 @@ export function ImageRibbon() {
 
         const el = cardElementRefs.current[i];
         if (el) {
-          el.style.transform = `translate3d(calc(-50% + ${translateX.toFixed(1)}px), -50%, 0px) scale(${scale.toFixed(3)}) rotate(${card.rotation.toFixed(1)}deg)`;
+          el.style.transform = `translate3d(-50%, -50%, 0px) translate3d(${translateX.toFixed(1)}px, 0px, 0px) scale(${scale.toFixed(3)}) rotate(${card.rotation.toFixed(1)}deg)`;
           el.style.zIndex = `${zIndex}`;
           el.style.opacity = `${opacity.toFixed(2)}`;
         }

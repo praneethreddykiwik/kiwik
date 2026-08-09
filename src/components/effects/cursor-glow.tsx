@@ -21,11 +21,18 @@ export function CursorGlow() {
     setIsDesktop(true);
 
     let scrollTimer: ReturnType<typeof setTimeout> | null = null;
+    let rafId: number | null = null;
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
-      setIsVisible(true);
+      if (rafId !== null) return;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      rafId = requestAnimationFrame(() => {
+        mouseX.set(clientX);
+        mouseY.set(clientY);
+        setIsVisible(true);
+        rafId = null;
+      });
     };
 
     const handleMouseLeave = () => setIsVisible(false);
@@ -41,6 +48,7 @@ export function CursorGlow() {
     document.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
       if (scrollTimer) clearTimeout(scrollTimer);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("scroll", handleScroll);
@@ -57,7 +65,7 @@ export function CursorGlow() {
         y: springY,
         opacity: isVisible ? 1 : 0,
       }}
-      className="fixed top-0 left-0 w-[380px] h-[380px] -ml-[190px] -mt-[190px] rounded-full pointer-events-none z-50 transition-opacity duration-200"
+      className="fixed top-0 left-0 w-[380px] h-[380px] -ml-[190px] -mt-[190px] rounded-full pointer-events-none z-50 transition-opacity duration-200 gpu-accelerate"
     >
       <div
         className="w-full h-full rounded-full"
