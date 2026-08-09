@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Command, Search, Sparkles } from 'lucide-react';
+import { Menu, X, Command, Search, Sparkles, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeSwitcher } from './theme-switcher';
 import { useThemeStore } from '@/stores/theme-store';
@@ -18,7 +18,7 @@ export function Navbar() {
 
   const cms = useSiteCMS();
   const navCMS = cms.navigation || { items: [] };
-  const { mode } = useThemeStore();
+  const { mode, toggleMode } = useThemeStore();
 
   React.useEffect(() => {
     // Passive (so the listener can never delay the scroll itself) and coalesced
@@ -212,14 +212,46 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile Hamburger Drawer Trigger */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="xl:hidden p-2 rounded-full hover:bg-neutral-200/50 dark:hover:bg-white/10 transition-colors relative z-10 cursor-pointer text-neutral-800 dark:text-white"
-          aria-label="Toggle Navigation Drawer"
-        >
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        {/* Mobile Action Controls & Drawer Trigger */}
+        <div className="flex items-center gap-1 xl:hidden relative z-10">
+          <button
+            onClick={toggleMode}
+            className="p-2 rounded-full hover:bg-neutral-200/50 dark:hover:bg-white/10 transition-colors text-neutral-800 dark:text-white cursor-pointer md:hidden"
+            aria-label="Toggle light/dark theme"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              {mode === 'dark' ? (
+                <motion.div
+                  key="dark"
+                  initial={{ y: -10, opacity: 0, rotate: -90 }}
+                  animate={{ y: 0, opacity: 1, rotate: 0 }}
+                  exit={{ y: 10, opacity: 0, rotate: 90 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Sun className="w-5 h-5" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="light"
+                  initial={{ y: -10, opacity: 0, rotate: 90 }}
+                  animate={{ y: 0, opacity: 1, rotate: 0 }}
+                  exit={{ y: 10, opacity: 0, rotate: -90 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Moon className="w-5 h-5" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-full hover:bg-neutral-200/50 dark:hover:bg-white/10 transition-colors cursor-pointer text-neutral-800 dark:text-white"
+            aria-label="Toggle Navigation Drawer"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
 
         {/* Mobile Menu Drawer */}
         <AnimatePresence>
@@ -250,6 +282,25 @@ export function Navbar() {
                   </Link>
                 );
               })}
+
+              {/* Mobile Light/Dark Mode Quick Toggle */}
+              <button
+                onClick={toggleMode}
+                className="mt-1 px-4 py-2.5 rounded-2xl bg-neutral-100/80 dark:bg-white/5 hover:bg-neutral-200/80 dark:hover:bg-white/10 text-xs font-bold text-neutral-900 dark:text-white flex items-center justify-between transition-colors cursor-pointer md:hidden border border-black/5 dark:border-white/10"
+                aria-label="Toggle light/dark mode"
+              >
+                <span className="flex items-center gap-2">
+                  {mode === 'dark' ? (
+                    <Sun className="w-4 h-4 text-amber-500" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-indigo-400" />
+                  )}
+                  <span>{mode === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                </span>
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 uppercase">
+                  {mode}
+                </span>
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
