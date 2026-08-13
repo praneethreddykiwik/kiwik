@@ -4,6 +4,8 @@
 // ─────────────────────────────────────────────────────────────
 
 export const SESSION_COOKIE = "kiwik_admin";
+/** Short-lived CSRF state for the Google OAuth round trip. */
+export const OAUTH_STATE_COOKIE = "kiwik_oauth_state";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 const encoder = new TextEncoder();
@@ -67,6 +69,33 @@ export function verifyPassword(input: string): boolean {
   }
   if (!input) return false;
   return timingSafeEqual(input, expected);
+}
+
+/**
+ * The allowlist of Google accounts permitted into the studio.
+ *
+ * Signing in with Google proves *who* someone is, not that they are allowed in
+ * — without this check any Google account on earth would become an admin. Set
+ * ADMIN_ALLOWED_EMAILS to a comma-separated list; an empty list denies
+ * everyone, which is the safe default for a misconfigured deployment.
+ */
+export function getAllowedAdminEmails(): string[] {
+  return (process.env.ADMIN_ALLOWED_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function isAllowedAdminEmail(email: string | undefined | null): boolean {
+  if (!email) return false;
+  const allowed = getAllowedAdminEmails();
+  if (allowed.length === 0) {
+    console.error(
+      "ADMIN_ALLOWED_EMAILS is not set — Google sign-in is disabled so an unlisted account cannot become an admin."
+    );
+    return false;
+  }
+  return allowed.includes(email.trim().toLowerCase());
 }
 
 /** Creates a signed, expiring session token: `<expiryMs>.<hmac>`. */

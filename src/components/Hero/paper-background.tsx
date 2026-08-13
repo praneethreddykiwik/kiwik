@@ -34,7 +34,7 @@ export function PaperBackground({ className, children }: PaperBackgroundProps) {
         className="absolute inset-0 pointer-events-none z-0 opacity-[0.015]"
       />
 
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 flex flex-col flex-1 w-full">{children}</div>
     </div>
   );
 }

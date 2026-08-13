@@ -154,12 +154,12 @@ export function AppleCoverflowCarousel() {
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
               style={{ transformStyle: "preserve-3d" }}
               className={cn(
-                "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-[1150px] h-[460px] sm:h-[540px] rounded-[32px] bg-[#0A0C12] border border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col lg:flex-row cursor-pointer transition-all duration-300 transform-gpu",
+                "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-[1150px] h-auto min-h-[460px] lg:h-[540px] rounded-[32px] bg-[#0A0C12] border border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col lg:flex-row cursor-pointer transition-all duration-300 transform-gpu",
                 isCenter ? "pointer-events-auto" : "pointer-events-auto hover:opacity-60"
               )}
             >
               {/* ── 70% CINEMATIC PRODUCT VISUAL AREA ── */}
-              <div className="relative w-full lg:w-[68%] h-[55%] lg:h-full bg-[#0E1017] border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden flex items-center justify-center p-6 group">
+              <div className="relative w-full lg:w-[68%] h-[240px] sm:h-[300px] lg:h-full bg-[#0E1017] border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden flex items-center justify-center p-6 group">
                 
                 {/* Background Specular Grid */}
                 <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.04] pointer-events-none" />

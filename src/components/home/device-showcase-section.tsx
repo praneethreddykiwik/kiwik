@@ -95,7 +95,7 @@ export function DeviceShowcaseSection() {
       {/* Dynamic Coverflow Device Wrapper */}
       <motion.div
         style={{ y: smoothY }}
-        className="relative w-full flex items-center justify-center -space-x-4 sm:space-x-3 md:space-x-6 overflow-x-auto pt-16 sm:pt-24 md:pt-28 lg:pt-32 pb-16 sm:pb-20 md:pb-24 lg:pb-28 no-scrollbar px-6 sm:px-12"
+        className="relative w-full flex items-center justify-start 2xl:justify-center snap-x snap-mandatory -space-x-4 sm:space-x-3 md:space-x-6 overflow-x-auto pt-16 sm:pt-24 md:pt-28 lg:pt-32 pb-16 sm:pb-20 md:pb-24 lg:pb-28 no-scrollbar px-6 sm:px-12"
       >
         {activeCards.map((card, idx) => {
           const isHovered = hoveredIndex === idx;

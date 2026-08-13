@@ -346,7 +346,7 @@ export function AIChatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className="fixed bottom-24 right-6 w-[90vw] sm:w-[420px] h-[580px] rounded-2xl border border-glass-border bg-glass-bg backdrop-blur-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-6 w-[90vw] sm:w-[420px] h-[min(580px,calc(100dvh-8rem))] rounded-2xl border border-glass-border bg-glass-bg backdrop-blur-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="p-4 bg-bg-secondary/60 border-b border-divider flex items-center justify-between">

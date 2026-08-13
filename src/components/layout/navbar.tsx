@@ -82,17 +82,25 @@ export function Navbar() {
             whileHover={{ scale: 1.05, rotate: 2 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.25 }}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-[#12131A] border border-black/10 dark:border-white/15 shadow-2xs flex items-center justify-center p-1 group-hover:border-blue-500/40 transition-all"
+            /* The mark was 20-24px inside a 36-40px tile that also carried
+               padding, so it occupied barely half its container and read as a
+               smudge. Bigger tile, much bigger mark, and the padding removed so
+               the symbol actually fills it. */
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white dark:bg-[#12131A] border border-black/10 dark:border-white/15 shadow-2xs flex items-center justify-center p-0.5 group-hover:border-blue-500/40 transition-all"
           >
-            <img 
-              src="/logo.png" 
-              alt="Kiwik Logo" 
-              className="w-5 h-5 sm:w-6 sm:h-6 object-contain drop-shadow-2xs group-hover:scale-105 transition-transform dark:hidden" 
+            <img
+              src="/logo.png"
+              alt="Kiwik"
+              width={32}
+              height={32}
+              className="w-8 h-8 sm:w-9 sm:h-9 object-contain group-hover:scale-105 transition-transform dark:hidden"
             />
-            <img 
-              src="/logo-dark.png" 
-              alt="Kiwik Logo" 
-              className="w-5 h-5 sm:w-6 sm:h-6 object-contain drop-shadow-2xs group-hover:scale-105 transition-transform hidden dark:block" 
+            <img
+              src="/logo-dark.png"
+              alt="Kiwik"
+              width={32}
+              height={32}
+              className="w-8 h-8 sm:w-9 sm:h-9 object-contain group-hover:scale-105 transition-transform hidden dark:block"
             />
           </motion.div>
 
