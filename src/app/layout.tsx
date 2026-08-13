@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "@/lib/site";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Navbar } from "@/components/layout/navbar";
@@ -9,28 +10,47 @@ import { CursorGlow } from "@/components/effects/cursor-glow";
 import { IntroSplash } from "@/components/layout/intro-splash";
 
 export const metadata: Metadata = {
-  title: "Kiwik.1 — The Operating System for Modern Projects",
-  description:
-    "Premium project showcase platform for Kiwik. Explore our portfolio of AI, web, mobile, and automation projects with immersive documentation and cinematic design.",
-  keywords: ["Kiwik", "portfolio", "projects", "showcase", "glassmorphism"],
-  authors: [{ name: "Kiwik Team" }],
+  // metadataBase makes every relative canonical/OG URL resolve against the
+  // canonical origin instead of the deployment host, which is what kept
+  // Vercel preview URLs out of shared links and search results.
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: "%s | Kiwik",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: "Criska" }],
+  creator: "Criska",
+  publisher: "Criska",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "Kiwik.1 — The Operating System for Modern Projects",
-    description:
-      "Premium project showcase platform. Explore our portfolio with cinematic design.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     type: "website",
-    url: "https://kiwik.one",
-    siteName: "Kiwik.1",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    locale: "en_US",
+    images: [{ url: "/logo.png", width: 512, height: 512, alt: "Kiwik" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kiwik.1 — The Operating System for Modern Projects",
-    description:
-      "Premium project showcase platform.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/logo.png"],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
   icons: {
     icon: [
@@ -60,6 +80,35 @@ export default function RootLayout({
             only after the stylesheet itself has downloaded and blocks first paint
             until it resolves. Warming the connections here lets the DNS/TLS
             handshake overlap with the CSS download instead of following it. */}
+
+        {/* WebSite + Organization structured data. Only facts that are true and
+            visible on the site — no invented social profiles or ratings. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: SITE_NAME,
+                alternateName: ["Kiwik.1", "Kiwik OS", "Kiwik.one"],
+                url: SITE_URL + "/",
+                description: SITE_DESCRIPTION,
+                publisher: { "@id": SITE_URL + "/#organization" },
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "@id": SITE_URL + "/#organization",
+                name: "Criska",
+                alternateName: "Kiwik",
+                url: SITE_URL + "/",
+                logo: SITE_URL + "/logo.png",
+                description: SITE_DESCRIPTION,
+              },
+            ]),
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
