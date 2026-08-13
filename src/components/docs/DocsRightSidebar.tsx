@@ -157,7 +157,7 @@ export function DocsRightSidebar({
           </button>
 
           <a
-            href="https://github.com/shagantivivekgoud/kiwik"
+            href="https://github.com/praneethreddykiwik/kiwik"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full p-2.5 rounded-xl bg-white/40 dark:bg-white/5 border border-slate-300/40 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-neutral-200/50 dark:hover:bg-white/10 flex items-center justify-between transition-colors"

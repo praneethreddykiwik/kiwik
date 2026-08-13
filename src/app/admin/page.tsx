@@ -5854,7 +5854,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                  { name: "Vivek Shaganti", role: "Owner", email: "praneeth@kiwik.one" },
+                  { name: "Praneeth", role: "Owner", email: "praneeth@kiwik.one" },
                   { name: "Sarah Lin", role: "Admin", email: "praneeth@kiwik.one" },
                   { name: "Alex Mercer", role: "Developer", email: "praneeth@kiwik.one" }
                 ].map((usr, i) => (

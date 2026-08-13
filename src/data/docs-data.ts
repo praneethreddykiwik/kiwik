@@ -191,7 +191,7 @@ export const docArticles: Record<string, DocArticle> = {
         codeBlock: {
           language: "bash",
           filename: "terminal",
-          code: `git clone git@github.com:shagantivivekgoud/kiwik.git\ncd Kiwik\nnpm install`
+          code: `git clone git@github.com:praneethreddykiwik/kiwik.git\ncd Kiwik\nnpm install`
         }
       },
       {

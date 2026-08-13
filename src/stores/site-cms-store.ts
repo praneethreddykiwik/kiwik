@@ -236,7 +236,7 @@ const defaultCMSData: SiteCMSData = {
       }
     ],
     socialLinks: [
-      { id: "soc-1", platform: "GitHub", url: "https://github.com/shagantivivekgoud", iconName: "Github" },
+      { id: "soc-1", platform: "GitHub", url: "https://github.com/praneethreddykiwik", iconName: "Github" },
       { id: "soc-2", platform: "Twitter / X", url: "https://twitter.com", iconName: "Twitter" },
       { id: "soc-3", platform: "LinkedIn", url: "https://linkedin.com", iconName: "Linkedin" }
     ],
@@ -326,7 +326,7 @@ const defaultCMSData: SiteCMSData = {
     defaultDescription: "Unified workspace for projects, documentation, deployments, analytics, and AI assistant layers.",
     defaultKeywords: ["Kiwik", "Operating System", "Developer Tools", "AI", "Projects"],
     openGraphImage: "/images/og-kiwik.jpg",
-    twitterHandle: "@shagantivivekgoud",
+    twitterHandle: "@kiwik",
     canonicalDomain: "https://kiwik-xi.vercel.app",
     robotsTxt: "User-agent: *\nAllow: /",
     jsonLdSchema: JSON.stringify({
@@ -672,7 +672,6 @@ function reconcileNavigation(incoming: Partial<NavigationCMS> | undefined): Navi
  * an address set deliberately in the admin studio is left untouched.
  */
 const LEGACY_CONTACT_EMAILS = new Set([
-  "shagantivivekgoud@gmail.com",
   "hello@kiwik.dev",
   "sarah@kiwik.io",
   "alex@kiwik.io",

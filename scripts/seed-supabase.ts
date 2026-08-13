@@ -172,7 +172,7 @@ async function seed() {
       INSERT INTO admin_users (
         id, email, password_hash, role
       ) VALUES (
-        'admin-1', 'shagantivivekgoud@gmail.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin'
+        'admin-1', 'praneeth@kiwik.one', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin'
       ) ON CONFLICT (id) DO UPDATE SET
         email = EXCLUDED.email,
         password_hash = EXCLUDED.password_hash;
