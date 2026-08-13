@@ -9,6 +9,7 @@ import { persist } from "zustand/middleware";
 import { useEffect, useState } from "react";
 import type { PartnerProduct } from "@/types/partner";
 import { partnerProducts as defaultProducts } from "@/data/partner-products";
+import { subscribeToEndpoint } from "@/lib/shared-poller";
 
 // See the note in projects-store: a non-2xx response here is not a thrown
 // error, so an expired session or an unreachable database silently discarded
@@ -130,68 +131,12 @@ export function useProducts() {
 
   useEffect(() => {
     setHasHydrated(true);
-
-    const POLL_MS = 3000;
-    let stopped = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
-    const schedule = (delay: number) => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(tick, delay);
-    };
-
-    async function tick() {
-      if (stopped) return;
-      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
-        schedule(POLL_MS);
-        return;
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) return;
+    return subscribeToEndpoint("/api/products", (data) => {
+      if (data?.status === "ok" && Array.isArray(data.products) && data.products.length > 0) {
+        setProducts(data.products);
       }
-      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
-        schedule(POLL_MS);
-        return;
-      }
-      try {
-        const res = await fetch("/api/products", {
-          cache: "no-store",
-          headers: { "Cache-Control": "no-cache, no-store, must-revalidate" }
-        });
-        const data = await res.json();
-        if (data.status === "ok" && Array.isArray(data.products) && data.products.length > 0) {
-          setProducts(data.products);
-        }
-        schedule(POLL_MS);
-      } catch {
-        schedule(POLL_MS);
-      }
-    }
-
-    tick();
-
-    const handleSync = () => tick();
-    window.addEventListener("focus", handleSync);
-    window.addEventListener("kiwik-data-updated", handleSync);
-    document.addEventListener("visibilitychange", handleSync);
-
-    let bc: BroadcastChannel | null = null;
-    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      try {
-        bc = new BroadcastChannel("kiwik-global-sync");
-        bc.onmessage = (msg) => {
-          if (msg.data === "kiwik-data-updated") tick();
-        };
-      } catch {
-        /* ignore */
-      }
-    }
-
-    return () => {
-      stopped = true;
-      if (timer) clearTimeout(timer);
-      if (bc) bc.close();
-      window.removeEventListener("focus", handleSync);
-      window.removeEventListener("kiwik-data-updated", handleSync);
-      document.removeEventListener("visibilitychange", handleSync);
-    };
+    });
   }, [setProducts]);
 
   // Same guard as the projects hook: drop unusable entries before they reach a

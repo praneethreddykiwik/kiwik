@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useProjectsStore } from "@/stores/projects-store";
+import { subscribeToEndpoint } from "@/lib/shared-poller";
 import type {
   SiteCMSData,
   WebsiteSettings,
@@ -1543,72 +1544,12 @@ export function useSiteCMS() {
       /* ignore */
     }
 
-    // Base cadence for cross-device sync. Kept deliberately conservative and
-    // visibility-gated to protect the Neon data-transfer quota (a 5s poll on
-    // every open tab is what exhausts a free-tier plan). Backs off hard when
-    // the API reports a DB fallback (offline / over quota).
-    // Fast 3-second cadence for instant cross-device and cross-profile sync.
-    const POLL_MS = 3000;
-    let stopped = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
-    const schedule = (delay: number) => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(tick, delay);
-    };
-
-    async function tick() {
-      if (stopped) return;
-      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
-        schedule(POLL_MS);
-        return;
-      }
-      // Never overwrite the active editing draft while the user is inside /admin
-      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
-        schedule(POLL_MS);
-        return;
-      }
-      try {
-        const res = await fetch("/api/cms", {
-          cache: "no-store",
-          headers: { "Cache-Control": "no-cache, no-store, must-revalidate" }
-        });
-        const data = await res.json();
-        if (data.status === "ok" && data.cms) setCMS(data.cms);
-        schedule(POLL_MS);
-      } catch {
-        schedule(POLL_MS);
-      }
-    }
-
-    tick(); // initial fetch on mount
-
-    const handleSync = () => tick();
-    window.addEventListener("focus", handleSync);
-    window.addEventListener("kiwik-data-updated", handleSync);
-    document.addEventListener("visibilitychange", handleSync);
-
-    // Cross-tab BroadcastChannel listener for 0ms instant sync across browser tabs
-    let bc: BroadcastChannel | null = null;
-    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      try {
-        bc = new BroadcastChannel("kiwik-global-sync");
-        bc.onmessage = (msg) => {
-          if (msg.data === "kiwik-data-updated") tick();
-        };
-      } catch {
-        /* ignore */
-      }
-    }
-
-    return () => {
-      stopped = true;
-      if (timer) clearTimeout(timer);
-      if (bc) bc.close();
-      window.removeEventListener("focus", handleSync);
-      window.removeEventListener("kiwik-data-updated", handleSync);
-      document.removeEventListener("visibilitychange", handleSync);
-    };
+    // A single shared poller for /api/cms, refcounted across every component
+    // that calls this hook. Eight components call it on the home page alone;
+    // each used to run its own 3s timer against the same URL.
+    return subscribeToEndpoint("/api/cms", (data) => {
+      if (data?.status === "ok" && data.cms) setCMS(data.cms);
+    });
   }, [setCMS]);
 
   return hasHydrated ? cms : defaultCMSData;

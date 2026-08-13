@@ -8,6 +8,7 @@ import { persist } from "zustand/middleware";
 import { useEffect, useState } from "react";
 import type { Project } from "@/types";
 import { projects as defaultProjects } from "@/data/projects";
+import { subscribeToEndpoint } from "@/lib/shared-poller";
 
 const categoryFallbacks: Record<string, string> = {
   ai: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
@@ -184,68 +185,14 @@ export function useProjects() {
 
   useEffect(() => {
     setHasHydrated(true);
-
-    const POLL_MS = 3000;
-    let stopped = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
-    const schedule = (delay: number) => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(tick, delay);
-    };
-
-    async function tick() {
-      if (stopped) return;
-      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
-        schedule(POLL_MS);
-        return;
+    // One shared poller per endpoint (see lib/shared-poller). Previously every
+    // component calling this hook opened its own timer against the same URL.
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) return;
+    return subscribeToEndpoint("/api/projects", (data) => {
+      if (data?.status === "ok" && Array.isArray(data.projects) && data.projects.length > 0) {
+        setProjects(data.projects);
       }
-      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
-        schedule(POLL_MS);
-        return;
-      }
-      try {
-        const res = await fetch("/api/projects", {
-          cache: "no-store",
-          headers: { "Cache-Control": "no-cache, no-store, must-revalidate" }
-        });
-        const data = await res.json();
-        if (data.status === "ok" && Array.isArray(data.projects) && data.projects.length > 0) {
-          setProjects(data.projects);
-        }
-        schedule(POLL_MS);
-      } catch {
-        schedule(POLL_MS);
-      }
-    }
-
-    tick();
-
-    const handleSync = () => tick();
-    window.addEventListener("focus", handleSync);
-    window.addEventListener("kiwik-data-updated", handleSync);
-    document.addEventListener("visibilitychange", handleSync);
-
-    let bc: BroadcastChannel | null = null;
-    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      try {
-        bc = new BroadcastChannel("kiwik-global-sync");
-        bc.onmessage = (msg) => {
-          if (msg.data === "kiwik-data-updated") tick();
-        };
-      } catch {
-        /* ignore */
-      }
-    }
-
-    return () => {
-      stopped = true;
-      if (timer) clearTimeout(timer);
-      if (bc) bc.close();
-      window.removeEventListener("focus", handleSync);
-      window.removeEventListener("kiwik-data-updated", handleSync);
-      document.removeEventListener("visibilitychange", handleSync);
-    };
+    });
   }, [setProjects]);
 
   // Filtering happens here rather than at each call site: this hook is mounted

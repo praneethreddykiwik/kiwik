@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Sparkles, Send, X, Bot, User, RefreshCw, Code, BookOpen, Layers } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { DocArticle } from "@/types/docs-types";
+import { useProjects } from "@/stores/projects-store";
 
 interface DocsAiPanelProps {
   isOpen: boolean;
@@ -17,6 +18,9 @@ interface Message {
 }
 
 export function DocsAiPanel({ isOpen, onClose, currentArticle }: DocsAiPanelProps) {
+  // Real project list, so the assistant answers from the same data the
+  // rest of the site shows.
+  const projects = useProjects();
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "bot",
@@ -45,7 +49,11 @@ export function DocsAiPanel({ isOpen, onClose, currentArticle }: DocsAiPanelProp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [...messages, { sender: "user", text: textToSend }],
-          projectsContext: { currentDocTitle: currentArticle.title, currentDocContent: currentArticle.sections }
+          // Must be an array — the API treats a non-array context as "no
+          // projects exist", which made this panel answer "Kiwik has no
+          // projects listed" to every question.
+          projectsContext: projects,
+          docContext: { title: currentArticle?.title, sections: currentArticle?.sections }
         })
       });
 

@@ -45,7 +45,10 @@ export async function GET() {
       );
     }
     return NextResponse.json(
-      { status: "ok", products: defaultProducts },
+      // An empty table is a real state — the operator deleted every partner.
+      // Returning the seed set here made deletions undo themselves, the same
+      // bug already fixed for projects.
+      { status: "ok", products: [] },
       { headers: NO_CACHE_HEADERS }
     );
   } catch (error) {
