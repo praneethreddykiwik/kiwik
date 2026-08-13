@@ -42,3 +42,6 @@ next-env.d.ts
 /public/Serenity.png
 /public/.DS_Store
 /public/Screenshot*.png
+
+# Google OAuth client secret files — never commit
+client_secret_*.json

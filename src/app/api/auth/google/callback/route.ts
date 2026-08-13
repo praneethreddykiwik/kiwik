@@ -10,8 +10,46 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function deny(origin: string, message: string) {
+/** Recoverable problems (cancelled, misconfigured, retryable) go back to the login screen. */
+function retry(origin: string, message: string) {
   return NextResponse.redirect(`${origin}/admin?error=${encodeURIComponent(message)}`);
+}
+
+/**
+ * A genuine authorisation failure — the account authenticated with Google but
+ * is not on the admin allowlist.
+ *
+ * This returns a real 403 rather than bouncing back to the login screen, and
+ * sets no cookie of any kind, so an unapproved account receives no session, no
+ * token and no CMS data. Authenticating with Google is never, on its own,
+ * sufficient to enter the studio.
+ */
+function accessDenied(email: string | undefined) {
+  const who = email ? `<code>${email.replace(/[<>&"]/g, "")}</code>` : "That account";
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Access denied · Kiwik OS Studio</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:#050608;color:#e5e7eb;font:400 15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:24px}
+  .card{max-width:440px;text-align:center;background:rgba(23,23,23,.8);border:1px solid rgba(255,255,255,.1);
+    border-radius:24px;padding:40px 32px}
+  h1{font-size:20px;margin:0 0 12px;color:#fff}
+  p{font-size:14px;color:#9ca3af;margin:0 0 24px}
+  code{background:rgba(255,255,255,.06);padding:2px 6px;border-radius:6px;color:#e5e7eb;font-size:13px}
+  a{display:inline-block;padding:10px 20px;border-radius:999px;background:#3b82f6;color:#fff;
+    text-decoration:none;font-weight:700;font-size:13px}
+</style></head><body><div class="card">
+<h1>Access denied</h1>
+<p>${who} is not an approved Kiwik administrator. No session was created.</p>
+<a href="/">Return to Kiwik</a>
+</div></body></html>`;
+
+  return new NextResponse(html, {
+    status: 403,
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+  });
 }
 
 /**
@@ -35,21 +73,21 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state");
   const oauthError = url.searchParams.get("error");
 
-  if (oauthError) return deny(origin, "Google sign-in was cancelled.");
-  if (!code) return deny(origin, "Google did not return an authorization code.");
+  if (oauthError) return retry(origin, "Google sign-in was cancelled.");
+  if (!code) return retry(origin, "Google did not return an authorization code.");
 
   const jar = await cookies();
   const expectedState = jar.get(OAUTH_STATE_COOKIE)?.value;
   jar.delete(OAUTH_STATE_COOKIE);
 
   if (!expectedState || !state || state !== expectedState) {
-    return deny(origin, "Sign-in request could not be verified. Please try again.");
+    return retry(origin, "Sign-in request could not be verified. Please try again.");
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
-    return deny(origin, "Google sign-in is not configured on this deployment.");
+    return retry(origin, "Google sign-in is not configured on this deployment.");
   }
 
   try {
@@ -67,43 +105,42 @@ export async function GET(request: Request) {
 
     if (!tokenRes.ok) {
       console.error("Google token exchange failed:", tokenRes.status, await tokenRes.text());
-      return deny(origin, "Google sign-in failed. Please try again.");
+      return retry(origin, "Google sign-in failed. Please try again.");
     }
 
     const { id_token: idToken } = await tokenRes.json();
-    if (!idToken) return deny(origin, "Google did not return an identity token.");
+    if (!idToken) return retry(origin, "Google did not return an identity token.");
 
     // Google validates the signature and expiry for us; doing it here avoids
     // pulling in a JWT library and hand-rolling key rotation.
     const infoRes = await fetch(
       `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`
     );
-    if (!infoRes.ok) return deny(origin, "Could not verify the Google identity token.");
+    if (!infoRes.ok) return retry(origin, "Could not verify the Google identity token.");
 
     const claims = await infoRes.json();
 
     if (claims.aud !== clientId) {
       console.error("Google id_token audience mismatch");
-      return deny(origin, "Could not verify the Google identity token.");
+      return retry(origin, "Could not verify the Google identity token.");
     }
     if (claims.email_verified !== true && claims.email_verified !== "true") {
-      return deny(origin, "That Google account does not have a verified email address.");
+      return accessDenied(claims.email);
     }
+    // Authentication succeeded; authorisation is a separate, explicit decision.
     if (!isAllowedAdminEmail(claims.email)) {
-      return deny(
-        origin,
-        `${claims.email || "That account"} is not authorised for the Kiwik admin studio.`
-      );
+      console.warn(`Admin access denied for unlisted Google account: ${claims.email}`);
+      return accessDenied(claims.email);
     }
 
     const token = await createSessionToken();
-    if (!token) return deny(origin, "Admin auth is not configured on this deployment.");
+    if (!token) return retry(origin, "Admin auth is not configured on this deployment.");
 
     const res = NextResponse.redirect(`${origin}/admin`);
     res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
     return res;
   } catch (err) {
     console.error("Google callback error:", err);
-    return deny(origin, "Google sign-in failed. Please try again.");
+    return retry(origin, "Google sign-in failed. Please try again.");
   }
 }
