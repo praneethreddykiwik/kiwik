@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   verifyPassword,
+  isPasswordLoginEnabled,
   createSessionToken,
   SESSION_COOKIE,
   sessionCookieOptions,
@@ -10,9 +11,18 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const password = (body?.password ?? "").toString();
 
+  if (!isPasswordLoginEnabled()) {
+    return NextResponse.json(
+      { error: "Password login is disabled. Use Continue with Google." },
+      { status: 403 }
+    );
+  }
+
   if (!verifyPassword(password)) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
+
+  console.warn("Admin session issued via password login.");
 
   const token = await createSessionToken();
   if (!token) {

@@ -61,12 +61,26 @@ export function getAuthSecret(): string | null {
  * repository is an open door: anyone could POST it to /api/auth/login, receive
  * a valid session cookie, and then write to every content endpoint.
  */
+/**
+ * Password login is opt-in and disabled by default.
+ *
+ * A shared password is a single secret that cannot be scoped, rotated per
+ * person, or revoked for one individual — and this project's previous password
+ * is in public git history, so it must be assumed known. Google sign-in with an
+ * explicit allowlist is the intended route in; the password remains available
+ * only as a deliberate fallback, enabled by setting ADMIN_PASSWORD_LOGIN=true.
+ */
+export function isPasswordLoginEnabled(): boolean {
+  return process.env.ADMIN_PASSWORD_LOGIN === "true" && Boolean(process.env.ADMIN_PASSWORD);
+}
+
 export function verifyPassword(input: string): boolean {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) {
-    console.error("ADMIN_PASSWORD is not set — admin login is disabled.");
+  if (!isPasswordLoginEnabled()) {
+    console.warn("Password login attempted while disabled (set ADMIN_PASSWORD_LOGIN=true to allow it).");
     return false;
   }
+  const expected = process.env.ADMIN_PASSWORD;
+  if (!expected) return false;
   if (!input) return false;
   return timingSafeEqual(input, expected);
 }
