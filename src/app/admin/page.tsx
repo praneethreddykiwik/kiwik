@@ -660,20 +660,47 @@ export default function AdminPage() {
   const [newPickerAssetName, setNewPickerAssetName] = useState("");
   const [newPickerAssetUrl, setNewPickerAssetUrl] = useState("");
 
+  /** Debounce timers for field edits, keyed by project id. */
+  const projFieldSaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
   const updateProjField = (updatedFields: Partial<Project>) => {
     if (!editingProject) return;
-    const nameChanged = updatedFields.name !== undefined;
-    let newSlug = updatedFields.slug;
-    if (nameChanged && updatedFields.name) {
-      newSlug = updatedFields.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    }
-    const updated = {
-      ...editingProject,
-      ...updatedFields,
-      ...(nameChanged && newSlug ? { slug: newSlug } : {})
-    };
-    setEditingProject(updated);
-    updateProject(editingProject.id, updated);
+
+    const draft = { ...editingProject, ...updatedFields } as Project;
+
+    // The editor state updates on every keystroke so typing stays responsive,
+    // but the database write is debounced and validated. Previously every
+    // character POSTed the whole row: backspacing a slug wrote "sowch",
+    // "sowc", "sow"... and the row settled on whatever prefix was left, so the
+    // project's URL 404'd permanently.
+    setEditingProject(draft);
+
+    const id = editingProject.id;
+    clearTimeout(projFieldSaveTimers.current[id]);
+    projFieldSaveTimers.current[id] = setTimeout(() => {
+      const name = (draft.name || "").trim();
+      const slugSource = (draft.slug || "").trim();
+
+      // A row with no name or no slug is unroutable and the API rejects it, so
+      // don't send it — keep the last good value until the field is valid.
+      if (!name || !slugSource) return;
+
+      const safeSlug = slugSource
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      if (!safeSlug) return;
+
+      // A slug collision violates a UNIQUE constraint and surfaces as a
+      // misleading "database unavailable" 503, so catch it here instead.
+      const clash = projects.some((p) => p.id !== id && p.slug === safeSlug);
+      if (clash) {
+        showToast(`⚠️ The slug "${safeSlug}" is already used by another project.`);
+        return;
+      }
+
+      updateProject(id, { ...draft, name, slug: safeSlug });
+    }, 600);
   };
 
   const filteredProjects = projects.filter((p) => {

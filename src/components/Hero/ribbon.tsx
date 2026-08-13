@@ -126,7 +126,7 @@ export function ImageRibbon() {
         imageUrl: img.url,
         title: img.title || "Technology Showcase",
         linkUrl: img.linkUrl || "/projects",
-        rotation: (Math.random() - 0.5) * 8,
+        rotation: 0,
       });
     }
 
@@ -140,7 +140,7 @@ export function ImageRibbon() {
         imageUrl: img.url,
         title: img.title || "Technology Showcase",
         linkUrl: img.linkUrl || "/projects",
-        rotation: (Math.random() - 0.5) * 8,
+        rotation: 0,
       });
     }
 
@@ -189,7 +189,6 @@ export function ImageRibbon() {
           card.imageUrl = newImg.url;
           card.title = newImg.title || "Technology Showcase";
           card.linkUrl = newImg.linkUrl || "/projects";
-          card.rotation = (Math.random() - 0.5) * 8;
 
           const imgEl = imageElementRefs.current[i];
           if (imgEl && newImg.url) imgEl.src = newImg.url;
@@ -209,9 +208,14 @@ export function ImageRibbon() {
         let fadeOut = Math.min((1.0 - clampedP) / 0.12, 1.0);
         const opacity = Math.max(0, fadeIn * fadeOut * baseOpacity);
 
+        // Deterministic lean: 0deg at the centre, easing out to a maximum of
+        // 2.5deg as the card travels. Mirrored per lane, so the two sides stay
+        // symmetric and the whole ribbon reads as one ordered sequence.
+        const tilt = direction * clampedP * 2.5;
+
         const el = cardElementRefs.current[i];
         if (el) {
-          el.style.transform = `translate3d(-50%, -50%, 0px) translate3d(${translateX.toFixed(1)}px, 0px, 0px) scale(${scale.toFixed(3)}) rotate(${card.rotation.toFixed(1)}deg)`;
+          el.style.transform = `translate3d(-50%, -50%, 0px) translate3d(${translateX.toFixed(1)}px, 0px, 0px) scale(${scale.toFixed(3)}) rotate(${tilt.toFixed(2)}deg)`;
           el.style.zIndex = `${zIndex}`;
           el.style.opacity = `${opacity.toFixed(2)}`;
         }
