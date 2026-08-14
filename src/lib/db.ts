@@ -81,6 +81,12 @@ async function runDDL() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
     () => sql`
+      CREATE TABLE IF NOT EXISTS admin_security (
+        key VARCHAR(50) PRIMARY KEY,
+        data JSONB NOT NULL DEFAULT '{}'::jsonb,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );`,
+    () => sql`
       CREATE TABLE IF NOT EXISTS admin_users (
         id VARCHAR(100) PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,

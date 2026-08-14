@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, verifySessionToken, isPasswordLoginEnabled } from "@/lib/auth";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { isPasswordLoginOn } from "@/lib/admin-security";
 import { AdminLogin } from "@/components/admin/admin-login";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!isAuthenticated) {
     // Password login is offered only when a password is actually configured;
     // otherwise Google is the sole route in.
-    return <AdminLogin passwordLoginEnabled={isPasswordLoginEnabled()} />;
+    return <AdminLogin passwordLoginEnabled={await isPasswordLoginOn()} />;
   }
 
   return <>{children}</>;

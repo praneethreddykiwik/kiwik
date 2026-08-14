@@ -1,24 +1,19 @@
 import { NextResponse } from "next/server";
-import {
-  verifyPassword,
-  isPasswordLoginEnabled,
-  createSessionToken,
-  SESSION_COOKIE,
-  sessionCookieOptions,
-} from "@/lib/auth";
+import { createSessionToken, SESSION_COOKIE, sessionCookieOptions } from "@/lib/auth";
+import { verifyAdminPassword, isPasswordLoginOn } from "@/lib/admin-security";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const password = (body?.password ?? "").toString();
 
-  if (!isPasswordLoginEnabled()) {
+  if (!(await isPasswordLoginOn())) {
     return NextResponse.json(
       { error: "Password login is disabled. Use Continue with Google." },
       { status: 403 }
     );
   }
 
-  if (!verifyPassword(password)) {
+  if (!(await verifyAdminPassword(password))) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
 

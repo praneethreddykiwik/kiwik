@@ -80,6 +80,7 @@ import {
 } from "lucide-react";
 
 import { useProjectsStore, useProjects, SYNC_ERROR_EVENT } from "@/stores/projects-store";
+import { AdminSecurityPanel } from "@/components/admin/admin-security-panel";
 import { useProductsStore, useProducts } from "@/stores/products-store";
 import type { PartnerProduct } from "@/types/partner";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
@@ -510,6 +511,7 @@ export default function AdminPage() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [showSecurityPanel, setShowSecurityPanel] = useState(false);
 
   // The Google callback can only communicate failure by redirecting back with
   // ?error=... — surface it in the same place password errors appear, then strip
@@ -2571,6 +2573,15 @@ export default function AdminPage() {
           >
             <Eye className="w-4 h-4" /> <span className="hidden sm:inline">View Public Site</span>
           </Link>
+
+          {/* Admin security: manage who can sign in, without an env change. */}
+          <button
+            onClick={() => setShowSecurityPanel(true)}
+            className="px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-text-primary hover:border-accent-blue/40 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+            title="Admin security"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Security</span>
+          </button>
 
           {/* Logout Button */}
           <button
@@ -6145,6 +6156,8 @@ export default function AdminPage() {
         )}
       </AnimatePresence>
 
+
+      {showSecurityPanel && <AdminSecurityPanel onClose={() => setShowSecurityPanel(false)} />}
 
     </div>
   );

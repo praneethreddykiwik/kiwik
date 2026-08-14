@@ -1,6 +1,35 @@
 import type { Metadata } from "next";
+import { Hanken_Grotesk, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "@/lib/site";
 import "./globals.css";
+
+// Self-hosted through next/font instead of an @import in globals.css. The
+// @import was only discovered after the stylesheet had downloaded, so it
+// blocked first paint on a third-party round trip; these are served from our
+// own origin with the font files preloaded and the fallback metric-matched, so
+// there is no layout shift when the real face swaps in.
+//
+// Body copy is Hanken Grotesk: whoop.com sets its text in Proxima Nova, and
+// Hanken Grotesk is the closest open equivalent — same geometric-humanist
+// skeleton and tall x-height, which is what keeps small copy readable.
+const fontSans = Hanken_Grotesk({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-hanken",
+});
+
+// Headings and display type are unchanged.
+const fontSerif = Playfair_Display({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-playfair",
+});
+
+const fontMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains",
+});
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
@@ -74,13 +103,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable}`}
+    >
       <head>
-        {/* globals.css opens with an @import of Google Fonts, which is discovered
-            only after the stylesheet itself has downloaded and blocks first paint
-            until it resolves. Warming the connections here lets the DNS/TLS
-            handshake overlap with the CSS download instead of following it. */}
-
         {/* WebSite + Organization structured data. Only facts that are true and
             visible on the site — no invented social profiles or ratings. */}
         <script
@@ -109,9 +137,6 @@ export default function RootLayout({
             ]),
           }}
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-
         {/* Blocking theme-init script — runs before first paint to prevent FOUC.
             Reads from the correct Zustand key 'kiwik-theme'.
             Hides body until theme is applied, then reveals instantly. */}

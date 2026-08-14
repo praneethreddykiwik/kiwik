@@ -4,9 +4,9 @@ import {
   SESSION_COOKIE,
   createSessionToken,
   sessionCookieOptions,
-  isAllowedAdminEmail,
   OAUTH_STATE_COOKIE,
 } from "@/lib/auth";
+import { isEmailAllowed } from "@/lib/admin-security";
 
 export const dynamic = "force-dynamic";
 
@@ -128,7 +128,7 @@ export async function GET(request: Request) {
       return accessDenied(claims.email);
     }
     // Authentication succeeded; authorisation is a separate, explicit decision.
-    if (!isAllowedAdminEmail(claims.email)) {
+    if (!(await isEmailAllowed(claims.email))) {
       console.warn(`Admin access denied for unlisted Google account: ${claims.email}`);
       return accessDenied(claims.email);
     }
