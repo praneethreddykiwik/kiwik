@@ -75,42 +75,47 @@ export function Navbar() {
         )}
       >
         {/* ─────────────────────────────────────────────────────────────
-            SLEEK COMPACT BRANDING SECTION ("Kiwik")
+            BRANDING — the mark alone, no tile and no wordmark
            ───────────────────────────────────────────────────────────── */}
-        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group relative z-10">
+        {/* The wordmark used to make this link comfortably wide. With just the
+            mark it would be a 35px tap target, under the 44px minimum, so the
+            padding grows the hit area and the negative margin cancels the
+            layout shift it would otherwise cause. */}
+        <Link
+          href="/"
+          aria-label="Kiwik — home"
+          className="flex items-center group relative z-10 p-1.5 -m-1.5"
+        >
           <motion.div
             whileHover={{ scale: 1.05, rotate: 2 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.25 }}
-            /* The mark was 20-24px inside a 36-40px tile that also carried
-               padding, so it occupied barely half its container and read as a
-               smudge. Bigger tile, much bigger mark, and the padding removed so
-               the symbol actually fills it. */
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white dark:bg-[#12131A] border border-black/10 dark:border-white/15 shadow-2xs flex items-center justify-center p-0.5 group-hover:border-blue-500/40 transition-all"
+            /* The wrapper carries the dimensions, not the images. Tailwind's
+               preflight sets `img { max-width: 100% }`, which resolves against
+               the parent — so sizing the images inside an auto-width flex
+               parent collapses them to zero. */
+            className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center shrink-0"
           >
+            {/* The mark used to sit in a bordered white tile beside the word
+                "Kiwik". Without the tile it reads as part of the bar rather than
+                a button pinned to it, and without the wordmark it has to carry
+                the brand alone — so it takes the space both used to. The alt
+                text is what a screen reader announces for this link now. */}
             <img
               src="/logo.png"
               alt="Kiwik"
-              width={32}
-              height={32}
-              className="w-8 h-8 sm:w-9 sm:h-9 object-contain group-hover:scale-105 transition-transform dark:hidden"
+              width={44}
+              height={44}
+              className="w-full h-full object-contain dark:hidden"
             />
             <img
               src="/logo-dark.png"
               alt="Kiwik"
-              width={32}
-              height={32}
-              className="w-8 h-8 sm:w-9 sm:h-9 object-contain group-hover:scale-105 transition-transform hidden dark:block"
+              width={44}
+              height={44}
+              className="w-full h-full object-contain hidden dark:block"
             />
           </motion.div>
-
-          <motion.span
-            whileHover={{ x: 1.5 }}
-            transition={{ duration: 0.25 }}
-            className="text-xl sm:text-2xl font-serif font-bold text-[#111111] dark:text-white tracking-[-0.03em] leading-none select-none"
-          >
-            {(navCMS.logoText || "Kiwik").replace(/\.1$/, "")}
-          </motion.span>
         </Link>
 
         {/* ─────────────────────────────────────────────────────────────
