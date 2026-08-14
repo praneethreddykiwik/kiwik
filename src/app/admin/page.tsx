@@ -128,7 +128,7 @@ type HomeSectionTab =
   | "floating-gallery"
   | "prompt-bar"
   | "architecture"
-  | "why-criska"
+  | "why-kiwik"
   | "dashboard-showcase"
   | "featured-products"
   | "earth-section"
@@ -2938,7 +2938,7 @@ export default function AdminPage() {
                     { id: "floating-gallery", label: "Floating Gallery" },
                     { id: "prompt-bar", label: "Prompt Bar" },
                     { id: "architecture", label: "Architecture" },
-                    { id: "why-criska", label: "Why Criska" },
+                    { id: "why-kiwik", label: "Why Kiwik" },
                     { id: "dashboard-showcase", label: "Dashboard Showcase" },
                     { id: "featured-products", label: "Featured Products" },
                     { id: "earth-section", label: "Earth Section" },
@@ -3254,18 +3254,18 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* 5. WHY CRISKA EDITOR */}
-              {activePage === "home" && homeSection === "why-criska" && (
+              {/* 5. FEATURE PILLARS EDITOR */}
+              {activePage === "home" && homeSection === "why-kiwik" && (
                 <div className="space-y-6 text-left">
                   <GlassCard className="p-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-emerald-400" /> Why Criska Pills Manager ({(cms.whyCriskaPills || []).length})
+                        <Sparkles className="w-4 h-4 text-emerald-400" /> Why Kiwik Pills Manager ({(cms.whyKiwikPills || []).length})
                       </h3>
                       <button
                         onClick={() => {
-                          const updated = [...(cms.whyCriskaPills || []), { id: `w-${Date.now()}`, text: "New High Performance Node", iconName: "Cpu", visible: true, order: (cms.whyCriskaPills || []).length + 1 }];
-                          useSiteCMSStore.setState({ cms: { ...cms, whyCriskaPills: updated } });
+                          const updated = [...(cms.whyKiwikPills || []), { id: `w-${Date.now()}`, text: "New High Performance Node", iconName: "Cpu", visible: true, order: (cms.whyKiwikPills || []).length + 1 }];
+                          useSiteCMSStore.setState({ cms: { ...cms, whyKiwikPills: updated } });
                           showToast("Added new placeholder pill. Edit inline below!");
                         }}
                         className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 shadow cursor-pointer"
@@ -3274,7 +3274,7 @@ export default function AdminPage() {
                       </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {(cms.whyCriskaPills || []).map((pill) => (
+                      {(cms.whyKiwikPills || []).map((pill) => (
                         <div key={pill.id} className="p-4 rounded-xl bg-bg-secondary/60 border border-glass-border space-y-3">
                           <div>
                             <label className="text-[10px] font-bold text-text-muted block mb-1">Pill Label</label>
@@ -3282,8 +3282,8 @@ export default function AdminPage() {
                               type="text"
                               value={pill.text}
                               onChange={(e) => {
-                                const updated = (cms.whyCriskaPills || []).map((p) => (p.id === pill.id ? { ...p, text: e.target.value } : p));
-                                useSiteCMSStore.setState({ cms: { ...cms, whyCriskaPills: updated } });
+                                const updated = (cms.whyKiwikPills || []).map((p) => (p.id === pill.id ? { ...p, text: e.target.value } : p));
+                                useSiteCMSStore.setState({ cms: { ...cms, whyKiwikPills: updated } });
                                 showToast("Updated pill label!");
                               }}
                               className="w-full px-3 py-1.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-bold text-text-primary"
@@ -3296,8 +3296,8 @@ export default function AdminPage() {
                                 type="checkbox"
                                 checked={pill.visible !== false}
                                 onChange={(e) => {
-                                  const updated = (cms.whyCriskaPills || []).map((p) => (p.id === pill.id ? { ...p, visible: e.target.checked } : p));
-                                  useSiteCMSStore.setState({ cms: { ...cms, whyCriskaPills: updated } });
+                                  const updated = (cms.whyKiwikPills || []).map((p) => (p.id === pill.id ? { ...p, visible: e.target.checked } : p));
+                                  useSiteCMSStore.setState({ cms: { ...cms, whyKiwikPills: updated } });
                                   showToast("Toggled pill visibility!");
                                 }}
                                 className="rounded text-accent-blue"
@@ -3306,8 +3306,8 @@ export default function AdminPage() {
                             </label>
                             <button
                               onClick={() => {
-                                const updated = (cms.whyCriskaPills || []).filter((p) => p.id !== pill.id);
-                                useSiteCMSStore.setState({ cms: { ...cms, whyCriskaPills: updated } });
+                                const updated = (cms.whyKiwikPills || []).filter((p) => p.id !== pill.id);
+                                useSiteCMSStore.setState({ cms: { ...cms, whyKiwikPills: updated } });
                                 showToast(`Deleted pill [${pill.text}]`);
                               }}
                               className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer"

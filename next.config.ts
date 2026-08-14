@@ -19,6 +19,22 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  /**
+   * www.kiwik.one and kiwik.one both answer 200 with identical HTML, so Google
+   * has indexed them as two sites — the www entry still shows an older title.
+   * The canonical tag already points at the apex, but a canonical is a hint;
+   * a 301 is a directive and consolidates the two immediately.
+   */
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.kiwik.one" }],
+        destination: "https://kiwik.one/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

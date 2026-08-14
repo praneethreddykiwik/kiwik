@@ -440,7 +440,7 @@ export interface ArchitectureNodeCMS {
   visible?: boolean;
 }
 
-export interface WhyCriskaPillCMS {
+export interface WhyKiwikPillCMS {
   id: string;
   text: string;
   iconName: string;
@@ -493,7 +493,7 @@ export interface SiteCMSData {
   deviceShowcase: DeviceShowcaseCMS;
   earthShowcase: EarthShowcaseCMS;
   architectureNodes: ArchitectureNodeCMS[];
-  whyCriskaPills: WhyCriskaPillCMS[];
+  whyKiwikPills: WhyKiwikPillCMS[];
   dashboardShowcase: DashboardShowcaseCMS;
   aiKnowledge: AIKnowledgeCMS;
   analytics: AnalyticsData;

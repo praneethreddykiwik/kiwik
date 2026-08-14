@@ -227,7 +227,7 @@ export function AppleCoverflowCarousel() {
                           <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                         </div>
-                        <span className="text-xs font-mono text-white/50">criskapay-settlement.enc</span>
+                        <span className="text-xs font-mono text-white/50">kiwik-settlement.enc</span>
                         <ShieldCheck className="w-4 h-4 text-emerald-400" />
                       </div>
                       <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">

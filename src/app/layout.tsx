@@ -49,9 +49,17 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
-  authors: [{ name: "Criska" }],
-  creator: "Criska",
-  publisher: "Criska",
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  keywords: [
+    "Kiwik",
+    "Kiwik OS",
+    "operating system for digital products",
+    "engineering workflow platform",
+    "project documentation platform",
+    "digital product workspace",
+  ],
   alternates: {
     canonical: "/",
   },
@@ -62,17 +70,29 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "en_US",
-    images: [{ url: "/logo.png", width: 512, height: 512, alt: "Kiwik" }],
+    // A dedicated 1200x630 card. /logo.png was declared here as 512x512 when it
+    // is really a transparent 1024x1024 square — wrong dimensions, wrong shape
+    // for a link preview, and transparency renders as black on most platforms.
+    images: [
+      { url: "/og-image.png", width: 1200, height: 630, alt: "Kiwik — the operating system for digital products" },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: ["/logo.png"],
+    images: ["/og-image.png"],
   },
+  // max-snippet governs how much of a page any engine may reproduce in a
+  // result or an AI answer. It was set only inside the googleBot block, so
+  // every other crawler — Bing, and the answer engines that read the generic
+  // tag — fell back to a truncated default. Declared at both levels now.
   robots: {
     index: true,
     follow: true,
+    "max-image-preview": "large",
+    "max-snippet": -1,
+    "max-video-preview": -1,
     googleBot: {
       index: true,
       follow: true,
@@ -81,17 +101,20 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  // Every declared size here is the file's real size. The previous block listed
+  // /logo.png first with no size and claimed /icon.png was 32x32 when both were
+  // the same transparent 1024x1024 image — so the icon a client actually picked
+  // was the wide, transparent logo, which is not usable as a favicon.
   icons: {
     icon: [
-      { url: "/logo.png", type: "image/png" },
-      { url: "/icon.png", type: "image/png", sizes: "32x32" },
-      { url: "/favicon.ico", sizes: "any" }
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/logo.png",
-    apple: [
-      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" }
-    ]
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
+  manifest: "/site.webmanifest",
 };
 
 import { LenisProvider } from "@/components/providers/lenis-provider";
@@ -109,8 +132,15 @@ export default function RootLayout({
       className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable}`}
     >
       <head>
-        {/* WebSite + Organization structured data. Only facts that are true and
-            visible on the site — no invented social profiles or ratings. */}
+        {/* WebSite + Organization + SoftwareApplication structured data. Only
+            facts that are true and visible on the site — no invented social
+            profiles or ratings.
+
+            The Organization used to be named "Criska" with Kiwik as a mere
+            alternateName. Google reads this block to decide which entity the
+            domain IS, so it was actively teaching Google the wrong brand for
+            kiwik.one. Kiwik is the entity; the logo is a real square PNG,
+            which is what Google's logo guidelines require. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -118,21 +148,40 @@ export default function RootLayout({
               {
                 "@context": "https://schema.org",
                 "@type": "WebSite",
+                "@id": SITE_URL + "/#website",
                 name: SITE_NAME,
-                alternateName: ["Kiwik.1", "Kiwik OS", "Kiwik.one"],
+                alternateName: ["Kiwik OS", "Kiwik.one", "Kiwik One"],
                 url: SITE_URL + "/",
                 description: SITE_DESCRIPTION,
+                inLanguage: "en",
                 publisher: { "@id": SITE_URL + "/#organization" },
               },
               {
                 "@context": "https://schema.org",
                 "@type": "Organization",
                 "@id": SITE_URL + "/#organization",
-                name: "Criska",
-                alternateName: "Kiwik",
+                name: SITE_NAME,
+                alternateName: ["Kiwik OS", "Kiwik One"],
                 url: SITE_URL + "/",
-                logo: SITE_URL + "/logo.png",
+                logo: {
+                  "@type": "ImageObject",
+                  url: SITE_URL + "/icon-512.png",
+                  width: 512,
+                  height: 512,
+                },
+                image: SITE_URL + "/og-image.png",
                 description: SITE_DESCRIPTION,
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                "@id": SITE_URL + "/#software",
+                name: SITE_NAME,
+                applicationCategory: "DeveloperApplication",
+                operatingSystem: "Web",
+                url: SITE_URL + "/",
+                description: SITE_DESCRIPTION,
+                publisher: { "@id": SITE_URL + "/#organization" },
               },
             ]),
           }}

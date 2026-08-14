@@ -94,7 +94,7 @@ export function EditorialProductPanel({
           {/* Background Metallic Shader Grid */}
           <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.04] pointer-events-none" />
 
-          {/* ── VARIANT A: 3D Glowing Organic Neural Orb + Waveform (CriskaAI) ── */}
+          {/* ── VARIANT A: 3D Glowing Organic Neural Orb + Waveform (Kiwik AI) ── */}
           {layoutVariant === "orb" && (
             <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
               {/* Glowing Orb Sphere */}
@@ -123,7 +123,7 @@ export function EditorialProductPanel({
             </div>
           )}
 
-          {/* ── VARIANT B: Dark Monolith + Financial Telemetry Glass Chart (CriskaCloud) ── */}
+          {/* ── VARIANT B: Dark Monolith + Financial Telemetry Glass Chart (Kiwik Cloud) ── */}
           {layoutVariant === "telemetry" && (
             <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
               {/* Background 3D Rock/Monolith texture */}
@@ -160,7 +160,7 @@ export function EditorialProductPanel({
             </div>
           )}
 
-          {/* ── VARIANT C: Encrypted Billing Glass Frame (CriskaPay) ── */}
+          {/* ── VARIANT C: Encrypted Billing Glass Frame (Kiwik Secure) ── */}
           {layoutVariant === "browser" && (
             <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
               <div className="w-full h-full p-4 rounded-xl bg-[#090A0F] border border-white/15 flex flex-col justify-between space-y-3">
@@ -170,7 +170,7 @@ export function EditorialProductPanel({
                     <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   </div>
-                  <span className="text-[10px] font-mono text-white/40">criskapay.enc</span>
+                  <span className="text-[10px] font-mono text-white/40">kiwik-secure.enc</span>
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
 

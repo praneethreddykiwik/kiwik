@@ -523,12 +523,12 @@ const defaultCMSData: SiteCMSData = {
     blurPx: 0
   },
   architectureNodes: [
-    { id: "criska-ai", title: "CriskaAI", subtitle: "Enterprise Intelligence", iconName: "Cpu", color: "from-purple-500/20 to-purple-600/5", border: "border-purple-500/30 hover:border-purple-500/60", glow: "shadow-purple-500/10", badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30", badgeText: "Active Node", order: 1, visible: true },
+    { id: "kiwik-ai", title: "Kiwik AI", subtitle: "Assistant & Search", iconName: "Cpu", color: "from-purple-500/20 to-purple-600/5", border: "border-purple-500/30 hover:border-purple-500/60", glow: "shadow-purple-500/10", badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30", badgeText: "Active Node", order: 1, visible: true },
     { id: "kiwik", title: "Kiwik", subtitle: "Product & Knowledge Hub", iconName: "Layers", color: "from-cyan-500/20 to-blue-600/5", border: "border-cyan-500/30 hover:border-cyan-500/60", glow: "shadow-cyan-500/10", badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30", badgeText: "Active Node", order: 2, visible: true },
-    { id: "criska-cloud", title: "CriskaCloud", subtitle: "Cloud & Infrastructure Platform", iconName: "Cloud", color: "from-blue-500/20 to-indigo-600/5", border: "border-blue-500/30 hover:border-blue-500/60", glow: "shadow-blue-500/10", badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30", badgeText: "Active Node", order: 3, visible: true },
+    { id: "kiwik-studio", title: "Kiwik Studio", subtitle: "CMS & Publishing", iconName: "Cloud", color: "from-blue-500/20 to-indigo-600/5", border: "border-blue-500/30 hover:border-blue-500/60", glow: "shadow-blue-500/10", badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30", badgeText: "Active Node", order: 3, visible: true },
     { id: "security-identity", title: "Security & Identity", subtitle: "Secure Access & Governance", iconName: "Shield", color: "from-emerald-500/20 to-teal-600/5", border: "border-emerald-500/30 hover:border-emerald-500/60", glow: "shadow-emerald-500/10", badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30", badgeText: "Active Node", order: 4, visible: true }
   ],
-  whyCriskaPills: [
+  whyKiwikPills: [
     { id: "w-1", text: "AI-Powered Intelligence", iconName: "Cpu", order: 1, visible: true, color: "text-purple-400" },
     { id: "w-2", text: "Security First", iconName: "Shield", order: 2, visible: true, color: "text-emerald-400" },
     { id: "w-3", text: "Enterprise Ready", iconName: "Layers", order: 3, visible: true, color: "text-amber-400" },
@@ -552,20 +552,20 @@ const defaultCMSData: SiteCMSData = {
   aiKnowledge: {
     articles: [
       { id: "k-1", title: "Kiwik Architecture Overview", category: "Core Platform", content: "Kiwik is an enterprise digital product operating system built on Next.js 16, React 19, and Tailwind CSS. It features Zustand telemetry stores, real-time CMS synchronization, and multi-agent AI assistants.", tags: ["architecture", "nextjs", "zustand"], lastUpdated: "2026-07-24" },
-      { id: "k-2", title: "CriskaAI Intelligent Copilot", category: "AI Products", content: "CriskaAI provides multimodal reasoning, autonomous workflow triggers, and natural language database mutations across web and cloud backends.", tags: ["criskaai", "copilot", "llm"], lastUpdated: "2026-07-24" },
-      { id: "k-3", title: "CriskaPay Infrastructure", category: "Fintech", content: "CriskaPay handles PCI-compliant payments, multi-currency wallets, and subscription metering with sub-second settlement.", tags: ["payments", "fintech", "stripe"], lastUpdated: "2026-07-24" }
+      { id: "k-2", title: "The Kiwik AI Assistant", category: "Platform", content: "Kiwik AI answers questions about the projects, documentation and content held in the workspace, grounded in the live CMS record rather than a static index.", tags: ["ai", "assistant", "search"], lastUpdated: "2026-07-24" },
+      { id: "k-3", title: "Publishing and the Kiwik CMS", category: "Platform", content: "Every project page is generated from one CMS record, so a change made once in the studio propagates to the project list, the detail page, the sitemap and the search index.", tags: ["cms", "publishing", "sitemap"], lastUpdated: "2026-07-24" }
     ]
   },
   analytics: {
     totalVisitors: 1248900,
-    projectClicks: { "criskaai": 4120, "criskacloud": 2890, "criskapay": 3410, "flowengine": 1980 },
+    projectClicks: { "sowcha": 4120, "helm-events": 2890, "clean-ai": 3410 },
     searches: [
-      { query: "criskaai", count: 480, timestamp: "2026-07-24" },
+      { query: "sowcha", count: 480, timestamp: "2026-07-24" },
       { query: "payments", count: 320, timestamp: "2026-07-24" },
       { query: "documentation", count: 290, timestamp: "2026-07-24" }
     ],
     aiQueries: [
-      { prompt: "How do I deploy CriskaCloud?", count: 180, timestamp: "2026-07-24" },
+      { prompt: "How do I publish a project?", count: 180, timestamp: "2026-07-24" },
       { prompt: "What is Kiwik.1 OS?", count: 240, timestamp: "2026-07-24" }
     ],
     countryBreakdown: [
@@ -800,7 +800,13 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
             analytics: { ...defaultCMSData.analytics, ...(newCMS?.analytics || state.cms.analytics) },
             media: Array.isArray(newCMS?.media) ? newCMS.media : (state.cms.media || defaultCMSData.media),
             architectureNodes: Array.isArray(newCMS?.architectureNodes) ? newCMS.architectureNodes : (state.cms.architectureNodes || defaultCMSData.architectureNodes),
-            whyCriskaPills: Array.isArray(newCMS?.whyCriskaPills) ? newCMS.whyCriskaPills : (state.cms.whyCriskaPills || defaultCMSData.whyCriskaPills),
+            // Rows written before the rename still carry `whyCriskaPills`; accept either
+            // so existing CMS content survives the migration.
+            whyKiwikPills: Array.isArray(newCMS?.whyKiwikPills)
+              ? newCMS.whyKiwikPills
+              : Array.isArray((newCMS as any)?.whyCriskaPills)
+                ? (newCMS as any).whyCriskaPills
+                : (state.cms.whyKiwikPills || defaultCMSData.whyKiwikPills),
             auditLogs: Array.isArray(newCMS?.auditLogs) ? newCMS.auditLogs : (state.cms.auditLogs || []),
             snapshots: [],
             // The DB blob is the source of truth for editable content, but not
@@ -1516,7 +1522,7 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
           seo: { ...defaultCMSData.seo, ...(persistedState?.cms?.seo || {}) },
           projectsPage: { ...defaultCMSData.projectsPage, ...(persistedState?.cms?.projectsPage || {}) },
           architectureNodes: persistedState?.cms?.architectureNodes || defaultCMSData.architectureNodes,
-          whyCriskaPills: persistedState?.cms?.whyCriskaPills || defaultCMSData.whyCriskaPills,
+          whyKiwikPills: persistedState?.cms?.whyKiwikPills || (persistedState as any)?.cms?.whyCriskaPills || defaultCMSData.whyKiwikPills,
           media: persistedState?.cms?.media || defaultCMSData.media,
           auditLogs: persistedState?.cms?.auditLogs || defaultCMSData.auditLogs,
           snapshots: persistedState?.cms?.snapshots || defaultCMSData.snapshots

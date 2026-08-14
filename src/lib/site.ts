@@ -16,11 +16,18 @@ export const SITE_URL = (
 
 export const SITE_NAME = "Kiwik";
 
-export const SITE_TITLE =
-  "Kiwik — Operating System for Digital Products & Criska Projects";
+/**
+ * Kept under 60 characters so Google shows it whole rather than truncating it,
+ * and brand-first so the name is the first thing read on a brand-name query.
+ */
+export const SITE_TITLE = "Kiwik — The Operating System for Digital Products";
 
+/**
+ * Roughly 150 characters: long enough to say what Kiwik is, short enough that
+ * Google is unlikely to rewrite or clip it.
+ */
 export const SITE_DESCRIPTION =
-  "Kiwik is the operating system for digital products by Criska, bringing projects, documentation, AI, cloud infrastructure, automation, deployments, analytics, and engineering workflows into one unified workspace.";
+  "Kiwik is the operating system for digital products — projects, documentation, AI, cloud infrastructure, automation and deployments in one workspace.";
 
 /** Absolute URL for any app path. Accepts "/", "docs", "/projects/x". */
 export function absoluteUrl(path = "/"): string {

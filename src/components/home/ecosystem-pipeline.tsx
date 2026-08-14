@@ -21,9 +21,9 @@ export function EcosystemPipeline() {
 
   const defaultNodes: ArchitectureNodeCMS[] = [
     {
-      id: "criska-ai",
-      title: "CriskaAI",
-      subtitle: "Enterprise Intelligence",
+      id: "kiwik-ai",
+      title: "Kiwik AI",
+      subtitle: "Assistant & Search",
       iconName: "Cpu",
       color: "from-purple-500/20 to-purple-600/5",
       border: "border-purple-500/30 hover:border-purple-500/60",
@@ -47,9 +47,9 @@ export function EcosystemPipeline() {
       visible: true
     },
     {
-      id: "criska-cloud",
-      title: "CriskaCloud",
-      subtitle: "Cloud & Infrastructure Platform",
+      id: "kiwik-studio",
+      title: "Kiwik Studio",
+      subtitle: "CMS & Publishing",
       iconName: "Cloud",
       color: "from-blue-500/20 to-indigo-600/5",
       border: "border-blue-500/30 hover:border-blue-500/60",

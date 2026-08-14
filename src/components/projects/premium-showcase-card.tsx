@@ -209,7 +209,7 @@ export function PremiumShowcaseCard({ project }: PremiumShowcaseCardProps) {
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
               </div>
               <span className="text-[10px] font-mono text-white/40 tracking-wider">
-                {project.slug}.criska.io
+                kiwik.one/projects/{project.slug}
               </span>
               <div className="w-8" />
             </div>

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 const TITLE = "About Kiwik — The Operating System for Digital Products";
 const DESCRIPTION =
-  "Kiwik is the operating system for digital products built by Criska. Learn what Kiwik is, how Kiwik OS relates to the Criska ecosystem, the projects it runs, and the technology behind it.";
+  "Kiwik is the operating system for digital products. Learn what Kiwik is, what Kiwik OS does, the projects it runs, and the technology behind it.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -36,10 +36,10 @@ export default async function AboutPage() {
         </h1>
 
         <p className="text-lg text-text-secondary leading-relaxed">
-          Kiwik is the operating system for the <strong>Criska</strong> digital product
-          ecosystem. It brings projects, documentation, AI assistance, cloud infrastructure,
-          automation, deployments and engineering workflows into one unified workspace,
-          so the work and the record of the work live in the same place.
+          Kiwik is the operating system for digital products. It brings projects,
+          documentation, AI assistance, cloud infrastructure, automation, deployments and
+          engineering workflows into one unified workspace, so the work and the record of
+          the work live in the same place.
         </p>
 
         <h2>What Kiwik is</h2>
@@ -59,11 +59,12 @@ export default async function AboutPage() {
           running this site.
         </p>
 
-        <h2>Kiwik and Criska</h2>
+        <h2>Who Kiwik is for</h2>
         <p>
-          Criska is the studio; Kiwik is the operating system Criska builds and runs its
-          products on. Work delivered for partners is published through the same system, so
-          what you see on this site is the platform describing itself.
+          Kiwik is built for teams who ship digital products and are tired of their work
+          living in one tool and the record of it in another. Work delivered for partners
+          is published through the same system, so what you see on this site is the
+          platform describing itself.
         </p>
 
         <h2>Projects in the ecosystem</h2>

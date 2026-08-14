@@ -70,8 +70,8 @@ export function MacosDashboard() {
 
   const getProjectImage = (slug: string) => {
     if (slug === 'kiwik') return "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80";
-    if (slug === 'criska-cloud' || slug === 'criskacloud') return "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=400&q=80";
-    if (slug === 'criska-ai' || slug === 'criskaai') return "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=400&q=80";
+    if (slug === 'helm-events') return "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=400&q=80";
+    if (slug === 'clean-ai') return "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=400&q=80";
     return "https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&w=400&q=80";
   };
 

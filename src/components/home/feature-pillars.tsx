@@ -6,7 +6,7 @@ import * as LucideIcons from "lucide-react";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
 
 export function FeaturePillars() {
-  const whyCriskaPills = useSiteCMSStore((state) => state.cms.whyCriskaPills);
+  const whyKiwikPills = useSiteCMSStore((state) => state.cms.whyKiwikPills);
 
   const getIcon = (iconName?: string, customColor?: string) => {
     const IconComponent = iconName ? ((LucideIcons as any)[iconName] || LucideIcons.Cpu) : LucideIcons.Cpu;
@@ -24,7 +24,7 @@ export function FeaturePillars() {
     return <IconComponent className={`w-4 h-4 ${colorClass}`} />;
   };
 
-  const pillars = [...(whyCriskaPills || [])]
+  const pillars = [...(whyKiwikPills || [])]
     .filter(p => p.visible !== false)
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 

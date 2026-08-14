@@ -1,7 +1,7 @@
 {
   "name": "kiwik",
   "version": "1.0.0",
-  "description": "Kiwik.1 — The Operating System of Criska Projects",
+  "description": "Kiwik — The Operating System for Digital Products",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -11,12 +11,12 @@
     "type-check": "tsc --noEmit"
   },
   "keywords": [
-    "portfolio",
-    "showcase",
-    "glassmorphism",
-    "criska"
+    "kiwik",
+    "digital products",
+    "documentation",
+    "engineering workflows"
   ],
-  "author": "Criska",
+  "author": "Kiwik",
   "license": "MIT",
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

@@ -74,10 +74,10 @@ export default function HomePage() {
       {/* Pixel-Perfect Melius Reference Hero Experience */}
       <MeliusHero />
 
-      {/* THE CRISKA ECOSYSTEM PIPELINE (Matching Reference Image) */}
+      {/* ECOSYSTEM PIPELINE */}
       <EcosystemPipeline />
 
-      {/* WHY CRISKA FEATURE PILLARS (Matching Reference Image) */}
+      {/* FEATURE PILLARS */}
       <FeaturePillars />
 
       {/* LOWER GRID SECTION: macOS Control Dashboard & Raycast AI Panel */}

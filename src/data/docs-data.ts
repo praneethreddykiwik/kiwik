@@ -36,9 +36,9 @@ export const docCategories: DocCategory[] = [
     iconName: "Folder",
     articles: [
       { id: "proj-kiwik", slug: "project-kiwik1", title: "Kiwik.1 OS Deck", iconName: "Monitor" },
-      { id: "proj-criskaai", slug: "project-criskaai", title: "CriskaAI Platform", iconName: "Bot" },
-      { id: "proj-criskacloud", slug: "project-criskacloud", title: "CriskaCloud Engine", iconName: "Cloud" },
-      { id: "proj-criskapay", slug: "project-criskapay", title: "CriskaPay Infrastructure", iconName: "CreditCard" },
+      { id: "proj-sowcha", slug: "project-sowcha", title: "SowCha", iconName: "Bot" },
+      { id: "proj-helm-events", slug: "project-helm-events", title: "HELM Events", iconName: "Cloud" },
+      { id: "proj-clean-ai", slug: "project-clean-ai", title: "Clean AI", iconName: "CreditCard" },
       { id: "proj-flowengine", slug: "project-flowengine", title: "FlowEngine Automation", iconName: "Zap" }
     ]
   },
@@ -449,7 +449,7 @@ export const docArticles: Record<string, DocArticle> = {
         description: "Proxies chat queries to Groq LLM API or returns intelligent fuzzy match payload.",
         headers: [{ key: "Content-Type", value: "application/json" }],
         requestBody: `{\n  "messages": [\n    {"sender": "user", "text": "What projects are built with Next.js?"}\n  ]\n}`,
-        responseBody: `{\n  "reply": "The following projects utilize Next.js: Kiwik.1, CriskaAI, CriskaCloud...",\n  "fallback": false\n}`,
+        responseBody: `{\n  "reply": "The following projects use Next.js: SowCha, HELM Events...",\n  "fallback": false\n}`,
         curlExample: `curl -X POST https://kiwik-xi.vercel.app/api/chat \\\n  -H "Content-Type: application/json" \\\n  -d '{"messages":[{"sender":"user","text":"What projects use Next.js?"}]}'`
       }
     ]

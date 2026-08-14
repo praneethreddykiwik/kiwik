@@ -119,8 +119,7 @@ export function AiRaycastPanel() {
         const lower = userText.toLowerCase();
 
         // Answers are derived from the live projects list. These branches used
-        // to return hardcoded summaries for CriskaAI, CriskaCloud, CriskaPay,
-        // CriskaOS, CriskaBot and Kiwik.1 — none of which exist any more — with
+        // to return hardcoded summaries for products that never existed, with
         // invented versions and telemetry. Because the LLM route was failing,
         // this fallback was what visitors actually saw.
         const names = projects.map((p) => p.name).filter(Boolean);
