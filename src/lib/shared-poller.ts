@@ -18,6 +18,36 @@
 
 type Listener = (data: any) => void;
 
+/**
+ * Which version stamp in /api/version governs which endpoint. An endpoint with
+ * no stamp is polled directly, exactly as before.
+ */
+const VERSION_KEY: Record<string, string> = {
+  "/api/cms": "cms",
+  "/api/projects": "projects",
+  "/api/products": "products",
+};
+
+/** Last stamps seen, and the in-flight version request shared by all channels. */
+let lastVersions: Record<string, number> | null = null;
+let versionInFlight: Promise<Record<string, number> | null> | null = null;
+
+async function fetchVersions(): Promise<Record<string, number> | null> {
+  if (versionInFlight) return versionInFlight;
+  versionInFlight = (async () => {
+    try {
+      const res = await fetch("/api/version");
+      if (!res.ok) return null;
+      return (await res.json()) as Record<string, number>;
+    } catch {
+      return null;
+    } finally {
+      versionInFlight = null;
+    }
+  })();
+  return versionInFlight;
+}
+
 type Channel = {
   listeners: Set<Listener>;
   timer: ReturnType<typeof setTimeout> | null;
@@ -45,13 +75,16 @@ async function fetchOnce(url: string, channel: Channel) {
 
   channel.inFlight = (async () => {
     try {
-      // Not `cache: "no-store"`. That flag bypasses the HTTP cache entirely, so
-      // every poll pulled the whole payload over the wire even when nothing had
-      // changed. The routes now send `max-age=0` plus an ETag, so the browser
-      // still checks freshness on every poll but a match comes back as a
-      // bodiless 304 and fetch resolves it from cache — same correctness, none
-      // of the bytes.
-      const res = await fetch(url);
+      // The full payload is requested at a URL carrying its version stamp.
+      // That makes each version its own cache key, so the CDN can hold it
+      // indefinitely and still never serve a superseded copy — which a plain
+      // `s-maxage` on a fixed URL cannot guarantee, since revalidatePath does
+      // not purge CDN entries written by a Cache-Control header.
+      const key = VERSION_KEY[url];
+      const stamp = key && lastVersions ? lastVersions[key] : undefined;
+      const requestUrl = stamp ? `${url}?v=${stamp}` : url;
+
+      const res = await fetch(requestUrl);
       if (res.status === 304) return;
       const raw = await res.text();
       // Unchanged payload: don't touch the stores at all. This is what stops
@@ -81,6 +114,20 @@ function schedule(url: string, channel: Channel) {
   channel.timer = setTimeout(async () => {
     // A hidden tab does no work; the visibilitychange handler catches it up.
     if (typeof document === "undefined" || document.visibilityState === "visible") {
+      const key = VERSION_KEY[url];
+      if (key) {
+        // Ask the ~90-byte version endpoint first and skip the full fetch
+        // entirely unless this endpoint's stamp actually moved.
+        const versions = await fetchVersions();
+        if (versions) {
+          const prev = lastVersions?.[key];
+          lastVersions = { ...(lastVersions || {}), ...versions };
+          if (prev !== undefined && prev === versions[key]) {
+            if (channel.listeners.size > 0) schedule(url, channel);
+            return;
+          }
+        }
+      }
       await fetchOnce(url, channel);
     }
     if (channel.listeners.size > 0) schedule(url, channel);

@@ -3,39 +3,30 @@ import { NextResponse } from "next/server";
 /**
  * Cache headers for the read-only endpoints the site polls.
  *
- * These three routes were served with `no-store`, so every poll from every open
- * tab ran the serverless function and read the row out of Postgres again. At a
- * 15s interval that is 4 reads/minute per tab, and /api/cms alone answers with
- * ~47KB, so a single tab left open costs roughly 11MB/hour of Supabase egress —
- * which is what put the project 162% over its 5GB monthly allowance.
+ * These routes were served `no-store`, and the client poller also passed
+ * `cache: "no-store"`, so every tab re-read ~66KB of rows every 15 seconds
+ * whether or not anything had changed. That repetition — not data volume; the
+ * whole database is 1.31MB — is what put Supabase 162% over its 5GB egress
+ * allowance.
  *
- * Two independent savings:
+ * The fix is two-layered, because caching a fixed URL is not sufficient on its
+ * own: Vercel's CDN honours `s-maxage`, but `revalidatePath()` does NOT purge an
+ * entry the CDN stored from a Cache-Control header. Verified in production —
+ * after a write the database and a cache-busted URL both returned the new value
+ * while the plain URL kept serving the old one. Relying on revalidation alone
+ * would have reintroduced "my edits do not show up".
  *
- *  1. `s-maxage` lets Vercel's CDN answer repeat polls itself. The function
- *     never runs and Postgres is never touched, so origin reads become a flat
- *     ~3/minute for the whole world instead of scaling with traffic.
- *  2. A strong ETag lets a client that already holds the current copy get a
- *     bodiless 304 instead of the payload again.
+ * So freshness comes from the URL instead of from a TTL:
  *
- * `stale-while-revalidate` keeps the CDN serving instantly while it refreshes
- * in the background, so the cache never adds latency to a request.
+ *   /api/version   ~62 bytes, cached 10s. The poller asks this first, and only
+ *                  fetches a full payload when a stamp actually moves. It also
+ *                  collapses three polls into one.
+ *   /api/cms?v=N   one immutable URL per version. A change yields a new stamp
+ *                  and therefore a new cache key, so the CDN can hold each
+ *                  version for a year and still never serve a superseded copy.
  *
- * The window is deliberately short. Publishing from the studio has to look
- * immediate, so this trades a few seconds of staleness — not minutes — for the
- * bandwidth. Writes still respond `no-store`; only GETs are cached.
- */
-/**
- * The window is sized from the quota, not from taste.
- *
- * Every origin miss costs one Postgres read of ~66KB across the three polled
- * routes. At s-maxage=20 that is 3 misses/minute sustained, which projects to
- * ~8.2GB/month — still over the 5GB allowance, so it would not have solved
- * anything. 60s caps it at ~1.4GB/month, leaving real headroom.
- *
- * Staleness does not follow from this, because writes call revalidateApiPath()
- * below and purge the entry immediately. The 60s is the ceiling for the case
- * where a row changes without going through our own POST — a manual edit in the
- * Supabase dashboard, say — not the normal publish path.
+ * The bare-URL window below is only the fallback for a caller that arrives
+ * without a stamp.
  */
 export const PUBLIC_READ_CACHE = {
   "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
@@ -63,12 +54,27 @@ export function cachedJson(data: unknown, request?: Request, extraHeaders: Recor
   const body = JSON.stringify(data);
   const etag = etagFor(body);
 
+  // A request carrying ?v=<stamp> names one specific version of this content,
+  // so that URL can never go stale — a change produces a different stamp and
+  // therefore a different cache key. Holding it for a year means a repeat
+  // visitor's poll is answered by the CDN and never reaches Postgres, while a
+  // publish is picked up immediately via the new URL rather than waiting for a
+  // TTL to lapse.
+  let cacheHeaders: Record<string, string> = { ...PUBLIC_READ_CACHE };
+  try {
+    if (request && new URL(request.url).searchParams.has("v")) {
+      cacheHeaders = { "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable" };
+    }
+  } catch {
+    /* unparseable URL — keep the default window */
+  }
+
   const ifNoneMatch = request?.headers.get("if-none-match");
   // A revalidating client may send W/"..." or a comma-separated list.
   if (ifNoneMatch && ifNoneMatch.split(",").some((t) => t.trim().replace(/^W\//, "") === etag)) {
     return new NextResponse(null, {
       status: 304,
-      headers: { ETag: etag, ...PUBLIC_READ_CACHE, ...extraHeaders },
+      headers: { ETag: etag, ...cacheHeaders, ...extraHeaders },
     });
   }
 
@@ -77,19 +83,22 @@ export function cachedJson(data: unknown, request?: Request, extraHeaders: Recor
     headers: {
       "Content-Type": "application/json",
       ETag: etag,
-      ...PUBLIC_READ_CACHE,
+      ...cacheHeaders,
       ...extraHeaders,
     },
   });
 }
 
 /**
- * Purges the CDN copy of a read route after a write, so publishing from the
- * studio is visible immediately rather than after the cache window.
+ * Invalidates Next's own route cache after a write.
  *
- * Best-effort by design: it must never turn a successful save into a failed
- * request, so a revalidation error is logged and swallowed. The `s-maxage`
- * above remains the correctness backstop.
+ * Note what this does NOT do: it does not purge a Vercel CDN entry created by a
+ * Cache-Control header — that was measured, not assumed. Correct propagation
+ * comes from the versioned URLs described above; this only keeps Next's
+ * internal cache honest and is kept because it costs nothing.
+ *
+ * Best-effort: it must never turn a successful save into a failed request, so
+ * errors are logged and swallowed.
  */
 export async function revalidateApiPath(path: string) {
   try {
