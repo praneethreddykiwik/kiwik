@@ -37,7 +37,13 @@ export async function GET(request: Request) {
         products: Number(row?.products ?? 0),
       },
       request,
-      { "Cache-Control": "public, max-age=0, s-maxage=10, stale-while-revalidate=30" }
+      // This stamp gates the freshness of everything else, so its own staleness
+      // is the site's publish latency. s-maxage=10 with swr=30 allowed a stale
+      // stamp for up to 40s — measured, and too long. 5+5 bounds it at ~10s
+      // while still collapsing concurrent visitors onto one origin read; at
+      // ~62 bytes a response that is well under 150MB/month even at 12
+      // reads/minute sustained.
+      { "Cache-Control": "public, max-age=0, s-maxage=5, stale-while-revalidate=5" }
     );
   } catch (error) {
     console.warn("GET /api/version failed:", error);
