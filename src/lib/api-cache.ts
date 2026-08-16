@@ -24,8 +24,21 @@ import { NextResponse } from "next/server";
  * immediate, so this trades a few seconds of staleness — not minutes — for the
  * bandwidth. Writes still respond `no-store`; only GETs are cached.
  */
+/**
+ * The window is sized from the quota, not from taste.
+ *
+ * Every origin miss costs one Postgres read of ~66KB across the three polled
+ * routes. At s-maxage=20 that is 3 misses/minute sustained, which projects to
+ * ~8.2GB/month — still over the 5GB allowance, so it would not have solved
+ * anything. 60s caps it at ~1.4GB/month, leaving real headroom.
+ *
+ * Staleness does not follow from this, because writes call revalidateApiPath()
+ * below and purge the entry immediately. The 60s is the ceiling for the case
+ * where a row changes without going through our own POST — a manual edit in the
+ * Supabase dashboard, say — not the normal publish path.
+ */
 export const PUBLIC_READ_CACHE = {
-  "Cache-Control": "public, max-age=0, s-maxage=20, stale-while-revalidate=60",
+  "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
 } as const;
 
 export const NO_STORE = {
@@ -68,4 +81,21 @@ export function cachedJson(data: unknown, request?: Request, extraHeaders: Recor
       ...extraHeaders,
     },
   });
+}
+
+/**
+ * Purges the CDN copy of a read route after a write, so publishing from the
+ * studio is visible immediately rather than after the cache window.
+ *
+ * Best-effort by design: it must never turn a successful save into a failed
+ * request, so a revalidation error is logged and swallowed. The `s-maxage`
+ * above remains the correctness backstop.
+ */
+export async function revalidateApiPath(path: string) {
+  try {
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath(path);
+  } catch (error) {
+    console.warn(`revalidatePath(${path}) failed:`, error);
+  }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cachedJson } from "@/lib/api-cache";
+import { cachedJson, revalidateApiPath } from "@/lib/api-cache";
 import { sql, ensureDbTables } from "@/lib/db";
 import { projects as defaultProjects } from "@/data/projects";
 
@@ -77,6 +77,7 @@ export async function POST(request: Request) {
         updated_at = CURRENT_TIMESTAMP;
     `;
 
+    await revalidateApiPath("/api/projects");
     return NextResponse.json(
       {
         status: "success",
@@ -109,6 +110,7 @@ export async function DELETE(request: Request) {
 
     await sql`DELETE FROM projects WHERE id = ${id};`;
 
+    await revalidateApiPath("/api/projects");
     return NextResponse.json(
       {
         status: "success",

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cachedJson } from "@/lib/api-cache";
+import { cachedJson, revalidateApiPath } from "@/lib/api-cache";
 import { sql, ensureDbTables } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +71,7 @@ export async function POST(request: Request) {
       ON CONFLICT (key) DO UPDATE
       SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP;
     `;
+    await revalidateApiPath("/api/cms");
     return NextResponse.json(
       {
         status: "success",

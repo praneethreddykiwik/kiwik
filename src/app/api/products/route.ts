@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cachedJson } from "@/lib/api-cache";
+import { cachedJson, revalidateApiPath } from "@/lib/api-cache";
 import { sql, ensureDbTables } from "@/lib/db";
 import { partnerProducts as defaultProducts } from "@/data/partner-products";
 
@@ -69,6 +69,7 @@ export async function POST(request: Request) {
         sort_order = COALESCE(EXCLUDED.sort_order, products.sort_order),
         updated_at = CURRENT_TIMESTAMP;
     `;
+    await revalidateApiPath("/api/products");
     return NextResponse.json(
       { status: "success", message: `Product ${p.name} saved globally` },
       { headers: NO_CACHE_HEADERS }
@@ -95,6 +96,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
     await sql`DELETE FROM products WHERE id = ${id};`;
+    await revalidateApiPath("/api/products");
     return NextResponse.json(
       { status: "success", message: `Product ${id} deleted` },
       { headers: NO_CACHE_HEADERS }
