@@ -97,11 +97,15 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
+    // The User-Agent is read to derive device and browser, then discarded. It
+    // is not stored: the parsed values are all the dashboard shows, and the
+    // full string is a fingerprinting surface.
+    //
+    // The client IP is no longer read at all. An IP address is personal data
+    // under the GDPR and India's DPDP Act, and it was being written to
+    // `ip_address` on every pageview while nothing ever read the column — pure
+    // liability for a feature that only needs to count distinct sessions.
     const userAgent = req.headers.get("user-agent") || "";
-    const clientIp =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("x-real-ip") ||
-      "127.0.0.1";
 
     const sessionId = body.sessionId || `sess_${Math.random().toString(36).substring(2, 10)}`;
     const pathname = body.pathname || "/";
@@ -121,9 +125,9 @@ export async function POST(req: Request) {
     await ensureDbTables();
     await sql`
       INSERT INTO site_visitor_sessions (
-        session_id, ip_address, user_agent, device_type, browser_name, pathname, pageviews, last_ping
+        session_id, device_type, browser_name, pathname, pageviews, last_ping
       ) VALUES (
-        ${sessionId}, ${clientIp}, ${userAgent}, ${deviceType}, ${browserName}, ${pathname}, 1, CURRENT_TIMESTAMP
+        ${sessionId}, ${deviceType}, ${browserName}, ${pathname}, 1, CURRENT_TIMESTAMP
       )
       ON CONFLICT (session_id) DO UPDATE SET
         pathname = EXCLUDED.pathname,

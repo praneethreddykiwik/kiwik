@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cachedJson } from "@/lib/api-cache";
 import { sql, ensureDbTables } from "@/lib/db";
 import { projects as defaultProjects } from "@/data/projects";
 
@@ -11,7 +12,7 @@ const NO_CACHE_HEADERS = {
   "Expires": "0"
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await ensureDbTables();
     const rows = await sql`
@@ -28,25 +29,16 @@ export async function GET() {
           ? { ...data, id: r.id, slug: r.slug, lastUpdated: r.lastUpdated }
           : flat;
       });
-      return NextResponse.json(
-        { status: "ok", projects },
-        { headers: NO_CACHE_HEADERS }
-      );
+      return cachedJson({ status: "ok", projects }, request);
     }
     // An empty table is a real, intentional state — the operator deleted every
     // project. Returning the seed array here made the client repopulate its
     // store with defaults and then POST them all back, so deletions undid
     // themselves. Only a genuine DB failure falls back to seeds (below).
-    return NextResponse.json(
-      { status: "ok", projects: [] },
-      { headers: NO_CACHE_HEADERS }
-    );
+    return cachedJson({ status: "ok", projects: [] }, request);
   } catch (error) {
     console.warn("GET /api/projects DB error fallback:", error);
-    return NextResponse.json(
-      { status: "ok", projects: defaultProjects, fallback: true },
-      { headers: NO_CACHE_HEADERS }
-    );
+    return cachedJson({ status: "ok", projects: defaultProjects, fallback: true }, request);
   }
 }
 

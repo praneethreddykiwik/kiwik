@@ -105,8 +105,6 @@ async function runDDL() {
     () => sql`
       CREATE TABLE IF NOT EXISTS site_visitor_sessions (
         session_id VARCHAR(100) PRIMARY KEY,
-        ip_address VARCHAR(100),
-        user_agent TEXT,
         device_type VARCHAR(50) DEFAULT 'desktop',
         browser_name VARCHAR(50) DEFAULT 'Chrome',
         pathname VARCHAR(255) DEFAULT '/',
@@ -114,6 +112,14 @@ async function runDDL() {
         first_seen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         last_ping TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
+    // Drop the personal-data columns from deployments created before this
+    // change. Nothing reads them, so this loses no functionality.
+    () => sql`ALTER TABLE site_visitor_sessions DROP COLUMN IF EXISTS ip_address;`,
+    () => sql`ALTER TABLE site_visitor_sessions DROP COLUMN IF EXISTS user_agent;`,
+    // Retention. The dashboard only looks at a 45-second window for "online
+    // now" and lifetime totals; rows older than 30 days serve no purpose and
+    // indefinite retention is exactly what a regulator objects to.
+    () => sql`DELETE FROM site_visitor_sessions WHERE last_ping < NOW() - INTERVAL '30 days';`,
   ];
   for (const stmt of statements) {
     try {

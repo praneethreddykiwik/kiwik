@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cachedJson } from "@/lib/api-cache";
 import { sql, ensureDbTables } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -10,26 +11,17 @@ const NO_CACHE_HEADERS = {
   "Expires": "0"
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await ensureDbTables();
     const rows = await sql`SELECT data FROM site_cms WHERE key = 'main' LIMIT 1;`;
     if (rows.length > 0 && rows[0].data) {
-      return NextResponse.json(
-        { status: "ok", cms: rows[0].data },
-        { headers: NO_CACHE_HEADERS }
-      );
+      return cachedJson({ status: "ok", cms: rows[0].data }, request);
     }
-    return NextResponse.json(
-      { status: "ok", cms: null },
-      { headers: NO_CACHE_HEADERS }
-    );
+    return cachedJson({ status: "ok", cms: null }, request);
   } catch (error) {
     console.warn("GET /api/cms DB query fallback:", error);
-    return NextResponse.json(
-      { status: "ok", cms: null, fallback: true },
-      { headers: NO_CACHE_HEADERS }
-    );
+    return cachedJson({ status: "ok", cms: null, fallback: true }, request);
   }
 }
 

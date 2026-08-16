@@ -45,7 +45,14 @@ async function fetchOnce(url: string, channel: Channel) {
 
   channel.inFlight = (async () => {
     try {
-      const res = await fetch(url, { cache: "no-store" });
+      // Not `cache: "no-store"`. That flag bypasses the HTTP cache entirely, so
+      // every poll pulled the whole payload over the wire even when nothing had
+      // changed. The routes now send `max-age=0` plus an ETag, so the browser
+      // still checks freshness on every poll but a match comes back as a
+      // bodiless 304 and fetch resolves it from cache — same correctness, none
+      // of the bytes.
+      const res = await fetch(url);
+      if (res.status === 304) return;
       const raw = await res.text();
       // Unchanged payload: don't touch the stores at all. This is what stops
       // the whole tree re-rendering several times a second while idle.

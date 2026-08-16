@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cachedJson } from "@/lib/api-cache";
 import { sql, ensureDbTables } from "@/lib/db";
 import { partnerProducts as defaultProducts } from "@/data/partner-products";
 
@@ -26,7 +27,7 @@ async function seedProductsIfEmpty() {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await ensureDbTables();
     const rows = await sql`
@@ -39,24 +40,15 @@ export async function GET() {
           ? { ...r.data, id: r.id, slug: r.slug }
           : { id: r.id, slug: r.slug }
       );
-      return NextResponse.json(
-        { status: "ok", products },
-        { headers: NO_CACHE_HEADERS }
-      );
+      return cachedJson({ status: "ok", products }, request);
     }
-    return NextResponse.json(
-      // An empty table is a real state — the operator deleted every partner.
-      // Returning the seed set here made deletions undo themselves, the same
-      // bug already fixed for projects.
-      { status: "ok", products: [] },
-      { headers: NO_CACHE_HEADERS }
-    );
+    // An empty table is a real state — the operator deleted every partner.
+    // Returning the seed set here made deletions undo themselves, the same
+    // bug already fixed for projects.
+    return cachedJson({ status: "ok", products: [] }, request);
   } catch (error) {
     console.warn("GET /api/products DB error fallback:", error);
-    return NextResponse.json(
-      { status: "ok", products: defaultProducts, fallback: true },
-      { headers: NO_CACHE_HEADERS }
-    );
+    return cachedJson({ status: "ok", products: defaultProducts, fallback: true }, request);
   }
 }
 
