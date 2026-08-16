@@ -1460,7 +1460,7 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
           details
         };
         set((state) => ({
-          cms: { ...state.cms, auditLogs: [log, ...state.cms.auditLogs.slice(0, 100)] }
+          cms: { ...state.cms, auditLogs: [log, ...state.cms.auditLogs.slice(0, 24)] }
         }));
       },
 

@@ -91,18 +91,6 @@ const TABLES = [
     conflict: "key",
   },
   {
-    name: "admin_users",
-    ddl: `CREATE TABLE IF NOT EXISTS admin_users (
-  id VARCHAR(100) PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  role VARCHAR(50) DEFAULT 'admin',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);`,
-    columns: ["id", "email", "password_hash", "role", "created_at"],
-    conflict: "id",
-  },
-  {
     name: "newsletter_subscribers",
     ddl: `CREATE TABLE IF NOT EXISTS newsletter_subscribers (
   email VARCHAR(254) PRIMARY KEY,

@@ -94,14 +94,11 @@ async function runDDL() {
         data JSONB NOT NULL DEFAULT '{}'::jsonb,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
-    () => sql`
-      CREATE TABLE IF NOT EXISTS admin_users (
-        id VARCHAR(100) PRIMARY KEY,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        role VARCHAR(50) DEFAULT 'admin',
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );`,
+    // admin_users is deliberately absent. It was created but never read or
+    // written by any code path — admin access lives in admin_security, which
+    // holds the allowlist and the PBKDF2 hash. The table is dropped here so a
+    // fresh deployment does not recreate an empty, confusing duplicate.
+    () => sql`DROP TABLE IF EXISTS admin_users;`,
     () => sql`
       CREATE TABLE IF NOT EXISTS site_visitor_sessions (
         session_id VARCHAR(100) PRIMARY KEY,
