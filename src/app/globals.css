@@ -1005,3 +1005,51 @@ p {
   height: 0;
   display: none;
 }
+
+
+/* Markdown inside the AI chat bubble.
+   The panel is ~360px wide, so a GFM table has to scroll inside its own box
+   rather than stretch the bubble past the panel edge. */
+.kiwik-chat-md > *:first-child { margin-top: 0; }
+.kiwik-chat-md > *:last-child { margin-bottom: 0; }
+.kiwik-chat-md h1, .kiwik-chat-md h2, .kiwik-chat-md h3 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0.5rem 0 0.25rem;
+}
+.kiwik-chat-md p { margin: 0.35rem 0; }
+.kiwik-chat-md ul, .kiwik-chat-md ol { margin: 0.35rem 0; padding-left: 1.05rem; }
+.kiwik-chat-md ul { list-style: disc; }
+.kiwik-chat-md ol { list-style: decimal; }
+.kiwik-chat-md li { margin: 0.15rem 0; }
+.kiwik-chat-md a { color: var(--accent-blue, #3b82f6); text-decoration: underline; }
+.kiwik-chat-md code {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.05rem 0.28rem;
+  border-radius: 0.3rem;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+.kiwik-chat-md pre {
+  overflow-x: auto;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+.kiwik-chat-md pre code { background: none; padding: 0; }
+.kiwik-chat-md table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+}
+.kiwik-chat-md th, .kiwik-chat-md td {
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  padding: 0.25rem 0.45rem;
+  text-align: left;
+  white-space: nowrap;
+}
+.kiwik-chat-md th { font-weight: 700; }

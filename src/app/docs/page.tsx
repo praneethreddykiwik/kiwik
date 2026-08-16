@@ -127,7 +127,10 @@ function DocsMainContent() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-900 dark:text-white px-4 sm:px-6 md:px-8 py-8 max-w-[1500px] mx-auto">
+    // pt-24 matches every other route. This was py-8, which left only ~58px
+    // between the fixed navbar and the first card — the nav floats at top-3 and
+    // is ~58px tall, so the content sat tucked underneath it.
+    <div className="min-h-screen bg-transparent text-slate-900 dark:text-white px-4 sm:px-6 md:px-8 pt-24 pb-8 max-w-[1500px] mx-auto">
       
       {/* Top Hero Header */}
       <DocsHeader

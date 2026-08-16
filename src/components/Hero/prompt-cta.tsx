@@ -1,5 +1,7 @@
 "use client";
 
+import { ASK_AI_EVENT } from "@/components/home/ai-chatbot";
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
@@ -54,11 +56,27 @@ export function PromptCTA() {
     return () => clearInterval(typingInterval);
   }, [promptIndex, userPrompt, samplePrompts]);
 
+  const [error, setError] = useState("");
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const activeText = userPrompt || displayedText;
-    if (!activeText) return;
-    alert(`Submitting prompt request to Kiwik AI Agent: "${activeText}"`);
+
+    // Only what the visitor actually typed. `userPrompt || displayedText` meant
+    // submitting an untouched bar sent whatever half-finished sentence the
+    // typewriter animation happened to be showing at that instant.
+    const activeText = userPrompt.trim();
+
+    // The old guard returned silently on whitespace, so a bar containing only
+    // spaces looked broken rather than invalid.
+    if (!activeText) {
+      setError("Type a question first.");
+      return;
+    }
+
+    setError("");
+    // Hand it to the assistant rather than announcing it in a browser alert().
+    window.dispatchEvent(new CustomEvent(ASK_AI_EVENT, { detail: { query: activeText } }));
+    setUserPrompt("");
   };
 
   // Resolve Lucide Icon dynamically
@@ -90,7 +108,12 @@ export function PromptCTA() {
         <input
           type="text"
           value={userPrompt || displayedText}
-          onChange={(e) => setUserPrompt(e.target.value)}
+          aria-label="Ask Kiwik AI"
+          aria-invalid={Boolean(error)}
+          onChange={(e) => {
+            setUserPrompt(e.target.value);
+            if (error) setError("");
+          }}
           placeholder={promptBar.placeholder || "Brief our AI agent..."}
           className="flex-1 bg-transparent px-3 text-xs font-sans font-medium text-white/90 placeholder-white/40 focus:outline-none truncate"
         />
@@ -104,6 +127,11 @@ export function PromptCTA() {
           <ButtonIconComponent className="w-4 h-4" />
         </button>
       </form>
+      {error && (
+        <p role="alert" className="mt-2 text-center text-[11px] font-semibold text-rose-400">
+          {error}
+        </p>
+      )}
 
       {/* Suggestion Chips */}
       {promptBar.suggestionChips && promptBar.suggestionChips.length > 0 && (

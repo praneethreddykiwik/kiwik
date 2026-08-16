@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { MessageSquare, X, Send, Mic, MicOff, Volume2, VolumeX, Sparkles, Bot } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjects } from "@/stores/projects-store";
@@ -16,6 +18,8 @@ interface Message {
   projectsRef?: any[];
 }
 
+export const ASK_AI_EVENT = "kiwik:ask-ai";
+
 export function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -27,6 +31,7 @@ export function AIChatbot() {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
+  const handleSendRef = useRef<((text?: string) => void) | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const projects = useProjects();
@@ -34,6 +39,20 @@ export function AIChatbot() {
   const recognitionRef = useRef<any>(null);
 
   // Auto-scroll to bottom
+  // The hero prompt bar and any other surface can hand a question to the
+  // assistant instead of doing something of their own with it. The chatbot owns
+  // its open state, so an event is the only way in from outside the subtree.
+  useEffect(() => {
+    const onAsk = (event: Event) => {
+      const query = (event as CustomEvent<{ query?: string }>).detail?.query?.trim();
+      if (!query) return;
+      setIsOpen(true);
+      handleSendRef.current?.(query);
+    };
+    window.addEventListener(ASK_AI_EVENT, onAsk as EventListener);
+    return () => window.removeEventListener(ASK_AI_EVENT, onAsk as EventListener);
+  }, []);
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -149,6 +168,11 @@ export function AIChatbot() {
     ]);
     speakText(text);
   };
+
+  // Kept in a ref so the ASK_AI_EVENT listener always invokes the current
+  // closure without having to re-subscribe on every state change.
+  handleSendRef.current = handleSend;
+
 
   const generateResponse = (rawQuery: string): { text: string; matchedProjects: any[] } => {
     // 1. Convert to lowercase and strip punctuation
@@ -401,7 +425,18 @@ export function AIChatbot() {
                         msg.sender === "bot",
                     })}
                   >
-                    {msg.text}
+                    {msg.sender === "bot" ? (
+                      // The model answers in markdown — headings, bold, and GFM
+                      // tables. Rendering it as a bare string printed the syntax
+                      // literally: "### Project List | **Project** | ...".
+                      // Tables are scrolled rather than allowed to widen the
+                      // bubble past the panel.
+                      <div className="kiwik-chat-md space-y-2 break-words">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      msg.text
+                    )}
                   </div>
 
                   {/* Render Quick Project Reference Cards */}

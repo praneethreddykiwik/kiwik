@@ -80,6 +80,7 @@ import {
 } from "lucide-react";
 
 import { useProjectsStore, useProjects, SYNC_ERROR_EVENT } from "@/stores/projects-store";
+import { clampNumber, validateEmail, validateUrl, isBlank } from "@/lib/validation";
 import { AdminSecurityPanel } from "@/components/admin/admin-security-panel";
 import { useProductsStore, useProducts } from "@/stores/products-store";
 import type { PartnerProduct } from "@/types/partner";
@@ -813,8 +814,9 @@ export default function AdminPage() {
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Sort Order</label>
             <input
               type="number"
+              min={0}
               value={editingProject.sortOrder || 0}
-              onChange={(e) => updateProjField({ sortOrder: parseInt(e.target.value) || 0 })}
+              onChange={(e) => updateProjField({ sortOrder: clampNumber(e.target.value, { min: 0 }) })}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
             />
           </div>
@@ -825,8 +827,9 @@ export default function AdminPage() {
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Priority</label>
             <input
               type="number"
+              min={0}
               value={editingProject.priority || 0}
-              onChange={(e) => updateProjField({ priority: parseInt(e.target.value) || 0 })}
+              onChange={(e) => updateProjField({ priority: clampNumber(e.target.value, { min: 0 }) })}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
             />
           </div>
@@ -1225,7 +1228,7 @@ export default function AdminPage() {
               min="0"
               max="1"
               value={editingProject.heroBgOpacity !== undefined ? editingProject.heroBgOpacity : 0.95}
-              onChange={(e) => updateProjField({ heroBgOpacity: parseFloat(e.target.value) || 0.95 })}
+              onChange={(e) => updateProjField({ heroBgOpacity: clampNumber(e.target.value, { min: 0, max: 1, fallback: 0.95, integer: false }) })}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
             />
           </div>
@@ -1358,8 +1361,9 @@ export default function AdminPage() {
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Stars Count</label>
             <input
               type="number"
+              min={0}
               value={editingProject.stars || 0}
-              onChange={(e) => updateProjField({ stars: parseInt(e.target.value) || 0 })}
+              onChange={(e) => updateProjField({ stars: clampNumber(e.target.value, { min: 0 }) })}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
             />
           </div>
@@ -1367,8 +1371,9 @@ export default function AdminPage() {
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Forks Count</label>
             <input
               type="number"
+              min={0}
               value={editingProject.forks || 0}
-              onChange={(e) => updateProjField({ forks: parseInt(e.target.value) || 0 })}
+              onChange={(e) => updateProjField({ forks: clampNumber(e.target.value, { min: 0 }) })}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
             />
           </div>
@@ -1379,8 +1384,9 @@ export default function AdminPage() {
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Views Count</label>
             <input
               type="number"
+              min={0}
               value={editingProject.views || 0}
-              onChange={(e) => updateProjField({ views: parseInt(e.target.value) || 0 })}
+              onChange={(e) => updateProjField({ views: clampNumber(e.target.value, { min: 0 }) })}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
             />
           </div>
@@ -1388,8 +1394,9 @@ export default function AdminPage() {
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Downloads</label>
             <input
               type="number"
+              min={0}
               value={editingProject.telemetryDownloads || 0}
-              onChange={(e) => updateProjField({ telemetryDownloads: parseInt(e.target.value) || 0 })}
+              onChange={(e) => updateProjField({ telemetryDownloads: clampNumber(e.target.value, { min: 0 }) })}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
             />
           </div>
@@ -1397,8 +1404,9 @@ export default function AdminPage() {
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Completion %</label>
             <input
               type="number"
+              min={0} max={100}
               value={editingProject.completionPercent || 0}
-              onChange={(e) => updateProjField({ completionPercent: parseInt(e.target.value) || 0 })}
+              onChange={(e) => updateProjField({ completionPercent: clampNumber(e.target.value, { min: 0, max: 100 }) })}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
             />
           </div>
@@ -2354,10 +2362,11 @@ export default function AdminPage() {
                   <label className="text-[9px] text-text-secondary block">Contribution %</label>
                   <input
                     type="number"
+                    min={0} max={100}
                     value={member.contributionPercent || 0}
                     onChange={(e) => {
                       const copy = [...team];
-                      copy[idx] = { ...copy[idx], contributionPercent: parseInt(e.target.value) || 0 };
+                      copy[idx] = { ...copy[idx], contributionPercent: clampNumber(e.target.value, { min: 0, max: 100 }) };
                       updateProjField({ contributors: copy });
                     }}
                     className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
@@ -2423,8 +2432,10 @@ export default function AdminPage() {
             <input
               type="number"
               step="0.1"
+              min={0}
+              max={1}
               value={seo.sitemapPriority || 0.8}
-              onChange={(e) => updateProjField({ seo: { ...seo, sitemapPriority: parseFloat(e.target.value) || 0.8 } })}
+              onChange={(e) => updateProjField({ seo: { ...seo, sitemapPriority: clampNumber(e.target.value, { min: 0, max: 1, fallback: 0.8, integer: false }) } })}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
             />
           </div>
@@ -3722,8 +3733,9 @@ export default function AdminPage() {
                                       <label className="text-[10px] font-bold text-text-muted block mb-1">Sort Display Order</label>
                                       <input
                                         type="number"
+                                        min={0}
                                         value={card.order || 0}
-                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { order: parseInt(e.target.value) || 0 })}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { order: clampNumber(e.target.value, { min: 0 }) })}
                                         className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs"
                                       />
                                     </div>
@@ -4053,8 +4065,9 @@ export default function AdminPage() {
                                       <label className="text-[10px] font-bold text-text-muted block mb-1">Blur Amount ({card.backgroundBlur || 0}px)</label>
                                       <input
                                         type="number"
+                                        min={0} max={100}
                                         value={card.backgroundBlur || 0}
-                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundBlur: parseInt(e.target.value) || 0 })}
+                                        onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundBlur: clampNumber(e.target.value, { min: 0 }) })}
                                         className="w-full px-2.5 py-1 rounded bg-bg-primary text-xs"
                                       />
                                     </div>
@@ -5035,8 +5048,9 @@ export default function AdminPage() {
                                     </button>
                                     <input
                                       type="number"
+                                      min={0}
                                       value={proj.priority || idx + 1}
-                                      onChange={(e) => updateProject(proj.id, { priority: parseInt(e.target.value) || 0 })}
+                                      onChange={(e) => updateProject(proj.id, { priority: clampNumber(e.target.value, { min: 0 }) })}
                                       className="w-12 px-2 py-1 rounded-lg bg-bg-tertiary text-xs font-mono font-bold text-center border border-white/10 outline-none"
                                       title="Priority Index (Lower = Higher Rank)"
                                     />
@@ -5928,15 +5942,27 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label className="text-xs font-bold text-text-secondary block mb-1">Contact Email</label>
+                  {/* This address becomes the site-wide mailto: link in the
+                      footer, so an invalid one silently breaks the only contact
+                      route. The field was plain text with no validation, and it
+                      confirmed "Updated contact email!" on every keystroke
+                      regardless of what had been typed. */}
                   <input
-                    type="text"
+                    type="email"
                     value={cms.settings.contactEmail}
+                    aria-invalid={Boolean(validateEmail(cms.settings.contactEmail || "", { required: false }))}
                     onChange={(e) => {
-                      updateSettings({ contactEmail: e.target.value });
-                      showToast("Updated contact email!");
+                      const next = e.target.value;
+                      updateSettings({ contactEmail: next });
+                      if (!validateEmail(next, { required: false })) showToast("Updated contact email!");
                     }}
                     className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono"
                   />
+                  {validateEmail(cms.settings.contactEmail || "", { required: false }) && (
+                    <p role="alert" className="mt-1 text-[10px] font-bold text-rose-400">
+                      {validateEmail(cms.settings.contactEmail || "", { required: false })}
+                    </p>
+                  )}
                 </div>
               </div>
             </GlassCard>

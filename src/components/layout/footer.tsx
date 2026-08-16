@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { validateEmail } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 
 function GithubIcon({ className }: { className?: string }) {
@@ -76,18 +77,50 @@ export function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const pathname = usePathname();
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
-    setSubscribed(true);
-    setStatusMessage(footerCMS.newsletterSuccessMessage || "Subscribed successfully!");
-    setEmail("");
-    setTimeout(() => {
-      setSubscribed(false);
-      setStatusMessage("");
-    }, 4000);
+    if (submitting) return;
+
+    // `type="email"` follows the HTML5 rule, which accepts "a..b@example.com",
+    // ".....@gmail.com" and "test@test". And the old guard — `if
+    // (!email.trim()) return;` — swallowed a spaces-only entry with no message,
+    // so the form looked broken rather than invalid.
+    const problem = validateEmail(email);
+    if (problem) {
+      setError(problem);
+      return;
+    }
+
+    setError("");
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // Only claim success once the address is actually stored.
+        setError(data.error || "Something went wrong. Please try again.");
+        return;
+      }
+      setSubscribed(true);
+      setStatusMessage(footerCMS.newsletterSuccessMessage || "Subscribed successfully!");
+      setEmail("");
+      setTimeout(() => {
+        setSubscribed(false);
+        setStatusMessage("");
+      }, 4000);
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderSocialIcon = (platform: string, iconName: string) => {
@@ -149,19 +182,35 @@ export function Footer() {
               <input
                 type="email"
                 required
+                aria-label="Email address for newsletter"
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? "newsletter-error" : undefined}
                 placeholder={footerCMS.newsletterPlaceholder || "Enter your email"}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError("");
+                }}
                 className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white dark:bg-black/60 border border-neutral-300 dark:border-white/15 focus:outline-none focus:border-indigo-500 text-xs font-semibold text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 shadow-xs"
               />
             </div>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/20 shrink-0 cursor-pointer"
+              disabled={submitting}
+              className="px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/20 shrink-0 cursor-pointer"
             >
-              {subscribed ? "Subscribed!" : (footerCMS.newsletterButtonText || "Subscribe")}
+              {submitting ? "Subscribing…" : subscribed ? "Subscribed!" : (footerCMS.newsletterButtonText || "Subscribe")}
             </button>
           </form>
+          {error && (
+            <p
+              id="newsletter-error"
+              role="alert"
+              className="mt-2 text-[11px] font-semibold text-rose-500 dark:text-rose-400"
+            >
+              {error}
+            </p>
+          )}
           {statusMessage && (
             <div className="absolute bottom-2 right-6 text-[10px] font-mono text-emerald-500 animate-fade-in">
               {statusMessage}

@@ -1,4 +1,5 @@
 import { sql, ensureDbTables } from "@/lib/db";
+import { isValidEmail as sharedIsValidEmail } from "@/lib/validation";
 
 /**
  * Admin access control, stored in the database so it can be managed from the
@@ -36,8 +37,14 @@ export function normaliseEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+/**
+ * Delegates to the shared validator. The rule here used to be
+ * `/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/`, which accepts "a..b@example.com" and
+ * ".....@gmail.com" — so an address that could never receive mail could be
+ * added to the admin allowlist.
+ */
 export function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+  return sharedIsValidEmail(email);
 }
 
 export async function readAdminSecurity(): Promise<AdminSecurity> {

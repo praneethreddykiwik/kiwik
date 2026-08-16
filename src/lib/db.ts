@@ -80,6 +80,14 @@ async function runDDL() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
+    // The footer form previously reported "Subscribed successfully!" without
+    // sending the address anywhere — there was no endpoint and no table.
+    () => sql`
+      CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+        email VARCHAR(254) PRIMARY KEY,
+        source VARCHAR(100) DEFAULT 'footer',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );`,
     () => sql`
       CREATE TABLE IF NOT EXISTS admin_security (
         key VARCHAR(50) PRIMARY KEY,
