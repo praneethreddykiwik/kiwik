@@ -336,6 +336,26 @@ export function Footer() {
               Kiwik.1 is a registered trademark of Kiwik Inc. <br />
               Built with ❤️ by the Kiwik Engineering Team.
             </p>
+
+            {/* The CMS has carried `bottomLinks` all along but nothing rendered
+                them, so the privacy notice had nowhere to be linked from — and a
+                notice nobody can reach does not discharge the obligation to give
+                one. */}
+            {(footerCMS.bottomLinks || []).length > 0 && (
+              <nav aria-label="Legal and secondary links" className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
+                {(footerCMS.bottomLinks || [])
+                  .filter((l: { visible?: boolean }) => l?.visible !== false)
+                  .map((l: { href?: string; label?: string }, i: number) => (
+                    <Link
+                      key={l.href || i}
+                      href={l.href || "/"}
+                      className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    >
+                      {l.label}
+                    </Link>
+                  ))}
+              </nav>
+            )}
           </div>
 
           {/* Metrics grids */}
