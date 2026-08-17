@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { sql, ensureDbTables } from "@/lib/db";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
-import { validateEmail, validatePhone, validateRequired, validateLength } from "@/lib/validation";
+import { validateEmail, validateRequired, validateLength } from "@/lib/validation";
+import {
+  isCountryCode,
+  isServiceOption,
+  validateNationalNumber,
+  DEFAULT_COUNTRY_CODE,
+} from "@/lib/contact-options";
 
 /**
  * Contact form.
@@ -52,8 +58,10 @@ export async function POST(request: Request) {
   const email = str(b.email).trim().toLowerCase();
   const phone = collapseWhitespace(str(b.phone));
   const company = collapseWhitespace(str(b.company));
-  const subject = collapseWhitespace(str(b.subject));
-  // Message keeps its line breaks; only the outer padding is trimmed.
+  const service = collapseWhitespace(str(b.service));
+  const countryCode = collapseWhitespace(str(b.phoneCountryCode)) || DEFAULT_COUNTRY_CODE;
+  // Free-text areas keep their line breaks; only outer padding is trimmed.
+  const projectRequirements = str(b.projectRequirements).trim();
   const message = str(b.message).trim();
 
   const fields: Record<string, Field> = {
@@ -63,11 +71,23 @@ export async function POST(request: Request) {
     },
     email: { value: email, error: validateEmail(email) },
     // Optional fields validate only when the visitor actually filled them in.
-    phone: { value: phone, error: phone ? validatePhone(phone) : null },
+    phone: { value: phone, error: phone ? validateNationalNumber(phone) : null },
+    // The dropdown values are checked against the shared list rather than
+    // trusted, so a hand-rolled POST cannot store arbitrary text here.
+    phoneCountryCode: {
+      value: countryCode,
+      error: phone && !isCountryCode(countryCode) ? "Choose a valid country code." : null,
+    },
+    service: {
+      value: service,
+      error: service && !isServiceOption(service) ? "Choose one of the listed services." : null,
+    },
     company: { value: company, error: company ? validateLength(company, { max: 120, label: "Company" }) : null },
-    subject: {
-      value: subject,
-      error: validateRequired(str(b.subject), "Subject") ?? validateLength(subject, { min: 3, max: 150, label: "Subject" }),
+    projectRequirements: {
+      value: projectRequirements,
+      error: projectRequirements
+        ? validateLength(projectRequirements, { max: 3000, label: "Project requirements" })
+        : null,
     },
     message: {
       value: message,
@@ -109,11 +129,17 @@ export async function POST(request: Request) {
 
     // Parameterised throughout — values never become part of the SQL text.
     const [row] = await sql`
-      INSERT INTO contact_submissions (name, email, phone, company, subject, message)
+      INSERT INTO contact_submissions
+        (name, email, phone, phone_country_code, company, service, project_requirements, message)
       VALUES (
-        ${fields.name.value}, ${fields.email.value},
-        ${phone || null}, ${company || null},
-        ${fields.subject.value}, ${fields.message.value}
+        ${fields.name.value},
+        ${fields.email.value},
+        ${phone || null},
+        ${phone ? countryCode : null},
+        ${company || null},
+        ${service || null},
+        ${projectRequirements || null},
+        ${fields.message.value}
       )
       RETURNING id, created_at;
     `;
@@ -140,7 +166,8 @@ export async function GET() {
   try {
     await ensureDbTables();
     const rows = await sql`
-      SELECT id, name, email, phone, company, subject, message, status, created_at
+      SELECT id, name, email, phone, phone_country_code, company,
+             service, project_requirements, message, status, created_at
       FROM contact_submissions
       ORDER BY created_at DESC
       LIMIT 200;

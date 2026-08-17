@@ -102,8 +102,10 @@ async function runDDL() {
         name TEXT NOT NULL,
         email TEXT NOT NULL,
         phone TEXT,
+        phone_country_code TEXT,
         company TEXT,
-        subject TEXT NOT NULL,
+        service TEXT,
+        project_requirements TEXT,
         message TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'new',
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -123,9 +125,22 @@ async function runDDL() {
                    -- consecutive dots are never valid, in either half
                    AND email !~ '\.\.');
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_subject_len') THEN
-          ALTER TABLE contact_submissions ADD CONSTRAINT contact_subject_len
-            CHECK (char_length(btrim(subject)) BETWEEN 3 AND 150);
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_cc_shape') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_cc_shape
+            CHECK (phone_country_code IS NULL OR phone_country_code ~ '^\+[0-9]{1,4}$');
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_service_len') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_service_len
+            CHECK (service IS NULL OR char_length(service) <= 80);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_reqs_len') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_reqs_len
+            CHECK (project_requirements IS NULL OR char_length(project_requirements) <= 3000);
+        END IF;
+        -- A number without its country code is ambiguous, so require both or neither.
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_phone_pairing') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_phone_pairing
+            CHECK ((phone IS NULL) = (phone_country_code IS NULL));
         END IF;
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_message_len') THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_message_len
@@ -144,6 +159,13 @@ async function runDDL() {
             CHECK (status IN ('new', 'read', 'replied', 'archived'));
         END IF;
       END $$;`,
+    // Migrations for rows created before the form gained these fields.
+    () => sql`ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS phone_country_code TEXT;`,
+    () => sql`ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS service TEXT;`,
+    () => sql`ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS project_requirements TEXT;`,
+    // `subject` is not part of the form; the service dropdown replaced it.
+    () => sql`ALTER TABLE contact_submissions DROP CONSTRAINT IF EXISTS contact_subject_len;`,
+    () => sql`ALTER TABLE contact_submissions DROP COLUMN IF EXISTS subject;`,
     // The admin list is "newest first", so the index matches the sort.
     () => sql`CREATE INDEX IF NOT EXISTS contact_submissions_created_idx ON contact_submissions (created_at DESC);`,
     // Same posture as every other table here: RLS on with no policy, so the

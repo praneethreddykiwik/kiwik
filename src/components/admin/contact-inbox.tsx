@@ -8,8 +8,10 @@ type Submission = {
   name: string;
   email: string;
   phone: string | null;
+  phone_country_code: string | null;
   company: string | null;
-  subject: string;
+  service: string | null;
+  project_requirements: string | null;
   message: string;
   status: "new" | "read" | "replied" | "archived";
   created_at: string;
@@ -136,7 +138,9 @@ export function ContactInbox() {
           <li key={s.id} className="rounded-2xl border border-glass-border bg-bg-secondary/40 p-5">
             <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-bold text-text-primary">{s.subject}</p>
+                <p className="text-sm font-bold text-text-primary">
+                  {s.service || "General inquiry"}
+                </p>
                 <p className="mt-0.5 text-xs text-text-secondary">
                   {s.name} ·{" "}
                   <a href={`mailto:${s.email}`} className="text-accent-blue hover:underline">
@@ -151,7 +155,8 @@ export function ContactInbox() {
                   )}
                   {s.phone && (
                     <span className="flex items-center gap-1">
-                      <Phone className="h-3 w-3" /> {s.phone}
+                      <Phone className="h-3 w-3" />
+                      {[s.phone_country_code, s.phone].filter(Boolean).join(" ")}
                     </span>
                   )}
                   <span>{new Date(s.created_at).toLocaleString()}</span>
@@ -162,10 +167,25 @@ export function ContactInbox() {
               </span>
             </div>
 
-            {/* Rendered as a text node — never as HTML. */}
-            <p className="whitespace-pre-wrap break-words rounded-xl bg-bg-primary/60 p-3 text-xs leading-relaxed text-text-secondary">
-              {s.message}
-            </p>
+            {/* Both bodies render as text nodes — never as HTML. */}
+            {s.project_requirements && (
+              <div className="mb-2">
+                <p className="mb-1 text-[10px] font-mono font-bold uppercase tracking-wider text-text-muted">
+                  Project requirements
+                </p>
+                <p className="whitespace-pre-wrap break-words rounded-xl bg-bg-primary/60 p-3 text-xs leading-relaxed text-text-secondary">
+                  {s.project_requirements}
+                </p>
+              </div>
+            )}
+            <div>
+              <p className="mb-1 text-[10px] font-mono font-bold uppercase tracking-wider text-text-muted">
+                Message
+              </p>
+              <p className="whitespace-pre-wrap break-words rounded-xl bg-bg-primary/60 p-3 text-xs leading-relaxed text-text-secondary">
+                {s.message}
+              </p>
+            </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {STATUSES.filter((st) => st !== s.status).map((st) => (
