@@ -43,6 +43,22 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  try {
+    return await handlePost(request);
+  } catch (error) {
+    // Without this the handler had no error path at all, so any database
+    // hiccup escaped as a bare 500 and the panel could only say
+    // "Request failed (500)" — no cause, and no way to tell a transient
+    // connection drop from a rejected value.
+    console.error("POST /api/admin/security failed:", error);
+    return NextResponse.json(
+      { error: "Couldn't reach the database. Nothing was changed — please try again." },
+      { status: 503 }
+    );
+  }
+}
+
+async function handlePost(request: Request) {
   if (!(await requireAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

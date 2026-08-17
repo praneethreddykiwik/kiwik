@@ -233,14 +233,54 @@ async function seedProjectsIfEmpty() {
   }
 }
 
+/** Every table the app expects to exist. */
+const REQUIRED_TABLES = [
+  "site_cms",
+  "projects",
+  "products",
+  "newsletter_subscribers",
+  "contact_submissions",
+  "admin_security",
+  "site_visitor_sessions",
+] as const;
+
+/**
+ * One query instead of the full DDL, for the overwhelmingly common case where
+ * the schema is already in place.
+ *
+ * runDDL issues 21 sequential statements, which is ~830ms of round trips to
+ * Supabase's pooler on every cold serverless start — paid before the request
+ * that triggered it can do any work, and a chain long enough that a single
+ * dropped connection anywhere in it fails the whole call. That is what turned
+ * "add an admin email" into an intermittent 500.
+ *
+ * The probe costs ~80ms and answers the only question that matters: is anything
+ * missing? If not, the DDL is skipped entirely.
+ */
+async function schemaLooksComplete(): Promise<boolean> {
+  try {
+    const rows = await sql`
+      SELECT table_name FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = ANY(${REQUIRED_TABLES as unknown as string[]});
+    `;
+    return rows.length === REQUIRED_TABLES.length;
+  } catch {
+    // Cannot tell — fall through to the full DDL, which is the safe direction.
+    return false;
+  }
+}
+
 let ensured: Promise<void> | null = null;
 export function ensureDbTables(): Promise<void> {
   if (!ensured) {
     ensured = (async () => {
+      if (await schemaLooksComplete()) return;
       await runDDL();
       await seedProjectsIfEmpty();
     })().catch((err) => {
       console.error("ensureDbTables error:", err);
+      // Clearing the cache lets the next request retry rather than inheriting
+      // a permanently rejected promise.
       ensured = null;
     });
   }
