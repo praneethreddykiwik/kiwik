@@ -131,6 +131,47 @@ FROM site_visitor_sessions;
 COMMENT ON VIEW v_visitors_live IS
   'Anonymous traffic counters. No IP address or User-Agent is stored; rows older than 30 days are purged.';
 
+-- ── Contact form submissions ────────────────────────────────────────────────
+DROP VIEW IF EXISTS v_contact_inbox;
+CREATE VIEW v_contact_inbox AS
+SELECT id, created_at, status, name, email, company,
+       COALESCE(phone_country_code, '') || ' ' || COALESCE(phone, '') AS phone,
+       service,
+       left(COALESCE(project_requirements, ''), 80) AS requirements_preview,
+       left(message, 80)                            AS message_preview
+FROM contact_submissions ORDER BY created_at DESC;
+
+COMMENT ON VIEW v_contact_inbox IS
+  'Contact form submissions, newest first. Managed from the studio Contact Inbox tab.';
+
+-- ── Lock the views down ─────────────────────────────────────────────────────
+-- A Postgres view runs with its OWNER's rights by default, so a view created by
+-- the postgres role BYPASSES RLS on the tables underneath it. That is what
+-- Supabase labels "UNRESTRICTED", and it is not cosmetic: with the views left
+-- at the default, the public anon key could read contact submissions and the
+-- admin allowlist over the REST API even though the base tables correctly
+-- returned nothing. Verified before and after.
+--
+-- security_invoker makes each view run as the CALLER, so the base tables' RLS
+-- applies. The REVOKE is the second layer: these are admin dashboards and have
+-- no business being reachable through PostgREST at all.
+ALTER VIEW v_site_content SET (security_invoker = on);
+ALTER VIEW v_site_content_sections SET (security_invoker = on);
+ALTER VIEW v_projects SET (security_invoker = on);
+ALTER VIEW v_partners SET (security_invoker = on);
+ALTER VIEW v_admin_access SET (security_invoker = on);
+ALTER VIEW v_visitors_live SET (security_invoker = on);
+ALTER VIEW v_contact_inbox SET (security_invoker = on);
+
+REVOKE ALL ON v_site_content FROM anon, authenticated;
+REVOKE ALL ON v_site_content_sections FROM anon, authenticated;
+REVOKE ALL ON v_projects FROM anon, authenticated;
+REVOKE ALL ON v_partners FROM anon, authenticated;
+REVOKE ALL ON v_admin_access FROM anon, authenticated;
+REVOKE ALL ON v_visitors_live FROM anon, authenticated;
+REVOKE ALL ON v_contact_inbox FROM anon, authenticated;
+
+
 COMMENT ON TABLE site_cms IS
   'The whole site''s editable content as one JSONB document (key = main). Browse it through v_site_content / v_site_content_sections.';
 COMMENT ON TABLE site_visitor_sessions IS

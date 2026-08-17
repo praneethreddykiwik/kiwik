@@ -275,6 +275,33 @@ SELECT
   max(last_ping)                              AS most_recent_visit
 FROM site_visitor_sessions;
 
+-- ── Lock the views down ─────────────────────────────────────────────────────
+-- A Postgres view runs with its OWNER's rights by default, so a view created by
+-- the postgres role BYPASSES RLS on the tables underneath it. That is what
+-- Supabase labels "UNRESTRICTED", and it is not cosmetic: with the views left
+-- at the default, the public anon key could read contact submissions and the
+-- admin allowlist over the REST API even though the base tables correctly
+-- returned nothing. Verified before and after.
+--
+-- security_invoker makes each view run as the CALLER, so the base tables' RLS
+-- applies. The REVOKE is the second layer: these are admin dashboards and have
+-- no business being reachable through PostgREST at all.
+ALTER VIEW v_site_content SET (security_invoker = on);
+ALTER VIEW v_site_content_sections SET (security_invoker = on);
+ALTER VIEW v_projects SET (security_invoker = on);
+ALTER VIEW v_partners SET (security_invoker = on);
+ALTER VIEW v_contact_inbox SET (security_invoker = on);
+ALTER VIEW v_admin_access SET (security_invoker = on);
+ALTER VIEW v_visitors_live SET (security_invoker = on);
+
+REVOKE ALL ON v_site_content FROM anon, authenticated;
+REVOKE ALL ON v_site_content_sections FROM anon, authenticated;
+REVOKE ALL ON v_projects FROM anon, authenticated;
+REVOKE ALL ON v_partners FROM anon, authenticated;
+REVOKE ALL ON v_contact_inbox FROM anon, authenticated;
+REVOKE ALL ON v_admin_access FROM anon, authenticated;
+REVOKE ALL ON v_visitors_live FROM anon, authenticated;
+
 COMMIT;
 
 -- ── After running this ──────────────────────────────────────────────────────
