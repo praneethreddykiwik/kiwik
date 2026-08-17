@@ -118,13 +118,7 @@ type MainSidebarTab =
 type PageSubTab =
   | "home"
   | "projects-page"
-  | "project-detail"
-  | "docs-page"
-  | "doc-article"
-  | "about"
-  | "contact"
-  | "footer-page"
-  | "404";
+  | "footer-page";
 
 type HomeSectionTab =
   | "hero"
@@ -2664,13 +2658,7 @@ export default function AdminPage() {
                   {[
                     { id: "home", label: "HOME", icon: Sparkles },
                     { id: "projects-page", label: "PROJECTS", icon: Folder },
-                    { id: "project-detail", label: "PROJECT DETAILS", icon: FileText },
-                    { id: "docs-page", label: "DOCUMENTATION", icon: BookOpenIcon },
-                    { id: "doc-article", label: "DOC ARTICLE", icon: Code },
-                    { id: "about", label: "ABOUT", icon: Users },
-                    { id: "contact", label: "CONTACT", icon: Terminal },
-                    { id: "footer-page", label: "FOOTER", icon: Layers },
-                    { id: "404", label: "404 PAGE", icon: AlertCircle }
+                    { id: "footer-page", label: "FOOTER", icon: Layers }
                   ].map((pg) => (
                     <button
                       key={pg.id}
@@ -5092,43 +5080,6 @@ export default function AdminPage() {
                     </div>
                   </GlassCard>
                 </div>
-              )}
-
-              {/* OTHER PAGES: PROJECT DETAILS BUILDER */}
-              {activePage === "project-detail" && (
-                <GlassCard className="p-6 space-y-5 text-left">
-                  <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-accent-blue" /> Project Detail Page Template & Specs Builder
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-text-secondary block mb-1">Default Template Tabs</label>
-                      <input type="text" defaultValue="Overview, Screenshots, Tech Stack, README, FAQs" className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-mono" />
-                    </div>
-                  </div>
-                </GlassCard>
-              )}
-
-              {/* OTHER PAGES: ABOUT / CONTACT / 404 */}
-              {activePage === "about" && (
-                <GlassCard className="p-6 space-y-4 text-left">
-                  <h3 className="text-base font-bold text-text-primary">About Page Mission & Values</h3>
-                  <textarea rows={4} defaultValue="Kiwik is the enterprise operating system for modern software products." className="w-full p-3 rounded-xl bg-bg-secondary text-xs font-medium" />
-                </GlassCard>
-              )}
-
-              {activePage === "contact" && (
-                <GlassCard className="p-6 space-y-4 text-left">
-                  <h3 className="text-base font-bold text-text-primary">Contact Page Details</h3>
-                  <input type="text" defaultValue={cms.settings.contactEmail} className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-mono" />
-                </GlassCard>
-              )}
-
-              {activePage === "404" && (
-                <GlassCard className="p-6 space-y-4 text-left">
-                  <h3 className="text-base font-bold text-text-primary">404 Error Page Copy</h3>
-                  <input type="text" defaultValue="404 - System Route Not Found" className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold" />
-                </GlassCard>
               )}
 
             </div>

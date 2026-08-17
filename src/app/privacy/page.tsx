@@ -167,6 +167,37 @@ export default function PrivacyPage() {
         </section>
 
         <section>
+          <h2 className="mb-3 text-lg font-serif font-bold text-text-primary">
+            Why we are allowed to hold it
+          </h2>
+          <p>
+            Contact and newsletter details are processed because you gave them to us for that
+            purpose — you asked us to reply, or to send you release notes. Site-usage counts are
+            processed to keep the site working and secure. We do not process any of it for
+            advertising, and we do not sell or share it.
+          </p>
+          <p className="mt-2">
+            We do not knowingly collect anything from children. If you believe a child has sent us
+            personal data, write to us and we will delete it.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-serif font-bold text-text-primary">
+            Complaints
+          </h2>
+          <p>
+            If you are unhappy with how we have handled your data, write to{" "}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-accent-blue hover:underline">
+              {CONTACT_EMAIL}
+            </a>{" "}
+            and we will respond. Under India&apos;s Digital Personal Data Protection Act you may
+            also raise the matter with the Data Protection Board of India if our response does not
+            resolve it.
+          </p>
+        </section>
+
+        <section>
           <h2 className="mb-3 text-lg font-serif font-bold text-text-primary">Changes</h2>
           <p>
             If we begin collecting anything not listed above, this page changes first, and the date

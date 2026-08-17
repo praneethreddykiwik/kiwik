@@ -114,47 +114,47 @@ async function runDDL() {
     () => sql`
       DO $$
       BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_name_len') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_name_len' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_name_len
             CHECK (char_length(btrim(name)) BETWEEN 2 AND 100);
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_email_shape') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_email_shape' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_email_shape
             CHECK (char_length(email) <= 254
                    AND email ~ '^[^@[:space:]]+@[^@[:space:]]+\.[A-Za-z]{2,}$'
                    -- consecutive dots are never valid, in either half
                    AND email !~ '\.\.');
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_cc_shape') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_cc_shape' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_cc_shape
             CHECK (phone_country_code IS NULL OR phone_country_code ~ '^\+[0-9]{1,4}$');
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_service_len') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_service_len' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_service_len
             CHECK (service IS NULL OR char_length(service) <= 80);
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_reqs_len') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_reqs_len' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_reqs_len
             CHECK (project_requirements IS NULL OR char_length(project_requirements) <= 3000);
         END IF;
         -- A number without its country code is ambiguous, so require both or neither.
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_phone_pairing') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_phone_pairing' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_phone_pairing
             CHECK ((phone IS NULL) = (phone_country_code IS NULL));
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_message_len') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_message_len' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_message_len
             CHECK (char_length(btrim(message)) BETWEEN 10 AND 5000);
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_phone_len') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_phone_len' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_phone_len
             CHECK (phone IS NULL OR char_length(phone) <= 32);
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_company_len') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_company_len' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_company_len
             CHECK (company IS NULL OR char_length(company) <= 120);
         END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_status_enum') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_status_enum' AND conrelid = 'contact_submissions'::regclass) THEN
           ALTER TABLE contact_submissions ADD CONSTRAINT contact_status_enum
             CHECK (status IN ('new', 'read', 'replied', 'archived'));
         END IF;
