@@ -125,7 +125,15 @@ export function PremiumShowcaseCard({ project }: PremiumShowcaseCardProps) {
   };
 
   return (
-    <Link href={`/projects/${project.slug}`} className="block h-full group outline-none select-none">
+    // prefetch is explicit rather than left to the default. Measured on the
+    // live site: four seconds after /projects had finished loading, with all
+    // three cards on screen, the router had issued zero prefetch requests — so
+    // every click paid for the RSC payload from scratch.
+    <Link
+      href={`/projects/${project.slug}`}
+      prefetch
+      className="block h-full group outline-none select-none"
+    >
       <motion.div
         ref={cardRef}
         onMouseMove={handleMouseMove}
