@@ -1,5 +1,23 @@
 import { NextResponse } from "next/server";
 import { cachedJson, revalidateApiPath } from "@/lib/api-cache";
+
+/**
+ * Regenerate the pre-rendered project pages after a write.
+ *
+ * /projects/[slug] is an ISR route now, and unlike a CDN entry created from a
+ * Cache-Control header, an ISR page is precisely what revalidatePath purges —
+ * so publishing from the studio is visible immediately instead of waiting for
+ * the revalidate window.
+ */
+async function revalidateProjectPages() {
+  try {
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/projects");
+    revalidatePath("/projects/[slug]", "page");
+  } catch (error) {
+    console.warn("revalidate of project pages failed:", error);
+  }
+}
 import { sql, ensureDbTables } from "@/lib/db";
 import { projects as defaultProjects } from "@/data/projects";
 
@@ -78,6 +96,7 @@ export async function POST(request: Request) {
     `;
 
     await revalidateApiPath("/api/projects");
+    await revalidateProjectPages();
     return NextResponse.json(
       {
         status: "success",
@@ -111,6 +130,7 @@ export async function DELETE(request: Request) {
     await sql`DELETE FROM projects WHERE id = ${id};`;
 
     await revalidateApiPath("/api/projects");
+    await revalidateProjectPages();
     return NextResponse.json(
       {
         status: "success",

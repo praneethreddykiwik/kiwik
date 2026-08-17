@@ -14,7 +14,40 @@ import { absoluteUrl, SITE_NAME } from "@/lib/site";
  * structured data without a code change.
  */
 
-export const dynamic = "force-dynamic";
+/**
+ * Pre-rendered, not dynamic.
+ *
+ * `force-dynamic` meant every click re-rendered on the server and re-read the
+ * database — measured at 0.9-4.4s against the list page's 0.12s. Worse, Next
+ * cannot prefetch a force-dynamic route, so hovering a project card fetched
+ * nothing and the click paid the whole cost with no head start.
+ *
+ * The pages are now built ahead of time from the slugs in the database and
+ * served from the CDN, which is what makes the click feel immediate: the card
+ * prefetches on hover and the transition is client-side.
+ *
+ * `revalidate` is the ceiling for a change made outside the app (a row edited
+ * straight in the Supabase dashboard). Publishing through the studio does not
+ * wait for it — the projects API calls revalidatePath, which regenerates these
+ * pages on the spot. Unlike a CDN entry written from a Cache-Control header,
+ * an ISR page is exactly what revalidatePath is built to purge.
+ */
+export const revalidate = 300;
+
+/** Build a page for every project that exists at build time. */
+export async function generateStaticParams() {
+  try {
+    const projects = await getPublicProjects();
+    return projects.map((p) => ({ slug: p.slug }));
+  } catch {
+    // A build with no database reachable still succeeds; the pages render on
+    // first request instead.
+    return [];
+  }
+}
+
+// A slug added after the build still renders on demand, then is cached.
+export const dynamicParams = true;
 
 type Props = { params: Promise<{ slug: string }> };
 

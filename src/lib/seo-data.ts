@@ -1,3 +1,4 @@
+import { cache } from "react";
 // Server-only module: imported exclusively by server components and route
 // handlers (sitemap, generateMetadata), never by a client component.
 import { sql, ensureDbTables } from "@/lib/db";
@@ -74,7 +75,7 @@ function normalise(row: any, fallbackDate?: Date): SeoEntity | null {
 }
 
 /** Public projects, straight from the database the admin studio writes to. */
-export async function getPublicProjects(): Promise<SeoEntity[]> {
+export const getPublicProjects = cache(async function getPublicProjects(): Promise<SeoEntity[]> {
   try {
     await ensureDbTables();
     const rows = await sql`
@@ -90,10 +91,10 @@ export async function getPublicProjects(): Promise<SeoEntity[]> {
   } catch {
     return defaultProjects.map((p) => normalise(p)).filter(Boolean) as SeoEntity[];
   }
-}
+});
 
 /** Public partner products (the /partners showcase). */
-export async function getPublicProducts(): Promise<SeoEntity[]> {
+export const getPublicProducts = cache(async function getPublicProducts(): Promise<SeoEntity[]> {
   try {
     await ensureDbTables();
     const rows = await sql`
@@ -105,12 +106,20 @@ export async function getPublicProducts(): Promise<SeoEntity[]> {
   } catch {
     return defaultProducts.map((p) => normalise(p)).filter(Boolean) as SeoEntity[];
   }
-}
+});
 
-export async function getProjectBySlug(slug: string): Promise<SeoEntity | null> {
+/**
+ * Deduplicated per request.
+ *
+ * A project page called this from generateMetadata and again from the component,
+ * and each call read the whole projects table — three full reads to render one
+ * page. React's cache() memoises for the lifetime of a single request, so the
+ * table is read once and the other two callers get the same promise.
+ */
+export const getProjectBySlug = cache(async function getProjectBySlug(slug: string): Promise<SeoEntity | null> {
   const all = await getPublicProjects();
   return all.find((p) => p.slug === slug) || null;
-}
+});
 
 export async function getProductBySlug(slug: string): Promise<SeoEntity | null> {
   const all = await getPublicProducts();
