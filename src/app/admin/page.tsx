@@ -3555,7 +3555,7 @@ export default function AdminPage() {
                           quote: "Helping founders launch zero latency products.",
                           tag: "Design",
                           avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-                          frameOverlayUrl: "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048",
+                          frameOverlayUrl: "/phone-frame.png",
                           accentColor: "#3B82F6",
                           backgroundColor: "#0C0D12",
                           visible: true,

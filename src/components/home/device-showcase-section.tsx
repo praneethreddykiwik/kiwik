@@ -12,6 +12,20 @@ export function DeviceShowcaseSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  // On phones the strip overflows and used to open scrolled to its left edge,
+  // so the first thing on screen was the smallest, least important card cut in
+  // half. Centre the featured middle card before paint instead; on wide
+  // screens nothing overflows and this is a no-op.
+  React.useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    const cards = Array.from(el.children) as HTMLElement[];
+    const mid = cards[Math.floor(cards.length / 2)];
+    if (!mid) return;
+    el.scrollLeft = mid.offsetLeft + mid.offsetWidth / 2 - el.clientWidth / 2;
+  }, []);
 
   const cms = useSiteCMS();
   const deviceShowcase = cms.deviceShowcase || {
@@ -94,6 +108,7 @@ export function DeviceShowcaseSection() {
 
       {/* Dynamic Coverflow Device Wrapper */}
       <motion.div
+        ref={scrollerRef}
         style={{ y: smoothY }}
         className="relative w-full flex items-center justify-start 2xl:justify-center snap-x snap-mandatory -space-x-4 sm:space-x-3 md:space-x-6 overflow-x-auto pt-16 sm:pt-24 md:pt-28 lg:pt-32 pb-16 sm:pb-20 md:pb-24 lg:pb-28 no-scrollbar px-6 sm:px-12"
       >
@@ -123,7 +138,9 @@ export function DeviceShowcaseSection() {
               }}
               transition={{ type: "spring", stiffness: 240, damping: 26, mass: 0.8 }}
               className={cn(
-                "relative flex-shrink-0 shadow-[25px_35px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer group rounded-[48px] sm:rounded-[54px] transition-shadow duration-300",
+                // snap-center: the container declares snap-x snap-mandatory,
+                // but snapping is inert unless each child states its alignment.
+                "relative flex-shrink-0 snap-center shadow-[25px_35px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer group rounded-[48px] sm:rounded-[54px] transition-shadow duration-300",
                 settings.width,
                 settings.height,
                 isHovered ? "z-50 shadow-[0_50px_120px_rgba(0,0,0,0.35)] dark:shadow-[0_50px_130px_rgba(0,0,0,0.95)]" : settings.zIndex
@@ -504,10 +521,19 @@ export function DeviceShowcaseSection() {
 
               </div>
 
-              {/* Premium Device Bezel Frame Overlay */}
-              <img 
-                src={card.phoneFrame || "https://framerusercontent.com/images/H2xOBKfRU2M06U4j9LF5WN8z6pA.png?scale-down-to=2048"} 
-                alt="Device Frame" 
+              {/* Premium Device Bezel Frame Overlay.
+                  Served from our own origin: it used to load from
+                  framerusercontent.com, so on a slow mobile connection the
+                  coloured screen painted instantly while the bezel arrived
+                  seconds later — a bare colour slab that looked like the
+                  colour bleeding past the phone's borders. */}
+              <img
+                src={card.phoneFrame || "/phone-frame.png"}
+                alt=""
+                width={1009}
+                height={2048}
+                loading="eager"
+                decoding="sync"
                 className="absolute inset-0 w-full h-full object-fill pointer-events-none z-30"
               />
             </motion.div>
