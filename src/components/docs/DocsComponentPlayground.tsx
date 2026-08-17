@@ -69,7 +69,7 @@ export function DocsComponentPlayground({ componentName, description, props, var
         </div>
 
         {/* Preview Canvas Area */}
-        <div className="p-10 flex items-center justify-center min-h-[180px] bg-slate-100/80 dark:bg-[#06070a]/90 relative overflow-hidden">
+        <div className="p-10 flex items-center justify-center min-h-[180px] bg-slate-100/80 dark:bg-[#060607]/90 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] opacity-10" />
           
           <div className="relative z-10 flex items-center gap-4 flex-wrap justify-center">

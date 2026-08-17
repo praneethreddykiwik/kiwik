@@ -97,7 +97,7 @@ export function DocsAiPanel({ isOpen, onClose, currentArticle }: DocsAiPanelProp
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 100 }}
-          className="w-full max-w-lg h-full max-h-[700px] rounded-3xl bg-[#06070a]/95 border border-white/10 shadow-2xl flex flex-col overflow-hidden backdrop-blur-2xl text-slate-100"
+          className="w-full max-w-lg h-full max-h-[700px] rounded-3xl bg-[#060607]/95 border border-white/10 shadow-2xl flex flex-col overflow-hidden backdrop-blur-2xl text-slate-100"
         >
           {/* Header */}
           <div className="p-5 border-b border-white/10 flex items-center justify-between bg-white/5">

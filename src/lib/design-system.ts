@@ -6,12 +6,12 @@
 
 export const KiwikSurfaces = {
   // Surface Materials
-  primary: "bg-[#08090C] dark:bg-[#08090C] light:bg-[#FAFAF8] text-text-primary",
-  secondary: "bg-[#101114] dark:bg-[#101114] light:bg-[#F4F4F0] border border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06]",
-  glass: "bg-[#101114]/75 dark:bg-[#101114]/75 light:bg-white/85 backdrop-blur-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06]",
-  card: "bg-[#15171B] dark:bg-[#15171B] light:bg-white border border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06] shadow-md hover:shadow-xl transition-all duration-300",
-  hero: "relative overflow-hidden bg-gradient-to-b from-[#08090C] via-[#101114] to-[#08090C]",
-  footer: "bg-[#08090C] border-t border-white/[0.08] text-text-secondary",
+  primary: "bg-[#070708] dark:bg-[#070708] light:bg-[#FAFAF8] text-text-primary",
+  secondary: "bg-[#0D0D0E] dark:bg-[#0D0D0E] light:bg-[#F4F4F0] border border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06]",
+  glass: "bg-[#0D0D0E]/75 dark:bg-[#0D0D0E]/75 light:bg-white/85 backdrop-blur-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06]",
+  card: "bg-[#131314] dark:bg-[#131314] light:bg-white border border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06] shadow-md hover:shadow-xl transition-all duration-300",
+  hero: "relative overflow-hidden bg-gradient-to-b from-[#070708] via-[#0D0D0E] to-[#070708]",
+  footer: "bg-[#070708] border-t border-white/[0.08] text-text-secondary",
 };
 
 export const KiwikElevation = {

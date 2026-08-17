@@ -70,7 +70,7 @@ export function EditorialProductPanel({
           rotateY,
           transformStyle: "preserve-3d",
         }}
-        className="relative h-[540px] sm:h-[600px] rounded-[28px] bg-[#0C0D12] dark:bg-[#09090D] border border-black/10 dark:border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.6)] transition-all duration-500 transform-gpu group-hover:-translate-y-2 group-hover:scale-[1.01]"
+        className="relative h-[540px] sm:h-[600px] rounded-[28px] bg-[#0C0D12] dark:bg-[#08080A] border border-black/10 dark:border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.6)] transition-all duration-500 transform-gpu group-hover:-translate-y-2 group-hover:scale-[1.01]"
       >
         {/* Soft Category Ambient Backlight Glow (6% opacity) */}
         <div
@@ -89,7 +89,7 @@ export function EditorialProductPanel({
         {/* ─────────────────────────────────────────────────────────────
             70% CINEMATIC PRODUCT VISUAL (Obsidian Editorial Style)
            ───────────────────────────────────────────────────────────── */}
-        <div className="relative w-full h-[68%] rounded-2xl bg-[#12131C] dark:bg-[#0A0B10] border border-black/10 dark:border-white/10 overflow-hidden flex items-center justify-center p-4 shadow-inner group-hover:scale-[1.015] transition-transform duration-700">
+        <div className="relative w-full h-[68%] rounded-2xl bg-[#12131C] dark:bg-[#0A0A0B] border border-black/10 dark:border-white/10 overflow-hidden flex items-center justify-center p-4 shadow-inner group-hover:scale-[1.015] transition-transform duration-700">
           
           {/* Background Metallic Shader Grid */}
           <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.04] pointer-events-none" />
@@ -213,7 +213,7 @@ export function EditorialProductPanel({
           )}
 
           {/* Glass Top Specular Edge Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0B10] via-transparent to-white/5 opacity-60 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] via-transparent to-white/5 opacity-60 pointer-events-none" />
         </div>
 
         {/* ─────────────────────────────────────────────────────────────

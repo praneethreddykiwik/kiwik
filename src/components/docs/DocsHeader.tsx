@@ -12,7 +12,7 @@ interface DocsHeaderProps {
 
 export function DocsHeader({ searchQuery, onSearchChange, onOpenCommandPalette }: DocsHeaderProps) {
   return (
-    <div className="relative mb-10 overflow-hidden rounded-3xl bg-white dark:bg-[#101114] border border-neutral-200/80 dark:border-white/10 p-6 sm:p-8 md:p-10 transition-all shadow-sm">
+    <div className="relative mb-10 overflow-hidden rounded-3xl bg-white dark:bg-[#0D0D0E] border border-neutral-200/80 dark:border-white/10 p-6 sm:p-8 md:p-10 transition-all shadow-sm">
       <div className="relative z-10 space-y-6 text-left">
         {/* Top Badges */}
         <div className="flex items-center gap-3 flex-wrap">

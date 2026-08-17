@@ -300,7 +300,7 @@ const defaultCMSData: SiteCMSData = {
   theme: {
     mode: "system",
     colors: {
-      primary: "#06070a",
+      primary: "#060607",
       secondary: "#f2f5f9",
       accentBlue: "#3b82f6",
       accentCyan: "#06b6d4",

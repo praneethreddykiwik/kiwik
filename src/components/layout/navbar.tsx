@@ -70,8 +70,8 @@ export function Navbar() {
           // `saturate()` pass dropped; at 85-90% background opacity the
           // difference is not visible, the per-frame cost is.
           scrolled
-            ? 'scale-[0.99] bg-[#FAFAF8]/90 dark:bg-[#0A0C10]/90 backdrop-blur-[12px] border-black/[0.08] dark:border-white/15 shadow-[0_16px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.7)]'
-            : 'bg-[#FAFAF8]/85 dark:bg-[#0A0C10]/85 backdrop-blur-[12px] border-black/[0.06] dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.5)]'
+            ? 'scale-[0.99] bg-[#FAFAF8]/90 dark:bg-[#0A0A0B]/90 backdrop-blur-[12px] border-black/[0.08] dark:border-white/15 shadow-[0_16px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.7)]'
+            : 'bg-[#FAFAF8]/85 dark:bg-[#0A0A0B]/85 backdrop-blur-[12px] border-black/[0.06] dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.5)]'
         )}
       >
         {/* ─────────────────────────────────────────────────────────────
@@ -273,7 +273,7 @@ export function Navbar() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="absolute top-full inset-x-0 mt-3 p-4 rounded-3xl bg-white/95 dark:bg-[#07080B]/95 border border-black/10 dark:border-white/15 backdrop-blur-2xl shadow-2xl flex flex-col gap-1.5 xl:hidden overflow-hidden z-50"
+              className="absolute top-full inset-x-0 mt-3 p-4 rounded-3xl bg-white/95 dark:bg-[#070708]/95 border border-black/10 dark:border-white/15 backdrop-blur-2xl shadow-2xl flex flex-col gap-1.5 xl:hidden overflow-hidden z-50"
             >
               {navItems.map((item) => {
                 const normalizedHref = item.href.startsWith('#')

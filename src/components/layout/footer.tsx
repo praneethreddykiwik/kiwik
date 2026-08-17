@@ -156,7 +156,7 @@ export function Footer() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6 }}
-      className="w-full mt-20 pt-16 pb-8 px-4 sm:px-6 md:px-8 border-t border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#08090C] text-neutral-700 dark:text-neutral-300 relative z-20 transition-colors"
+      className="w-full mt-20 pt-16 pb-8 px-4 sm:px-6 md:px-8 border-t border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#070708] text-neutral-700 dark:text-neutral-300 relative z-20 transition-colors"
     >
       <div className="max-w-[1400px] mx-auto">
         

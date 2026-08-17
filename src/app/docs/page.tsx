@@ -151,7 +151,7 @@ function DocsMainContent() {
         />
 
         {/* Center Main Content Deck */}
-        <main className="flex-1 w-full min-w-0 bg-white dark:bg-[#101114] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm space-y-8">
+        <main className="flex-1 w-full min-w-0 bg-white dark:bg-[#0D0D0E] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm space-y-8">
           
           {/* Article Header */}
           <div className="space-y-3 border-b border-neutral-200/80 dark:border-white/10 pb-6 text-left">

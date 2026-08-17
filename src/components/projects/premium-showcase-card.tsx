@@ -215,7 +215,7 @@ export function PremiumShowcaseCard({ project }: PremiumShowcaseCardProps) {
             </div>
 
             {/* Browser Content Screenshot View */}
-            <div className="relative h-[180px] sm:h-[210px] w-full overflow-hidden bg-[#0A0B10]">
+            <div className="relative h-[180px] sm:h-[210px] w-full overflow-hidden bg-[#0A0A0B]">
               <ProjectImage
                 src={project.coverImage}
                 alt={project.name}
@@ -224,7 +224,7 @@ export function PremiumShowcaseCard({ project }: PremiumShowcaseCardProps) {
               />
 
               {/* Specular Edge Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0B10] via-transparent to-white/5 opacity-70" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] via-transparent to-white/5 opacity-70" />
             </div>
 
           </div>

@@ -111,7 +111,7 @@ export function InteractiveLogo() {
 
         {/* Eyelid overlay for blink animation */}
         <div
-          className={`absolute inset-0 bg-[#FAFAF8] dark:bg-[#08090C] ${
+          className={`absolute inset-0 bg-[#FAFAF8] dark:bg-[#070708] ${
             mounted ? "transition-transform duration-100 ease-in-out" : ""
           }`}
           style={{
@@ -143,7 +143,7 @@ export function InteractiveLogo() {
 
         {/* Eyelid overlay for blink animation */}
         <div
-          className={`absolute inset-0 bg-[#FAFAF8] dark:bg-[#08090C] ${
+          className={`absolute inset-0 bg-[#FAFAF8] dark:bg-[#070708] ${
             mounted ? "transition-transform duration-100 ease-in-out" : ""
           }`}
           style={{

@@ -100,7 +100,7 @@ export default function ProjectsPage() {
       {/* ─────────────────────────────────────────────────────────────
           MOVABLE 3D MODEL STREAM CAROUSEL SLIDER
          ───────────────────────────────────────────────────────────── */}
-      <div className="mb-12 rounded-3xl bg-[#0A0B10] p-4 sm:p-6 border border-white/10 shadow-2xl">
+      <div className="mb-12 rounded-3xl bg-[#0A0A0B] p-4 sm:p-6 border border-white/10 shadow-2xl">
         <MovableCardSlider />
       </div>
       

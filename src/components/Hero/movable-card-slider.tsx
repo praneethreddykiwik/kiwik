@@ -195,7 +195,7 @@ export function MovableCardSlider() {
               </div>
 
               {/* Window Body with Image & Bold Brand Overlay */}
-              <div className="relative w-full h-[calc(100%-35px)] overflow-hidden bg-[#0A0B10]">
+              <div className="relative w-full h-[calc(100%-35px)] overflow-hidden bg-[#0A0A0B]">
                 <img
                   src={model.image}
                   alt={model.name}

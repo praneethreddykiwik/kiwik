@@ -72,10 +72,10 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Default theme fallbacks (dark obsidian) to prevent FOUC */
-  --bg-primary: #08090C;
-  --bg-secondary: #101114;
-  --bg-tertiary: #15171B;
-  --bg-elevated: #1C1E24;
+  --bg-primary: #070708;
+  --bg-secondary: #0D0D0E;
+  --bg-tertiary: #131314;
+  --bg-elevated: #1A1A1C;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-tertiary: #64748b;
@@ -98,30 +98,37 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   DARK THEME (default) — Obsidian Tech Palette (#08090C)
+   DARK THEME (default) — Obsidian Tech Palette (#070708)
    ═══════════════════════════════════════════════════════════════ */
 
 [data-theme="dark"] {
-  --bg-primary: #08090C; /* Deep obsidian black */
-  --bg-secondary: #101114; /* Deep secondary obsidian panel */
-  --bg-tertiary: #15171B; /* Elevated card surface */
-  --bg-elevated: #1C1E24;
+  /* Neutral, not blue.
+     These were #070708 / #0D0D0E / #131314 / #1C1E24 — every one had its blue
+     channel above red, and the gap widened as surfaces rose (+4 at the page
+     background, +8 at the highest card). A cool cast that strengthens with
+     elevation is exactly what reads as "blueish", and it showed most on the
+     raised panels. Held to +1 now, and each step taken a little darker. */
+  --bg-primary: #070708; /* Near-black, neutral */
+  --bg-secondary: #0D0D0E; /* Panel */
+  --bg-tertiary: #131314; /* Card surface */
+  --bg-elevated: #1A1A1C; /* Highest surface */
 
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-tertiary: #64748b;
   --text-muted: #475569;
 
-  --glass-bg: rgba(16, 17, 20, 0.75); /* Rich frosted obsidian glass */
-  --glass-bg-hover: rgba(16, 17, 20, 0.85);
-  --glass-bg-active: rgba(16, 17, 20, 0.95);
+  /* Matched to the new neutral panel colour; these were rgb(16,17,20). */
+  --glass-bg: rgba(13, 13, 14, 0.75);
+  --glass-bg-hover: rgba(13, 13, 14, 0.85);
+  --glass-bg-active: rgba(13, 13, 14, 0.95);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-border-hover: rgba(99, 102, 241, 0.35); /* Glowing indigo-violet border on hover */
   --glass-highlight: rgba(255, 255, 255, 0.05);
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
   --glass-shadow-lg: 0 30px 90px rgba(0, 0, 0, 0.8);
 
-  --surface-overlay: rgba(8, 9, 12, 0.8);
+  --surface-overlay: rgba(7, 7, 8, 0.8);
   --divider: rgba(255, 255, 255, 0.08);
 
   color-scheme: dark;
