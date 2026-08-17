@@ -60,6 +60,47 @@ const nextConfig: NextConfig = {
             key: "Referrer-Policy",
             value: "origin-when-cross-origin",
           },
+          {
+            // The site asks for none of these. Denying them outright means a
+            // script that somehow does run still cannot reach a camera, a
+            // microphone, or location.
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+          },
+          {
+            // Defence in depth behind React's escaping, which is what actually
+            // stops the contact form's untrusted input from executing.
+            //
+            // 'unsafe-inline' and 'unsafe-eval' are present under script-src
+            // because Next injects inline bootstrap and flight-data scripts,
+            // and this app also renders the theme-init script inline before
+            // paint. A nonce-based strict-dynamic policy is the stronger
+            // approach and is the right follow-up, but it requires routing a
+            // per-request nonce through those inline scripts — a change that
+            // has to be made carefully rather than bundled into a security
+            // pass. Stated plainly so the weakness is not mistaken for a
+            // hardened policy.
+            //
+            // The parts that are tight and do real work: object-src 'none'
+            // kills legacy plugin vectors, base-uri 'self' stops base-tag
+            // hijacking, frame-ancestors 'self' backs up X-Frame-Options, and
+            // connect-src is limited to the origins this app actually calls.
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https:",
+              "media-src 'self' https://ynueobhylfxnilqldisy.supabase.co",
+              "font-src 'self' data:",
+              "connect-src 'self' https://ynueobhylfxnilqldisy.supabase.co",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'self'",
+              "upgrade-insecure-requests",
+            ].join("; "),
+          },
         ],
       },
     ];

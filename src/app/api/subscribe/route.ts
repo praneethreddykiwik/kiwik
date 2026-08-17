@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql, ensureDbTables } from "@/lib/db";
 import { validateEmail } from "@/lib/validation";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 /**
  * Newsletter signup.
@@ -13,6 +14,16 @@ import { validateEmail } from "@/lib/validation";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  // Unlimited signups let a script fill the table and burn the database quota
+  // that this project has already exceeded once.
+  const limit = rateLimit(clientKey(request, "subscribe"), 5, 60_000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again in a minute." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const email = String((body as { email?: unknown } | null)?.email ?? "").trim().toLowerCase();
 

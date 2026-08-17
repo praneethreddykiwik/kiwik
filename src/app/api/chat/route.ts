@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 // Groq decommissioned `llama3-8b-8192`, so every request had been failing and
 // silently falling back to the client-side canned answers. Kept in one constant
@@ -37,6 +38,16 @@ function trimProjectsContext(projects: unknown) {
 }
 
 export async function POST(req: Request) {
+  // Every call here hits a paid LLM API. Payload size was capped but call rate
+  // was not, so a loop against this endpoint was an uncapped bill.
+  const limit = rateLimit(clientKey(req, "chat"), 12, 60_000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { fallback: true, error: "You're sending messages very quickly. Give it a moment." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+    );
+  }
+
   try {
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {

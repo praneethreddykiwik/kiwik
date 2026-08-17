@@ -82,6 +82,7 @@ import {
 import { useProjectsStore, useProjects, SYNC_ERROR_EVENT } from "@/stores/projects-store";
 import { clampNumber, validateEmail, validateUrl, isBlank } from "@/lib/validation";
 import { AdminSecurityPanel } from "@/components/admin/admin-security-panel";
+import { ContactInbox } from "@/components/admin/contact-inbox";
 import { useProductsStore, useProducts } from "@/stores/products-store";
 import type { PartnerProduct } from "@/types/partner";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
@@ -107,6 +108,7 @@ type MainSidebarTab =
   | "partners"
   | "documentation"
   | "ai"
+  | "inbox"
   | "analytics"
   | "users"
   | "appearance"
@@ -2733,6 +2735,16 @@ export default function AdminPage() {
                 )}
               >
                 <Terminal className="w-4 h-4" /> AI Assistant
+              </button>
+
+              <button
+                onClick={() => handleSelectTab("inbox")}
+                className={cn(
+                  "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
+                  mainTab === "inbox" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+                )}
+              >
+                <Mail className="w-4 h-4" /> Contact Inbox
               </button>
 
               <button
@@ -5815,6 +5827,12 @@ export default function AdminPage() {
           )}
 
           {/* ANALYTICS TAB */}
+          {mainTab === "inbox" && (
+            <GlassCard className="p-6">
+              <ContactInbox />
+            </GlassCard>
+          )}
+
           {mainTab === "analytics" && (
             <div className="space-y-6 text-left">
               <div className="p-6 rounded-2xl bg-glass-bg border border-glass-border space-y-2">

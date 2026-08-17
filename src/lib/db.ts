@@ -88,6 +88,68 @@ async function runDDL() {
         source VARCHAR(100) DEFAULT 'footer',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );`,
+    // Contact form submissions.
+    //
+    // `bigint identity` rather than a v4 UUID: sequential keys keep the index
+    // dense, where random UUIDs scatter inserts across the btree.
+    // `text` + CHECK rather than varchar(n), so the limit is a named, visible
+    // constraint instead of a silent truncation rule — and it is enforced by
+    // Postgres itself, not only by the API route, so a bad row cannot be
+    // written by any path.
+    () => sql`
+      CREATE TABLE IF NOT EXISTS contact_submissions (
+        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT,
+        company TEXT,
+        subject TEXT NOT NULL,
+        message TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'new',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );`,
+    // ADD CONSTRAINT has no IF NOT EXISTS form, so each one is guarded.
+    () => sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_name_len') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_name_len
+            CHECK (char_length(btrim(name)) BETWEEN 2 AND 100);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_email_shape') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_email_shape
+            CHECK (char_length(email) <= 254
+                   AND email ~ '^[^@[:space:]]+@[^@[:space:]]+\.[A-Za-z]{2,}$'
+                   -- consecutive dots are never valid, in either half
+                   AND email !~ '\.\.');
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_subject_len') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_subject_len
+            CHECK (char_length(btrim(subject)) BETWEEN 3 AND 150);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_message_len') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_message_len
+            CHECK (char_length(btrim(message)) BETWEEN 10 AND 5000);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_phone_len') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_phone_len
+            CHECK (phone IS NULL OR char_length(phone) <= 32);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_company_len') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_company_len
+            CHECK (company IS NULL OR char_length(company) <= 120);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_status_enum') THEN
+          ALTER TABLE contact_submissions ADD CONSTRAINT contact_status_enum
+            CHECK (status IN ('new', 'read', 'replied', 'archived'));
+        END IF;
+      END $$;`,
+    // The admin list is "newest first", so the index matches the sort.
+    () => sql`CREATE INDEX IF NOT EXISTS contact_submissions_created_idx ON contact_submissions (created_at DESC);`,
+    // Same posture as every other table here: RLS on with no policy, so the
+    // public anon key is denied outright. The app reaches Postgres directly
+    // through DATABASE_URL, which is not subject to RLS.
+    () => sql`ALTER TABLE contact_submissions ENABLE ROW LEVEL SECURITY;`,
     () => sql`
       CREATE TABLE IF NOT EXISTS admin_security (
         key VARCHAR(50) PRIMARY KEY,
