@@ -381,7 +381,17 @@ p {
 }
 
 [data-theme="dark"] .vision-glass {
-  background: rgba(18, 26, 36, 0.85);
+  /* This is the surface behind the dashboard mockup's cards and the Kiwik AI
+     panel — the largest light-looking area in dark mode.
+     It was rgba(18, 26, 36, 0.85), which composites over the page to a
+     luminance of 22.3 against the page's 7.1: more than three times as bright,
+     so the panels read as pale slabs rather than raised surfaces. Its blue
+     channel was also 18 above red, the strongest cool cast left anywhere on the
+     site — the earlier neutralising pass missed it because it is an rgba() in a
+     class rule, not one of the hex literals that were swept.
+     Now composites to 14.8 and is effectively neutral: still clearly a step up
+     from the page, but a dark surface rather than a bright one. */
+  background: rgba(16, 16, 18, 0.85);
   /* These panels are the largest backdrop-filter surfaces on the site (the
      dashboard alone is ~624,000 px²) and in dark mode they sit at 85% opacity
      on the flat --bg-primary canvas. Blurring a uniform backdrop returns that
