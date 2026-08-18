@@ -105,14 +105,19 @@ export const metadata: Metadata = {
   // /logo.png first with no size and claimed /icon.png was 32x32 when both were
   // the same transparent 1024x1024 image — so the icon a client actually picked
   // was the wide, transparent logo, which is not usable as a favicon.
+  // The ?v= is a cache-buster. Browsers cache a favicon by its exact URL and
+  // will keep serving a stale copy after the file changes at the same path —
+  // which is why a rebuilt favicon looked "unchanged". Bumping this version
+  // forces every browser to fetch the current icons. Raise it on each icon
+  // change.
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
-      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
-      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.ico?v=3", sizes: "16x16 32x32 48x48" },
+      { url: "/icon-192.png?v=3", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png?v=3", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/favicon.ico",
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/favicon.ico?v=3",
+    apple: [{ url: "/apple-touch-icon.png?v=3", sizes: "180x180", type: "image/png" }],
   },
   manifest: "/site.webmanifest",
 };
