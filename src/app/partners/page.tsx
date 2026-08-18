@@ -104,8 +104,14 @@ export default function PartnersPage() {
           >
             See the work <ArrowRight className="w-4 h-4" />
           </a>
+          {/* This was a Next <Link> wrapping a mailto: URL. Link is for
+              internal routes — it intercepts the click for the client router,
+              which cannot navigate to mailto:, so the button did nothing.
+              It now opens the contact form with the partnership service
+              already selected, which also lands the enquiry in the studio
+              inbox instead of depending on the visitor's mail client. */}
           <Link
-            href={`mailto:${contactEmail}?subject=${encodeURIComponent("Partnership enquiry — Kiwik")}`}
+            href="/contact?service=Digital%20Market%20Partnership"
             className="px-5 py-2.5 rounded-full bg-glass-bg border border-glass-border text-text-primary font-bold text-sm hover:bg-bg-secondary transition-colors"
           >
             Start a conversation
@@ -172,13 +178,12 @@ export default function PartnersPage() {
             We take on a small number of partners at a time — enough to stay obsessive about each one.
           </p>
           <div className="pt-2">
-            {/* This used to point at /contact, which has no route — the button
-                just 404'd. It now opens a pre-addressed email to the contact
-                address configured in the admin studio. */}
+            {/* The contact page exists now and stores enquiries in the studio
+                inbox, so the form beats a mailto: an enquiry no longer depends
+                on the visitor having a configured mail client, and nothing is
+                lost if they abandon the draft. */}
             <a
-              href={`mailto:${contactEmail}?subject=${encodeURIComponent("Partnership enquiry — Kiwik")}&body=${encodeURIComponent(
-                "Hi Kiwik team,\n\nI'd like to explore a partnership.\n\nCompany:\nWhat we do:\nWhere we'd like momentum:\n\nThanks,\n"
-              )}`}
+              href="/contact?service=Digital%20Market%20Partnership"
               className="inline-flex px-6 py-3 rounded-full bg-accent-blue text-white font-bold text-sm items-center gap-2 hover:scale-[1.03] transition-transform"
             >
               Become a partner <ArrowRight className="w-4 h-4" />

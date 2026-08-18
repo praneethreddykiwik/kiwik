@@ -79,8 +79,10 @@ function validateAll(v: Values): Errors {
   return e;
 }
 
-export function ContactForm() {
-  const [values, setValues] = useState<Values>(EMPTY);
+export function ContactForm({ initialService = "" }: { initialService?: string }) {
+  // The page validates initialService against SERVICE_OPTIONS before passing
+  // it, so seeding state with it cannot put a non-listed value in the select.
+  const [values, setValues] = useState<Values>({ ...EMPTY, service: initialService });
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof Values, boolean>>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Mail, MessageSquare, Clock } from "lucide-react";
 import { ContactForm } from "./contact-form";
+import { isServiceOption } from "@/lib/contact-options";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 const TITLE = "Contact Kiwik — Talk to the team";
@@ -23,7 +24,17 @@ export const metadata: Metadata = {
 
 const CONTACT_EMAIL = "praneeth@kiwik.one";
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ service?: string }>;
+}) {
+  // ?service= lets CTAs elsewhere open the form with their service already
+  // chosen. Validated against the same list the dropdown is built from, so an
+  // arbitrary query value cannot inject text into the select.
+  const { service } = await searchParams;
+  const initialService = service && isServiceOption(service) ? service : "";
+
   return (
     <>
       <script
@@ -64,7 +75,7 @@ export default function ContactPage() {
 
         <div className="grid gap-12 lg:grid-cols-[1fr_320px] lg:gap-16">
           <div className="order-2 lg:order-1">
-            <ContactForm />
+            <ContactForm initialService={initialService} />
           </div>
 
           <aside className="order-1 space-y-6 lg:order-2">
