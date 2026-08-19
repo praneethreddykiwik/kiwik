@@ -46,7 +46,7 @@ const defaultCMSData: SiteCMSData = {
     siteName: "Kiwik",
     tagline: "The Operating System for Digital Products",
     logoUrl: "/logo.png",
-    faviconUrl: "/favicon.ico",
+    faviconUrl: "/logo-dark.png",
     copyrightText: "© 2026 Kiwik Inc. All rights reserved.",
     contactEmail: "praneeth@kiwik.one",
     contactPhone: "+1 (800) 555-KIWIK",
