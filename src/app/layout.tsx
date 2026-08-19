@@ -150,9 +150,11 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="144x144" href="/icon-144.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
 
         {/* WebSite + Organization + SoftwareApplication + FAQPage structured data */}
         <script
