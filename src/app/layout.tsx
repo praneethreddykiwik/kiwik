@@ -60,9 +60,6 @@ export const metadata: Metadata = {
     "project documentation platform",
     "digital product workspace",
   ],
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,

@@ -33,6 +33,16 @@ const nextConfig: NextConfig = {
         destination: "https://kiwik.one/:path*",
         permanent: true,
       },
+      {
+        source: "/capabilities",
+        destination: "/#capabilities",
+        permanent: true,
+      },
+      {
+        source: "/how-we-work",
+        destination: "/#how-we-work",
+        permanent: true,
+      },
     ];
   },
   async headers() {
