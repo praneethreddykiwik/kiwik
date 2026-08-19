@@ -32,8 +32,8 @@ export async function GET() {
 
 > ${SITE_DESCRIPTION}
 
-Kiwik is a web platform, reachable at ${SITE_URL}. It is not a physical product,
-a wearable, or a piece of jewellery. Kiwik brings projects, documentation, AI
+Kiwik is a web platform and operating system for digital products, reachable at ${SITE_URL}.
+It is not a physical product, a wearable, or a piece of jewellery, and is distinct from Kiwix. Kiwik brings projects, documentation, AI
 assistance, cloud infrastructure, automation, deployments and engineering
 workflows into a single workspace, so that the work and the record of the work
 live in the same place.

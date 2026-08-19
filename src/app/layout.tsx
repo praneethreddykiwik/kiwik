@@ -112,13 +112,19 @@ export const metadata: Metadata = {
   // change.
   icons: {
     icon: [
-      { url: "/logo-dark.png", type: "image/png" },
+      { url: "/icon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icon-96.png", sizes: "96x96", type: "image/png" },
+      { url: "/icon-144.png", sizes: "144x144", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/logo-dark.png", sizes: "1024x1024", type: "image/png" },
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
-      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/logo-dark.png",
-    apple: [{ url: "/logo-dark.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
   },
   manifest: "/site.webmanifest",
 };
@@ -138,15 +144,17 @@ export default function RootLayout({
       className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable}`}
     >
       <head>
-        {/* WebSite + Organization + SoftwareApplication structured data. Only
-            facts that are true and visible on the site — no invented social
-            profiles or ratings.
+        {/* Explicit Googlebot & Search Engine standard favicon declarations */}
+        <link rel="icon" type="image/png" sizes="48x48" href="/icon-48.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/icon-96.png" />
+        <link rel="icon" type="image/png" sizes="144x144" href="/icon-144.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-            The Organization used to be named "Criska" with Kiwik as a mere
-            alternateName. Google reads this block to decide which entity the
-            domain IS, so it was actively teaching Google the wrong brand for
-            kiwik.one. Kiwik is the entity; the logo is a real square PNG,
-            which is what Google's logo guidelines require. */}
+        {/* WebSite + Organization + SoftwareApplication + FAQPage structured data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -167,7 +175,7 @@ export default function RootLayout({
                 "@type": "Organization",
                 "@id": SITE_URL + "/#organization",
                 name: SITE_NAME,
-                alternateName: ["Kiwik OS", "Kiwik One"],
+                alternateName: ["Kiwik OS", "Kiwik One", "Kiwik Inc."],
                 url: SITE_URL + "/",
                 logo: {
                   "@type": "ImageObject",
@@ -188,6 +196,37 @@ export default function RootLayout({
                 url: SITE_URL + "/",
                 description: SITE_DESCRIPTION,
                 publisher: { "@id": SITE_URL + "/#organization" },
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "@id": SITE_URL + "/#faq",
+                mainEntity: [
+                  {
+                    "@type": "Question",
+                    name: "What is Kiwik?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "Kiwik (kiwik.one) is the operating system for digital products — uniting projects, documentation, AI platforms, cloud infrastructure, automation, and engineering workflows into a single workspace.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "Is Kiwik free?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "Kiwik provides accessible workspaces and developer tools for building and managing digital products, projects, and AI systems.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "Is Kiwik the same as Kiwix?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "No. Kiwik (available at https://kiwik.one) is an operating system and engineering platform for digital products and software teams. Kiwix is an unrelated offline software reader.",
+                    },
+                  },
+                ],
               },
             ]),
           }}
