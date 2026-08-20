@@ -33,6 +33,23 @@ const nextConfig: NextConfig = {
         destination: "https://kiwik.one/:path*",
         permanent: true,
       },
+      // Vercel's static output serves every prerendered route at its "/index"
+      // variant too: "/" is reachable at "/index", "/projects" at
+      // "/projects/index", and so on. Those extra URLs return 200 with byte-
+      // identical HTML, which is exactly what Search Console flagged as
+      // "Duplicate without user-selected canonical" — Google found /index and
+      // could not tell which URL was the original. A 301 collapses each back to
+      // the real path so only one URL per page remains crawlable.
+      {
+        source: "/index",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/:path+/index",
+        destination: "/:path+",
+        permanent: true,
+      },
       {
         source: "/capabilities",
         destination: "/#capabilities",
