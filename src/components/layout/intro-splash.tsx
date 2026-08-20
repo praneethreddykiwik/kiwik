@@ -61,9 +61,19 @@ export function IntroSplash() {
               transition={{ delay: 0.3, duration: 0.4 }}
               className="text-center space-y-1"
             >
-              <h1 className="text-2xl font-serif font-bold tracking-widest text-text-primary">
+              {/* Decorative wordmark for the loading splash — not the page's
+                  primary heading. It was an <h1>, so every route emitted this
+                  generic "KIWIK" as its first (and identical) h1 ahead of the
+                  page's real heading, giving crawlers a meaningless top heading
+                  on every URL. A styled div carries the same visual without
+                  claiming the h1 slot. aria-hidden because the logo above
+                  already labels the splash. */}
+              <div
+                aria-hidden="true"
+                className="text-2xl font-serif font-bold tracking-widest text-text-primary"
+              >
                 KIWIK
-              </h1>
+              </div>
               <p className="text-[9px] font-mono tracking-[0.2em] text-text-secondary uppercase">
                 Initializing Edge Core...
               </p>
