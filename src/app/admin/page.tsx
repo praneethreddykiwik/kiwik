@@ -1,7 +1,7 @@
 "use client";
 
 import * as LucideIcons from "lucide-react";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProjectImage } from "@/components/ui/project-image";
@@ -87,6 +87,7 @@ import { useProductsStore, useProducts } from "@/stores/products-store";
 import type { PartnerProduct } from "@/types/partner";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
 import { useDocsStore } from "@/stores/docs-store";
+import { useThemeStore } from "@/stores/theme-store";
 import { ProjectDetailContent } from "@/components/projects/project-detail-content";
 import { GlassCard } from "@/components/glass/glass-card";
 import type {
@@ -243,7 +244,13 @@ export default function AdminPage() {
 
   // Theme & Live Preview State
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
-  const [previewMode, setPreviewMode] = useState<"dark" | "light">("dark");
+  // The studio's light/dark control drives the real, app-wide theme store
+  // (persisted to localStorage as "kiwik-theme" and applied to <html> by the
+  // root ThemeProvider), so toggling it re-themes the whole studio AND the
+  // public site — not a local flag that changed nothing. `themeMode` is the
+  // single source of truth; the old local `previewMode` state was cosmetic.
+  const themeMode = useThemeStore((s) => s.mode);
+  const setThemeMode = useThemeStore((s) => s.setMode);
   const [isSavingGlobal, setIsSavingGlobal] = useState(false);
 
   // Store Hooks
@@ -254,9 +261,28 @@ export default function AdminPage() {
   const partnerProductsList = useProducts();
   const { addProduct, updateProduct, deleteProduct } = useProductsStore();
 
-  // Reactive CMS state used for debounced global auto-save.
+  // Reactive CMS state used for unsaved-change tracking.
   const liveCms = useSiteCMSStore((s) => s.cms);
   const autoSaveArmedRef = useRef(false);
+
+  // CMS edits are no longer written to the database automatically. They are
+  // staged in the store (which drives the live preview) and committed only when
+  // the user clicks "Save All Changes" (or Cmd/Ctrl+S). `cmsDirty` reflects
+  // whether the staged content differs from what was last saved, so the Save
+  // button can show an unsaved-changes state. `analytics` is excluded from the
+  // signature because visitor/search telemetry mutates it constantly and is not
+  // something the operator edits — including it would keep the studio
+  // permanently "unsaved".
+  const [cmsDirty, setCmsDirty] = useState(false);
+  const lastSavedCmsSigRef = useRef<string>("");
+  const cmsEditableSignature = useMemo(() => {
+    const { analytics: _ignored, ...editable } = (liveCms as any) || {};
+    try {
+      return JSON.stringify(editable);
+    } catch {
+      return "";
+    }
+  }, [liveCms]);
 
   // Hydrate the editor from the global DB state on mount (the DB is the source
   // of truth across devices). Auto-save is armed shortly after so we don't
@@ -294,13 +320,9 @@ export default function AdminPage() {
         }),
       ]);
 
-      if (!cancelled) {
-        // Armed only after all three are loaded, so the first auto-save can
-        // never re-post pre-hydration state.
-        setTimeout(() => {
-          autoSaveArmedRef.current = true;
-        }, 1500);
-      }
+      // Change-tracking is armed by a separate mount timer below, so it works
+      // even when the database is unreachable (the load above simply leaves the
+      // locally-persisted copy in place).
     })();
 
     return () => {
@@ -308,56 +330,39 @@ export default function AdminPage() {
     };
   }, []);
 
-  // Debounced auto-save of CMS content only.
+  // Track unsaved CMS edits instead of auto-persisting them.
   //
-  // This previously re-POSTed every project and every product on each run, and
-  // ran whenever `liveCms` changed — which includes `cms.analytics`, mutated
-  // continuously by visitor and search telemetry. The effect therefore fired on
-  // its own every couple of seconds and rewrote the entire projects table from
-  // whatever this browser had cached. Deleting a project anywhere — the studio,
-  // the API, even straight from Supabase — was undone within seconds by the
-  // next tick. That is the whole reason deletions kept reappearing.
-  //
-  // Projects and products already persist individually the moment they are
-  // edited (syncProjectToDb / syncProductToDb in their stores), so the bulk
-  // re-post was redundant as well as destructive. A deletion is now permanent.
+  // Editing a page, hero, theme or setting used to POST the whole CMS to the
+  // database ~1.2s later, with no way to review or discard — which is exactly
+  // what was reported: content changed on the live site without anyone clicking
+  // "Save Changes". Now an edit only flips `cmsDirty`; nothing is written until
+  // the operator clicks "Save All Changes" (or Cmd/Ctrl+S), which is the single,
+  // explicit commit point. The live preview still updates instantly because it
+  // reads the store, not the database.
+  // Arm change-tracking shortly after mount, once localStorage hydration and the
+  // initial DB load have settled, seeding whatever is loaded as the saved
+  // baseline. A fixed timer (rather than gating on the network) guarantees the
+  // indicator works even if the database is briefly unreachable.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const { analytics: _a, ...editable } = (useSiteCMSStore.getState().cms as any) || {};
+      try {
+        lastSavedCmsSigRef.current = JSON.stringify(editable);
+      } catch {
+        lastSavedCmsSigRef.current = "";
+      }
+      setCmsDirty(false);
+      autoSaveArmedRef.current = true;
+    }, 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Once armed, an edit that moves the CMS away from the saved baseline flips the
+  // unsaved indicator; saving (which re-seeds the baseline) clears it.
   useEffect(() => {
     if (!autoSaveArmedRef.current) return;
-    const t = setTimeout(async () => {
-      try {
-        const res = await fetch("/api/cms", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(useSiteCMSStore.getState().cms),
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          showToast(
-            res.status === 401
-              ? "⚠️ Session expired — your edits are NOT being saved. Sign in again."
-              : `⚠️ Auto-save failed — edits are NOT saved. ${data.error || `HTTP ${res.status}`}`
-          );
-          return;
-        }
-
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new Event("kiwik-data-updated"));
-          try {
-            const bc = new BroadcastChannel("kiwik-global-sync");
-            bc.postMessage("kiwik-data-updated");
-            bc.close();
-          } catch {
-            /* ignore */
-          }
-        }
-      } catch (err) {
-        console.error("CMS auto-save error:", err);
-        showToast("⚠️ Auto-save failed — edits are NOT saved (network error).");
-      }
-    }, 1200);
-    return () => clearTimeout(t);
-  }, [liveCms]);
+    setCmsDirty(cmsEditableSignature !== lastSavedCmsSigRef.current);
+  }, [cmsEditableSignature]);
 
   const handleSaveGlobalCMS = async () => {
     setIsSavingGlobal(true);
@@ -401,6 +406,16 @@ export default function AdminPage() {
           /* ignore */
         }
       }
+
+      // Everything just written is now the saved baseline, so clear the
+      // unsaved-changes indicator.
+      const { analytics: _a, ...editable } = (currentCMS as any) || {};
+      try {
+        lastSavedCmsSigRef.current = JSON.stringify(editable);
+      } catch {
+        /* keep previous baseline */
+      }
+      setCmsDirty(false);
 
       showToast("✅ All CMS settings, Projects & Products saved globally in Supabase DB!");
     } catch (err) {
@@ -635,8 +650,33 @@ export default function AdminPage() {
   // Phone Showcase & Projects Editor States
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [editingProject, setEditingProject] = useState<any | null>(null);
+  // Deferred-commit model for the full-screen project editor.
+  //   - isNewProject: this draft has never been written to the store/DB, so
+  //     leaving the editor discards it entirely (no more phantom "New Kiwik
+  //     Project" rows created just by opening or backing out of the editor).
+  //   - projectDirty: the working copy differs from what is persisted, used to
+  //     confirm before discarding and to gate the unsaved-changes indicator.
+  // Field edits only touch the local `editingProject` (which drives the live
+  // preview); nothing reaches the database until "Publish & Close" validates
+  // and commits.
+  const [isNewProject, setIsNewProject] = useState(false);
+  const [projectDirty, setProjectDirty] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [activeEditorTab, setActiveEditorTab] = useState<string>("general");
+
+  // Fields a project must have before it can be published. Chosen to match the
+  // real data contract: a routable URL (slug), a name, a one-line tagline, a
+  // category, and a full description. Order drives which tab the editor jumps to
+  // on a failed publish.
+  const REQUIRED_PROJECT_FIELDS: { key: keyof Project; label: string; tab: string }[] = [
+    { key: "name", label: "Project Name", tab: "general" },
+    { key: "slug", label: "Project Slug", tab: "general" },
+    { key: "tagline", label: "Short Description (Tagline)", tab: "general" },
+    { key: "category", label: "Category", tab: "general" },
+    { key: "longDescription", label: "Long Description", tab: "general" },
+  ];
+  const getMissingRequiredFields = (p: any) =>
+    REQUIRED_PROJECT_FIELDS.filter((f) => !String(p?.[f.key] ?? "").trim());
 
   const editorTabs = [
     { id: "general", label: "General Specs", icon: <LucideIcons.Settings className="w-3.5 h-3.5" /> },
@@ -662,47 +702,159 @@ export default function AdminPage() {
   const [newPickerAssetName, setNewPickerAssetName] = useState("");
   const [newPickerAssetUrl, setNewPickerAssetUrl] = useState("");
 
-  /** Debounce timers for field edits, keyed by project id. */
-  const projFieldSaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-
   const updateProjField = (updatedFields: Partial<Project>) => {
     if (!editingProject) return;
 
-    const draft = { ...editingProject, ...updatedFields } as Project;
+    // Edits update only the local working copy — which is what the live preview
+    // reads — and never touch the store or the database on their own. The row is
+    // written exactly once, on "Publish & Close", after validation. This is the
+    // whole fix for edits (and brand-new projects) persisting silently: nothing
+    // is saved until the user explicitly publishes, and backing out discards.
+    setEditingProject({ ...editingProject, ...updatedFields } as Project);
+    setProjectDirty(true);
+  };
 
-    // The editor state updates on every keystroke so typing stays responsive,
-    // but the database write is debounced and validated. Previously every
-    // character POSTed the whole row: backspacing a slug wrote "sowch",
-    // "sowc", "sow"... and the row settled on whatever prefix was left, so the
-    // project's URL 404'd permanently.
+  /** Normalise any string into a URL-safe slug. */
+  const toSlug = (value: string) =>
+    (value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  /** Open the editor on an existing project (a working copy, committed only on publish). */
+  const openProjectEditor = (proj: Project) => {
+    setEditingProject({ ...proj });
+    setIsNewProject(false);
+    setProjectDirty(false);
+    setActiveEditorTab("general");
+  };
+
+  /**
+   * Start a brand-new project as a LOCAL draft. Nothing is written to the store
+   * or database here — that only happens if the user publishes. This is what
+   * stops a project from being created merely by clicking "Add Project" (and
+   * therefore left behind when the Back arrow is used).
+   */
+  const openNewProjectEditor = () => {
+    const slug = `project-${Date.now()}`;
+    const draft: Project = {
+      id: slug,
+      slug,
+      name: "New Kiwik Project",
+      tagline: "High-performance modular service node.",
+      description: "Detailed system architecture parameters and specifications will be updated here.",
+      status: "in-progress" as const,
+      category: "web" as const,
+      lastUpdated: new Date().toISOString().split("T")[0],
+      createdAt: new Date().toISOString().split("T")[0],
+      owner: "Admin",
+      version: "1.0.0",
+      completionPercent: 0,
+      coverImage: "/images/kiwik-cover.jpg",
+      tags: ["web"],
+      images: [],
+      techStack: [],
+      features: [],
+      changelog: [],
+      contributors: [],
+      timeline: [],
+      readme: "# New Project Documentation",
+      stars: 0,
+      forks: 0,
+      views: 0,
+    } as Project;
     setEditingProject(draft);
+    setIsNewProject(true);
+    setProjectDirty(false);
+    setActiveEditorTab("general");
+    showToast("New project draft — fill the required fields, then Publish & Close to save.");
+  };
 
-    const id = editingProject.id;
-    clearTimeout(projFieldSaveTimers.current[id]);
-    projFieldSaveTimers.current[id] = setTimeout(() => {
-      const name = (draft.name || "").trim();
-      const slugSource = (draft.slug || "").trim();
+  /** Close the editor and clear all draft/dirty state. */
+  const closeProjectEditor = () => {
+    setEditingProject(null);
+    setIsNewProject(false);
+    setProjectDirty(false);
+  };
 
-      // A row with no name or no slug is unroutable and the API rejects it, so
-      // don't send it — keep the last good value until the field is valid.
-      if (!name || !slugSource) return;
+  /**
+   * Back / discard. A new draft was never persisted, so leaving simply drops it.
+   * An existing project was never live-written either (edits stay in the working
+   * copy), so the stored row is still the last published version — nothing to
+   * undo. Confirm first when there are unsaved changes so work isn't lost.
+   */
+  const handleProjectBack = () => {
+    const hasUnsaved = projectDirty || isNewProject;
+    if (
+      hasUnsaved &&
+      !window.confirm(
+        isNewProject
+          ? "Discard this new project? It has not been saved and will not be created."
+          : "Discard your unsaved changes to this project?"
+      )
+    ) {
+      return;
+    }
+    closeProjectEditor();
+    showToast(isNewProject ? "Discarded new project draft" : "Returned to projects catalog");
+  };
 
-      const safeSlug = slugSource
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      if (!safeSlug) return;
+  /**
+   * Publish & Close. Validates the required fields first; only a valid project
+   * is written — a new one via addProject, an existing one via updateProject.
+   * An empty or cleared form no longer slips through as a saved project.
+   */
+  const handleProjectPublish = () => {
+    if (!editingProject) return;
 
-      // A slug collision violates a UNIQUE constraint and surfaces as a
-      // misleading "database unavailable" 503, so catch it here instead.
-      const clash = projects.some((p) => p.id !== id && p.slug === safeSlug);
-      if (clash) {
-        showToast(`⚠️ The slug "${safeSlug}" is already used by another project.`);
-        return;
-      }
+    const missing = getMissingRequiredFields(editingProject);
+    if (missing.length > 0) {
+      const first = missing[0];
+      if (first.tab !== activeEditorTab) setActiveEditorTab(first.tab);
+      showToast(
+        `⚠️ Cannot publish — please fill: ${missing.map((m) => m.label).join(", ")}.`
+      );
+      return;
+    }
 
-      updateProject(id, { ...draft, name, slug: safeSlug });
-    }, 600);
+    const safeSlug = toSlug(editingProject.slug) || toSlug(editingProject.name);
+    if (!safeSlug) {
+      showToast("⚠️ Cannot publish — the slug is empty or invalid.");
+      return;
+    }
+
+    // A slug collision violates the UNIQUE constraint and surfaces as a
+    // misleading 503, so catch it here with a clear message.
+    const clash = projects.some((p) => p.id !== editingProject.id && p.slug === safeSlug);
+    if (clash) {
+      setActiveEditorTab("general");
+      showToast(`⚠️ The slug "${safeSlug}" is already used by another project.`);
+      return;
+    }
+
+    const finalProject = { ...editingProject, slug: safeSlug, name: editingProject.name.trim() } as Project;
+
+    if (isNewProject) {
+      addProject(finalProject);
+    } else {
+      updateProject(finalProject.id, finalProject);
+    }
+
+    closeProjectEditor();
+    showToast("✅ Project published and saved successfully!");
+  };
+
+  /** Derive the slug from the current name (working copy only; saved on publish). */
+  const handleSyncSlug = () => {
+    if (!editingProject) return;
+    const slug = toSlug(editingProject.name);
+    if (!slug) {
+      showToast("⚠️ Add a project name first, then Sync Slug will derive the URL.");
+      return;
+    }
+    setEditingProject({ ...editingProject, slug });
+    setProjectDirty(true);
+    showToast(`Slug set from name: ${slug}`);
   };
 
   const filteredProjects = projects.filter((p) => {
@@ -721,42 +873,42 @@ export default function AdminPage() {
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Project Name</label>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Project Name <span className="text-red-500" title="Required">*</span></label>
             <input
               type="text"
               value={editingProject.name || ""}
               onChange={(e) => updateProjField({ name: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Project Slug</label>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Project Slug <span className="text-red-500" title="Required">*</span></label>
             <input
               type="text"
               value={editingProject.slug || ""}
               onChange={(e) => updateProjField({ slug: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] font-bold text-text-secondary block mb-1">Short Description (Tagline)</label>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Short Description (Tagline) <span className="text-red-500" title="Required">*</span></label>
           <input
             type="text"
             value={editingProject.tagline || ""}
             onChange={(e) => updateProjField({ tagline: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
         <div>
-          <label className="text-[10px] font-bold text-text-secondary block mb-1">Long Description</label>
+          <label className="text-[10px] font-bold text-text-secondary block mb-1">Long Description <span className="text-red-500" title="Required">*</span></label>
           <textarea
             rows={3}
             value={editingProject.longDescription || ""}
             onChange={(e) => updateProjField({ longDescription: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
@@ -766,7 +918,7 @@ export default function AdminPage() {
             <select
               value={editingProject.status || "in-progress"}
               onChange={(e) => updateProjField({ status: e.target.value as any })}
-              className="w-full px-3 py-2 rounded-xl bg-[#111318] border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             >
               <option value="active">Active</option>
               <option value="in-progress">In Progress</option>
@@ -776,11 +928,11 @@ export default function AdminPage() {
             </select>
           </div>
           <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Category</label>
+            <label className="text-[10px] font-bold text-text-secondary block mb-1">Category <span className="text-red-500" title="Required">*</span></label>
             <select
               value={editingProject.category || "web"}
               onChange={(e) => updateProjField({ category: e.target.value as any })}
-              className="w-full px-3 py-2 rounded-xl bg-[#111318] border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             >
               <option value="ai">AI / Machine Learning</option>
               <option value="web">Web App / Portal</option>
@@ -803,7 +955,7 @@ export default function AdminPage() {
               type="text"
               value={editingProject.version || ""}
               onChange={(e) => updateProjField({ version: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
           <div>
@@ -813,7 +965,7 @@ export default function AdminPage() {
               min={0}
               value={editingProject.sortOrder || 0}
               onChange={(e) => updateProjField({ sortOrder: clampNumber(e.target.value, { min: 0 }) })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
         </div>
@@ -826,7 +978,7 @@ export default function AdminPage() {
               min={0}
               value={editingProject.priority || 0}
               onChange={(e) => updateProjField({ priority: clampNumber(e.target.value, { min: 0 }) })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div className="flex items-center pt-5 gap-2">
@@ -858,7 +1010,7 @@ export default function AdminPage() {
               type="text"
               value={editingProject.createdAt || ""}
               onChange={(e) => updateProjField({ createdAt: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div>
@@ -867,7 +1019,7 @@ export default function AdminPage() {
               type="text"
               value={editingProject.publishDate || ""}
               onChange={(e) => updateProjField({ publishDate: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
         </div>
@@ -883,11 +1035,11 @@ export default function AdminPage() {
           <div>
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Dark Logo</label>
             <div className="flex gap-2">
-              <input type="text" value={editingProject.logoDark || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <input type="text" value={editingProject.logoDark || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Dark Logo Asset", onSelect: (url) => updateProjField({ logoDark: url }) })}
-                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -896,11 +1048,11 @@ export default function AdminPage() {
           <div>
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Light Logo</label>
             <div className="flex gap-2">
-              <input type="text" value={editingProject.logoLight || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <input type="text" value={editingProject.logoLight || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Light Logo Asset", onSelect: (url) => updateProjField({ logoLight: url }) })}
-                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -912,11 +1064,11 @@ export default function AdminPage() {
           <div>
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Project Icon</label>
             <div className="flex gap-2">
-              <input type="text" value={editingProject.logo || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <input type="text" value={editingProject.logo || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Project Icon", onSelect: (url) => updateProjField({ logo: url }) })}
-                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -925,11 +1077,11 @@ export default function AdminPage() {
           <div>
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Favicon Asset</label>
             <div className="flex gap-2">
-              <input type="text" value={editingProject.favicon || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <input type="text" value={editingProject.favicon || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Favicon", onSelect: (url) => updateProjField({ favicon: url }) })}
-                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -951,7 +1103,7 @@ export default function AdminPage() {
                 type="text"
                 value={editingProject.accentColor || ""}
                 onChange={(e) => updateProjField({ accentColor: e.target.value })}
-                className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+                className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
               />
             </div>
           </div>
@@ -968,7 +1120,7 @@ export default function AdminPage() {
                 type="text"
                 value={editingProject.themeColor || ""}
                 onChange={(e) => updateProjField({ themeColor: e.target.value })}
-                className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+                className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
               />
             </div>
           </div>
@@ -978,11 +1130,11 @@ export default function AdminPage() {
           <div>
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Cover Image</label>
             <div className="flex gap-2">
-              <input type="text" value={editingProject.coverImage || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <input type="text" value={editingProject.coverImage || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Cover Image", onSelect: (url) => updateProjField({ coverImage: url }) })}
-                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -995,7 +1147,7 @@ export default function AdminPage() {
               value={editingProject.brandingGradient || ""}
               onChange={(e) => updateProjField({ brandingGradient: e.target.value })}
               placeholder="e.g. from-blue-500/10 to-transparent"
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
         </div>
@@ -1004,11 +1156,11 @@ export default function AdminPage() {
           <div>
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Thumbnail</label>
             <div className="flex gap-2">
-              <input type="text" value={editingProject.thumbnail || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <input type="text" value={editingProject.thumbnail || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Thumbnail Image", onSelect: (url) => updateProjField({ thumbnail: url }) })}
-                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1017,11 +1169,11 @@ export default function AdminPage() {
           <div>
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Card Image</label>
             <div className="flex gap-2">
-              <input type="text" value={editingProject.cardImage || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <input type="text" value={editingProject.cardImage || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Card Image Showcase", onSelect: (url) => updateProjField({ cardImage: url }) })}
-                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1044,7 +1196,7 @@ export default function AdminPage() {
               value={editingProject.heroBackButtonLabel || ""}
               onChange={(e) => updateProjField({ heroBackButtonLabel: e.target.value })}
               placeholder="Back to systems"
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div>
@@ -1053,7 +1205,7 @@ export default function AdminPage() {
               type="text"
               value={editingProject.heroStatusBadge || ""}
               onChange={(e) => updateProjField({ heroStatusBadge: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
         </div>
@@ -1065,7 +1217,7 @@ export default function AdminPage() {
               type="text"
               value={editingProject.heroTitle || ""}
               onChange={(e) => updateProjField({ heroTitle: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div>
@@ -1074,7 +1226,7 @@ export default function AdminPage() {
               type="text"
               value={editingProject.heroSubtitle || ""}
               onChange={(e) => updateProjField({ heroSubtitle: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
         </div>
@@ -1085,7 +1237,7 @@ export default function AdminPage() {
             rows={2}
             value={editingProject.heroDescription || ""}
             onChange={(e) => updateProjField({ heroDescription: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
@@ -1188,7 +1340,7 @@ export default function AdminPage() {
               type="text"
               value={editingProject.githubUrl || ""}
               onChange={(e) => updateProjField({ githubUrl: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
           <div>
@@ -1197,7 +1349,7 @@ export default function AdminPage() {
               type="text"
               value={editingProject.liveUrl || ""}
               onChange={(e) => updateProjField({ liveUrl: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
         </div>
@@ -1206,11 +1358,11 @@ export default function AdminPage() {
           <div>
             <label className="text-[10px] font-bold text-text-secondary block mb-1">Hero Background Image</label>
             <div className="flex gap-2">
-              <input type="text" value={editingProject.heroBgImage || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+              <input type="text" value={editingProject.heroBgImage || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Hero background image", onSelect: (url) => updateProjField({ heroBgImage: url }) })}
-                className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1225,7 +1377,7 @@ export default function AdminPage() {
               max="1"
               value={editingProject.heroBgOpacity !== undefined ? editingProject.heroBgOpacity : 0.95}
               onChange={(e) => updateProjField({ heroBgOpacity: clampNumber(e.target.value, { min: 0, max: 1, fallback: 0.95, integer: false }) })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
         </div>
@@ -1244,7 +1396,7 @@ export default function AdminPage() {
             value={editingProject.overviewHeading || ""}
             onChange={(e) => updateProjField({ overviewHeading: e.target.value })}
             placeholder="Overview"
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
@@ -1254,7 +1406,7 @@ export default function AdminPage() {
             rows={4}
             value={editingProject.overviewParagraph || ""}
             onChange={(e) => updateProjField({ overviewParagraph: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
@@ -1264,7 +1416,7 @@ export default function AdminPage() {
             rows={3}
             value={editingProject.overviewRichText || ""}
             onChange={(e) => updateProjField({ overviewRichText: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
@@ -1274,7 +1426,7 @@ export default function AdminPage() {
             type="text"
             value={editingProject.overviewQuote || ""}
             onChange={(e) => updateProjField({ overviewQuote: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
@@ -1284,18 +1436,18 @@ export default function AdminPage() {
             type="text"
             value={editingProject.overviewCallout || ""}
             onChange={(e) => updateProjField({ overviewCallout: e.target.value })}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
         <div>
           <label className="text-[10px] font-bold text-text-secondary block mb-1">Featured Overview Image</label>
           <div className="flex gap-2">
-            <input type="text" value={editingProject.overviewImage || ""} readOnly className="flex-1 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-white" />
+            <input type="text" value={editingProject.overviewImage || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
             <button
               type="button"
               onClick={() => setMediaPickerTarget({ title: "Overview asset image", onSelect: (url) => updateProjField({ overviewImage: url }) })}
-              className="px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-white"
+              className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
             >
               Browse
             </button>
@@ -1312,7 +1464,7 @@ export default function AdminPage() {
                 const hl = editingProject.overviewHighlights || [];
                 updateProjField({ overviewHighlights: [...hl, "New Pillar Target"] });
               }}
-              className="text-[9px] font-bold text-white px-2 py-0.5 rounded bg-white/10"
+              className="text-[9px] font-bold text-text-primary px-2 py-0.5 rounded bg-white/10"
             >
               Add Bullet
             </button>
@@ -1328,7 +1480,7 @@ export default function AdminPage() {
                     hl[bIdx] = e.target.value;
                     updateProjField({ overviewHighlights: hl });
                   }}
-                  className="flex-1 px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  className="flex-1 px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                 />
                 <button
                   type="button"
@@ -1360,7 +1512,7 @@ export default function AdminPage() {
               min={0}
               value={editingProject.stars || 0}
               onChange={(e) => updateProjField({ stars: clampNumber(e.target.value, { min: 0 }) })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div>
@@ -1370,7 +1522,7 @@ export default function AdminPage() {
               min={0}
               value={editingProject.forks || 0}
               onChange={(e) => updateProjField({ forks: clampNumber(e.target.value, { min: 0 }) })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
         </div>
@@ -1383,7 +1535,7 @@ export default function AdminPage() {
               min={0}
               value={editingProject.views || 0}
               onChange={(e) => updateProjField({ views: clampNumber(e.target.value, { min: 0 }) })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div>
@@ -1393,7 +1545,7 @@ export default function AdminPage() {
               min={0}
               value={editingProject.telemetryDownloads || 0}
               onChange={(e) => updateProjField({ telemetryDownloads: clampNumber(e.target.value, { min: 0 }) })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div>
@@ -1403,7 +1555,7 @@ export default function AdminPage() {
               min={0} max={100}
               value={editingProject.completionPercent || 0}
               onChange={(e) => updateProjField({ completionPercent: clampNumber(e.target.value, { min: 0, max: 100 }) })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
         </div>
@@ -1416,7 +1568,7 @@ export default function AdminPage() {
               value={editingProject.telemetryReadingTime || ""}
               onChange={(e) => updateProjField({ telemetryReadingTime: e.target.value })}
               placeholder="e.g. 5 min read"
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div>
@@ -1425,7 +1577,7 @@ export default function AdminPage() {
               type="text"
               value={editingProject.lastUpdated || ""}
               onChange={(e) => updateProjField({ lastUpdated: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
         </div>
@@ -1438,7 +1590,7 @@ export default function AdminPage() {
               value={editingProject.telemetryHealthStatus || ""}
               onChange={(e) => updateProjField({ telemetryHealthStatus: e.target.value })}
               placeholder="e.g. Operational (Audited)"
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
             />
           </div>
           <div>
@@ -1448,7 +1600,7 @@ export default function AdminPage() {
               value={editingProject.telemetryStatusColor || ""}
               onChange={(e) => updateProjField({ telemetryStatusColor: e.target.value })}
               placeholder="#10B981"
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
         </div>
@@ -1463,7 +1615,7 @@ export default function AdminPage() {
                 const bg = editingProject.telemetryBadges || [];
                 updateProjField({ telemetryBadges: [...bg, "Stable v2"] });
               }}
-              className="text-[9px] font-bold text-white px-2 py-0.5 rounded bg-white/10 animate-pulse-slow"
+              className="text-[9px] font-bold text-text-primary px-2 py-0.5 rounded bg-white/10 animate-pulse-slow"
             >
               Add Badge Tag
             </button>
@@ -1479,7 +1631,7 @@ export default function AdminPage() {
                     bg[bIdx] = e.target.value;
                     updateProjField({ telemetryBadges: bg });
                   }}
-                  className="w-20 px-1 py-0.5 bg-transparent border-0 text-[10px] font-bold text-white text-center focus:outline-none"
+                  className="w-20 px-1 py-0.5 bg-transparent border-0 text-[10px] font-bold text-text-primary text-center focus:outline-none"
                 />
                 <button
                   type="button"
@@ -1505,7 +1657,7 @@ export default function AdminPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-white/5 pb-2">
-          <span className="text-xs font-bold text-white uppercase">Quick Link Buttons ({actions.length})</span>
+          <span className="text-xs font-bold text-text-primary uppercase">Quick Link Buttons ({actions.length})</span>
           <button
             type="button"
             onClick={() => {
@@ -1541,7 +1693,7 @@ export default function AdminPage() {
                       updateProjField({ quickActions: copy });
                     }
                   }}
-                  className="p-1 rounded bg-white/5 hover:bg-white/10 text-white"
+                  className="p-1 rounded bg-white/5 hover:bg-white/10 text-text-primary"
                 >
                   <ArrowUp className="w-3 h-3" />
                 </button>
@@ -1556,7 +1708,7 @@ export default function AdminPage() {
                       updateProjField({ quickActions: copy });
                     }
                   }}
-                  className="p-1 rounded bg-white/5 hover:bg-white/10 text-white"
+                  className="p-1 rounded bg-white/5 hover:bg-white/10 text-text-primary"
                 >
                   <ArrowDown className="w-3 h-3" />
                 </button>
@@ -1583,7 +1735,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], label: e.target.value };
                       updateProjField({ quickActions: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                   />
                 </div>
                 <div>
@@ -1596,7 +1748,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], icon: e.target.value };
                       updateProjField({ quickActions: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
               </div>
@@ -1612,7 +1764,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], route: e.target.value };
                       updateProjField({ quickActions: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
                 <div>
@@ -1625,7 +1777,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], externalUrl: e.target.value };
                       updateProjField({ quickActions: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
               </div>
@@ -1671,7 +1823,7 @@ export default function AdminPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-white/5 pb-2">
-          <span className="text-xs font-bold text-white uppercase font-mono">Dynamic Features Cards ({feats.length})</span>
+          <span className="text-xs font-bold text-text-primary uppercase font-mono">Dynamic Features Cards ({feats.length})</span>
           <button
             type="button"
             onClick={() => {
@@ -1706,7 +1858,7 @@ export default function AdminPage() {
                       updateProjField({ features: copy });
                     }
                   }}
-                  className="p-1 rounded bg-white/5 text-white"
+                  className="p-1 rounded bg-white/5 text-text-primary"
                 >
                   <ArrowUp className="w-3 h-3" />
                 </button>
@@ -1721,7 +1873,7 @@ export default function AdminPage() {
                       updateProjField({ features: copy });
                     }
                   }}
-                  className="p-1 rounded bg-white/5 text-white"
+                  className="p-1 rounded bg-white/5 text-text-primary"
                 >
                   <ArrowDown className="w-3 h-3" />
                 </button>
@@ -1747,7 +1899,7 @@ export default function AdminPage() {
                     copy[idx] = { ...copy[idx], title: e.target.value };
                     updateProjField({ features: copy });
                   }}
-                  className="w-full px-3 py-1.5 rounded bg-bg-secondary border border-glass-border text-xs text-white"
+                  className="w-full px-3 py-1.5 rounded bg-bg-secondary border border-glass-border text-xs text-text-primary"
                 />
               </div>
 
@@ -1761,7 +1913,7 @@ export default function AdminPage() {
                     copy[idx] = { ...copy[idx], description: e.target.value };
                     updateProjField({ features: copy });
                   }}
-                  className="w-full px-3 py-1.5 rounded bg-bg-secondary border border-glass-border text-xs text-white"
+                  className="w-full px-3 py-1.5 rounded bg-bg-secondary border border-glass-border text-xs text-text-primary"
                 />
               </div>
 
@@ -1776,7 +1928,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], icon: e.target.value };
                       updateProjField({ features: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
                 <div>
@@ -1790,7 +1942,7 @@ export default function AdminPage() {
                       updateProjField({ features: copy });
                     }}
                     placeholder="e.g. #3b82f6"
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
               </div>
@@ -1799,7 +1951,7 @@ export default function AdminPage() {
                 <div>
                   <label className="text-[9px] text-text-secondary block">Feature Image</label>
                   <div className="flex gap-1.5">
-                    <input type="text" value={feat.image || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                    <input type="text" value={feat.image || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                     <button
                       type="button"
                       onClick={() => setMediaPickerTarget({
@@ -1810,7 +1962,7 @@ export default function AdminPage() {
                           updateProjField({ features: copy });
                         }
                       })}
-                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
                     >
                       Browse
                     </button>
@@ -1843,7 +1995,7 @@ export default function AdminPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-white/5 pb-2">
-          <span className="text-xs font-bold text-white uppercase font-mono">Technologies ({stack.length})</span>
+          <span className="text-xs font-bold text-text-primary uppercase font-mono">Technologies ({stack.length})</span>
           <button
             type="button"
             onClick={() => {
@@ -1890,7 +2042,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], name: e.target.value };
                       updateProjField({ techStack: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                   />
                 </div>
                 <div>
@@ -1903,7 +2055,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], version: e.target.value };
                       updateProjField({ techStack: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
               </div>
@@ -1912,7 +2064,7 @@ export default function AdminPage() {
                 <div>
                   <label className="text-[9px] text-text-secondary block">Logo Icon</label>
                   <div className="flex gap-1.5">
-                    <input type="text" value={tech.logo || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                    <input type="text" value={tech.logo || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                     <button
                       type="button"
                       onClick={() => setMediaPickerTarget({
@@ -1923,7 +2075,7 @@ export default function AdminPage() {
                           updateProjField({ techStack: copy });
                         }
                       })}
-                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
                     >
                       Browse
                     </button>
@@ -1939,7 +2091,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], website: e.target.value };
                       updateProjField({ techStack: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
               </div>
@@ -1972,7 +2124,7 @@ export default function AdminPage() {
           rows={15}
           value={editingProject.readme || ""}
           onChange={(e) => updateProjField({ readme: e.target.value })}
-          className="w-full p-3.5 rounded-2xl bg-bg-secondary border border-glass-border text-xs text-white font-mono leading-relaxed"
+          className="w-full p-3.5 rounded-2xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono leading-relaxed"
           placeholder="# Project Operations Readme..."
         />
       </div>
@@ -1985,7 +2137,7 @@ export default function AdminPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-white/5 pb-2">
-          <span className="text-xs font-bold text-white uppercase font-mono">System Gallery Screenshots ({imgs.length})</span>
+          <span className="text-xs font-bold text-text-primary uppercase font-mono">System Gallery Screenshots ({imgs.length})</span>
           <button
             type="button"
             onClick={() => {
@@ -2023,7 +2175,7 @@ export default function AdminPage() {
               <div>
                 <label className="text-[9px] text-text-secondary block">Select Image Asset</label>
                 <div className="flex gap-1.5">
-                  <input type="text" value={img.src || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                  <input type="text" value={img.src || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                   <button
                     type="button"
                     onClick={() => setMediaPickerTarget({
@@ -2034,7 +2186,7 @@ export default function AdminPage() {
                         updateProjField({ images: copy });
                       }
                     })}
-                    className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                    className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
                   >
                     Browse
                   </button>
@@ -2052,7 +2204,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], alt: e.target.value };
                       updateProjField({ images: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                   />
                 </div>
                 <div>
@@ -2065,7 +2217,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], caption: e.target.value };
                       updateProjField({ images: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                   />
                 </div>
               </div>
@@ -2094,7 +2246,7 @@ export default function AdminPage() {
                       updateProjField({ images: copy });
                     }}
                     placeholder="Video MP4/YouTube link"
-                    className="flex-1 px-2 py-0.5 rounded bg-bg-secondary text-[10px] text-white font-mono"
+                    className="flex-1 px-2 py-0.5 rounded bg-bg-secondary text-[10px] text-text-primary font-mono"
                   />
                 )}
               </div>
@@ -2111,7 +2263,7 @@ export default function AdminPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-white/5 pb-2">
-          <span className="text-xs font-bold text-white uppercase font-mono">Timeline Releases ({timeline.length})</span>
+          <span className="text-xs font-bold text-text-primary uppercase font-mono">Timeline Releases ({timeline.length})</span>
           <button
             type="button"
             onClick={() => {
@@ -2157,7 +2309,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], date: e.target.value };
                       updateProjField({ timeline: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
                 <div>
@@ -2170,7 +2322,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], badge: e.target.value };
                       updateProjField({ timeline: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                   />
                 </div>
               </div>
@@ -2185,7 +2337,7 @@ export default function AdminPage() {
                     copy[idx] = { ...copy[idx], title: e.target.value };
                     updateProjField({ timeline: copy });
                   }}
-                  className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                 />
               </div>
 
@@ -2199,7 +2351,7 @@ export default function AdminPage() {
                     copy[idx] = { ...copy[idx], description: e.target.value };
                     updateProjField({ timeline: copy });
                   }}
-                  className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                  className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                 />
               </div>
 
@@ -2213,7 +2365,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], status: e.target.value as any };
                       updateProjField({ timeline: copy });
                     }}
-                    className="w-full px-2 py-1.5 rounded bg-[#111318] text-xs text-white"
+                    className="w-full px-2 py-1.5 rounded bg-bg-secondary text-xs text-text-primary"
                   >
                     <option value="completed">Completed</option>
                     <option value="in-progress">In Progress</option>
@@ -2223,7 +2375,7 @@ export default function AdminPage() {
                 <div>
                   <label className="text-[9px] text-text-secondary block">Optional image</label>
                   <div className="flex gap-1.5">
-                    <input type="text" value={event.image || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                    <input type="text" value={event.image || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                     <button
                       type="button"
                       onClick={() => setMediaPickerTarget({
@@ -2234,7 +2386,7 @@ export default function AdminPage() {
                           updateProjField({ timeline: copy });
                         }
                       })}
-                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
                     >
                       Browse
                     </button>
@@ -2254,7 +2406,7 @@ export default function AdminPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-white/5 pb-2">
-          <span className="text-xs font-bold text-white uppercase font-mono">Team Contributors ({team.length})</span>
+          <span className="text-xs font-bold text-text-primary uppercase font-mono">Team Contributors ({team.length})</span>
           <button
             type="button"
             onClick={() => {
@@ -2301,7 +2453,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], name: e.target.value };
                       updateProjField({ contributors: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                   />
                 </div>
                 <div>
@@ -2314,7 +2466,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], role: e.target.value };
                       updateProjField({ contributors: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                   />
                 </div>
               </div>
@@ -2322,7 +2474,7 @@ export default function AdminPage() {
               <div>
                 <label className="text-[9px] text-text-secondary block">Avatar</label>
                 <div className="flex gap-1.5">
-                  <input type="text" value={member.avatar || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-white" />
+                  <input type="text" value={member.avatar || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                   <button
                     type="button"
                     onClick={() => setMediaPickerTarget({
@@ -2333,7 +2485,7 @@ export default function AdminPage() {
                         updateProjField({ contributors: copy });
                       }
                     })}
-                    className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-white"
+                    className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
                   >
                     Browse
                   </button>
@@ -2351,7 +2503,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], github: e.target.value };
                       updateProjField({ contributors: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white font-mono"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
                 <div>
@@ -2365,7 +2517,7 @@ export default function AdminPage() {
                       copy[idx] = { ...copy[idx], contributionPercent: clampNumber(e.target.value, { min: 0, max: 100 }) };
                       updateProjField({ contributors: copy });
                     }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-white"
+                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                   />
                 </div>
               </div>
@@ -2387,7 +2539,7 @@ export default function AdminPage() {
             type="text"
             value={seo.title || ""}
             onChange={(e) => updateProjField({ seo: { ...seo, title: e.target.value } })}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
@@ -2397,7 +2549,7 @@ export default function AdminPage() {
             rows={3}
             value={seo.description || ""}
             onChange={(e) => updateProjField({ seo: { ...seo, description: e.target.value } })}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
           />
         </div>
 
@@ -2408,7 +2560,7 @@ export default function AdminPage() {
             value={seo.keywords || ""}
             onChange={(e) => updateProjField({ seo: { ...seo, keywords: e.target.value } })}
             placeholder="e.g. modular, edge, router"
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
           />
         </div>
 
@@ -2420,7 +2572,7 @@ export default function AdminPage() {
               value={seo.twitterCard || ""}
               onChange={(e) => updateProjField({ seo: { ...seo, twitterCard: e.target.value } })}
               placeholder="summary_large_image"
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
           <div>
@@ -2432,7 +2584,7 @@ export default function AdminPage() {
               max={1}
               value={seo.sitemapPriority || 0.8}
               onChange={(e) => updateProjField({ seo: { ...seo, sitemapPriority: clampNumber(e.target.value, { min: 0, max: 1, fallback: 0.8, integer: false }) } })}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-white font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
             />
           </div>
         </div>
@@ -2546,19 +2698,22 @@ export default function AdminPage() {
           </div>
 
           <button
-            onClick={() => setPreviewMode(previewMode === "dark" ? "light" : "dark")}
+            onClick={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
             className="p-2 rounded-xl bg-bg-secondary border border-glass-border text-text-primary text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0"
+            title="Switch the studio and public site between dark and light themes"
           >
-            {previewMode === "dark" ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
-            <span className="hidden sm:inline">{previewMode === "dark" ? "Dark Mode" : "Light Mode"}</span>
+            {themeMode === "dark" ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+            <span className="hidden sm:inline">{themeMode === "dark" ? "Dark Mode" : "Light Mode"}</span>
           </button>
 
-          {/* Explicit Save All Changes Button */}
+          {/* Explicit Save All Changes Button — the single commit point for CMS
+              edits, which no longer auto-save. Shows an unsaved-changes state so
+              it is obvious when edits are still only staged. */}
           <button
             onClick={handleSaveGlobalCMS}
             disabled={isSavingGlobal}
-            className="px-3.5 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-neutral-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer shrink-0"
-            title="Save all CMS text & project edits globally to Neon DB (Cmd+S)"
+            className="relative px-3.5 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-neutral-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer shrink-0"
+            title="Save all CMS text & project edits globally to the database (Cmd/Ctrl+S)"
           >
             {isSavingGlobal ? (
               <>
@@ -2568,7 +2723,10 @@ export default function AdminPage() {
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4 text-neutral-950" />
-                <span>Save All Changes</span>
+                <span>{cmsDirty ? "Save All Changes •" : "Save All Changes"}</span>
+                {cmsDirty && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-white/70 animate-pulse" title="You have unsaved changes" />
+                )}
               </>
             )}
           </button>
@@ -3019,7 +3177,7 @@ export default function AdminPage() {
                     <GlassCard className="p-6 space-y-4 sticky top-24">
                       <span className="text-xs font-mono font-bold uppercase tracking-wider text-text-muted block">Live Visual Preview</span>
                       <div className="p-8 rounded-2xl bg-black text-center space-y-4 border border-white/20">
-                        <h1 className="text-2xl sm:text-3xl font-serif font-medium text-white tracking-tight leading-tight">
+                        <h1 className="text-2xl sm:text-3xl font-serif font-medium text-text-primary tracking-tight leading-tight">
                           {cms.hero.headlinePrefix} <br />
                           <span className="italic font-semibold text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-400">
                             {cms.hero.headlineHighlightWord}
@@ -3120,7 +3278,7 @@ export default function AdminPage() {
                                     showToast("Linked ribbon image from DAM!");
                                   }
                                 })}
-                                className="px-3 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] font-bold text-white transition-colors cursor-pointer"
+                                className="px-3 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] font-bold text-text-primary transition-colors cursor-pointer"
                               >
                                 Browse
                               </button>
@@ -3489,7 +3647,7 @@ export default function AdminPage() {
                               showToast("Linked Earth background image!");
                             }
                           })}
-                          className="px-4 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs font-bold text-white transition-colors cursor-pointer"
+                          className="px-4 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs font-bold text-text-primary transition-colors cursor-pointer"
                         >
                           Browse
                         </button>
@@ -3607,7 +3765,7 @@ export default function AdminPage() {
                                   #{cardIdx + 1}
                                 </span>
                                 <div>
-                                  <h4 className="text-xs font-bold text-white flex items-center gap-2">
+                                  <h4 className="text-xs font-bold text-text-primary flex items-center gap-2">
                                     {card.name || "Unnamed Mockup"}
                                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-text-secondary uppercase">
                                       {card.template || "custom"}
@@ -3619,7 +3777,7 @@ export default function AdminPage() {
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => setExpandedCardId(isExpanded ? null : card.id)}
-                                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] font-bold text-white transition-colors cursor-pointer"
+                                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] font-bold text-text-primary transition-colors cursor-pointer"
                                 >
                                   {isExpanded ? "Collapse Specs Editor" : "Edit Specs Editor"}
                                 </button>
@@ -3704,7 +3862,7 @@ export default function AdminPage() {
                                       <select
                                         value={card.template || "custom"}
                                         onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { template: e.target.value as any })}
-                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs text-text-primary"
                                       >
                                         <option value="custom">Custom Block Layout</option>
                                         <option value="investor">Investor Template</option>
@@ -3722,7 +3880,7 @@ export default function AdminPage() {
                                       <select
                                         value={card.phoneSize || "medium"}
                                         onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { phoneSize: e.target.value as any })}
-                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                        className="w-full px-2.5 py-1.5 rounded bg-bg-primary text-xs text-text-primary"
                                       >
                                         <option value="small">Small (0.9x scale)</option>
                                         <option value="medium">Medium (1.0x scale)</option>
@@ -3771,7 +3929,7 @@ export default function AdminPage() {
                                             title: `Avatar for ${card.name}`,
                                             onSelect: (url) => useSiteCMSStore.getState().updateDeviceCard(card.id, { avatarUrl: url })
                                           })}
-                                          className="px-3 rounded bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] text-white"
+                                          className="px-3 rounded bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] text-text-primary"
                                         >
                                           Browse
                                         </button>
@@ -3862,7 +4020,7 @@ export default function AdminPage() {
                                   
                                   {/* Primary Button */}
                                   <div className="space-y-3 p-3 rounded-lg bg-white/5 border border-white/5">
-                                    <span className="text-[10px] font-bold text-white uppercase tracking-wider block">Primary Button Config</span>
+                                    <span className="text-[10px] font-bold text-text-primary uppercase tracking-wider block">Primary Button Config</span>
                                     <div className="grid grid-cols-2 gap-3">
                                       <div>
                                         <label className="text-[10px] font-bold text-text-muted block mb-1">Button Text Label</label>
@@ -3884,7 +4042,7 @@ export default function AdminPage() {
                                                 useSiteCMSStore.getState().updateDeviceCard(card.id, { buttonLink: val });
                                               }
                                             }}
-                                            className="px-2 py-1 rounded bg-bg-primary text-xs text-white"
+                                            className="px-2 py-1 rounded bg-bg-primary text-xs text-text-primary"
                                           >
                                             <option value="/">Home (/)</option>
                                             <option value="/projects">Projects (/projects)</option>
@@ -3910,7 +4068,7 @@ export default function AdminPage() {
                                         <select
                                           value={card.primaryButtonIcon || ""}
                                           onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { primaryButtonIcon: e.target.value })}
-                                          className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                          className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs text-text-primary"
                                         >
                                           <option value="">No Icon</option>
                                           <option value="ArrowRight">ArrowRight</option>
@@ -3935,7 +4093,7 @@ export default function AdminPage() {
                                         <select
                                           value={card.primaryButtonStyle || "solid"}
                                           onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { primaryButtonStyle: e.target.value as any })}
-                                          className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                          className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs text-text-primary"
                                         >
                                           <option value="solid">Solid Box</option>
                                           <option value="glass">Glass Transparent</option>
@@ -3958,7 +4116,7 @@ export default function AdminPage() {
                                   {/* Secondary Button */}
                                   <div className="space-y-3 p-3 rounded-lg bg-white/5 border border-white/5">
                                     <div className="flex items-center justify-between">
-                                      <span className="text-[10px] font-bold text-white uppercase tracking-wider">Secondary Button Config</span>
+                                      <span className="text-[10px] font-bold text-text-primary uppercase tracking-wider">Secondary Button Config</span>
                                       <div className="flex items-center gap-1.5">
                                         <input
                                           type="checkbox"
@@ -3996,7 +4154,7 @@ export default function AdminPage() {
                                           <select
                                             value={card.secondaryButtonIcon || ""}
                                             onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { secondaryButtonIcon: e.target.value })}
-                                            className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs text-white"
+                                            className="w-full px-2 py-1.5 rounded bg-bg-primary text-xs text-text-primary"
                                           >
                                             <option value="">No Icon</option>
                                             <option value="ArrowRight">ArrowRight</option>
@@ -4029,7 +4187,7 @@ export default function AdminPage() {
                                             title: `BG for ${card.name}`,
                                             onSelect: (url) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundImageUrl: url })
                                           })}
-                                          className="px-3 rounded bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] text-white"
+                                          className="px-3 rounded bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] text-text-primary"
                                         >
                                           Browse
                                         </button>
@@ -4148,7 +4306,7 @@ export default function AdminPage() {
                                                 useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
                                               }}
                                               placeholder="Block Title"
-                                              className="text-xs font-bold text-white bg-transparent border-b border-transparent focus:border-white/20 focus:outline-none max-w-[150px]"
+                                              className="text-xs font-bold text-text-primary bg-transparent border-b border-transparent focus:border-white/20 focus:outline-none max-w-[150px]"
                                             />
                                           </div>
                                           <div className="flex items-center gap-1.5">
@@ -4162,7 +4320,7 @@ export default function AdminPage() {
                                                   useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
                                                 }
                                               }}
-                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-white cursor-pointer"
+                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-text-primary cursor-pointer"
                                             >
                                               <ChevronUp className="w-3.5 h-3.5" />
                                             </button>
@@ -4176,7 +4334,7 @@ export default function AdminPage() {
                                                   useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
                                                 }
                                               }}
-                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-white cursor-pointer"
+                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-text-primary cursor-pointer"
                                             >
                                               <ChevronDown className="w-3.5 h-3.5" />
                                             </button>
@@ -4187,7 +4345,7 @@ export default function AdminPage() {
                                                 useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
                                                 showToast("Duplicated block!");
                                               }}
-                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-white cursor-pointer"
+                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-text-primary cursor-pointer"
                                             >
                                               <Copy className="w-3.5 h-3.5" />
                                             </button>
@@ -4235,7 +4393,7 @@ export default function AdminPage() {
                                                           const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
                                                           useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
                                                         }}
-                                                        className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                        className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-text-primary"
                                                       />
                                                     </div>
                                                     <div>
@@ -4248,7 +4406,7 @@ export default function AdminPage() {
                                                           const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
                                                           useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
                                                         }}
-                                                        className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                        className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-text-primary"
                                                       />
                                                     </div>
                                                   </div>
@@ -4264,7 +4422,7 @@ export default function AdminPage() {
                                                           const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
                                                           useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
                                                         }}
-                                                        className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                        className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-text-primary"
                                                       />
                                                     </div>
                                                     {block.type === "socials" ? (
@@ -4276,7 +4434,7 @@ export default function AdminPage() {
                                                             const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
                                                             useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
                                                           }}
-                                                          className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white focus:outline-none"
+                                                          className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-text-primary focus:outline-none"
                                                         >
                                                           <option value="Globe">Globe</option>
                                                           <option value="MessageSquare">MessageSquare</option>
@@ -4299,7 +4457,7 @@ export default function AdminPage() {
                                                             const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
                                                             useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
                                                           }}
-                                                          className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                          className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-text-primary"
                                                         />
                                                       </div>
                                                     )}
@@ -4315,7 +4473,7 @@ export default function AdminPage() {
                                                         const updatedBlocks = (card.blocks || []).map((b) => b.id === block.id ? { ...b, items: updatedItems } : b);
                                                         useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updatedBlocks });
                                                       }}
-                                                      className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-white"
+                                                      className="w-full px-2 py-1 rounded bg-bg-primary text-[10px] text-text-primary"
                                                     />
                                                   </div>
 
@@ -5108,7 +5266,7 @@ export default function AdminPage() {
               {/* Inline Upload Form */}
               {showAddMediaForm && (
                 <GlassCard className="p-5 space-y-4">
-                  <div className="text-xs font-bold text-white uppercase tracking-wider">Configure Image Metadata & Link</div>
+                  <div className="text-xs font-bold text-text-primary uppercase tracking-wider">Configure Image Metadata & Link</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-[10px] font-bold text-text-muted block mb-1">Asset Name</label>
@@ -5117,7 +5275,7 @@ export default function AdminPage() {
                         value={newMediaName}
                         onChange={(e) => setNewMediaName(e.target.value)}
                         placeholder="e.g. Profile Photo Leslie"
-                        className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white"
+                        className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-text-primary"
                       />
                     </div>
                     <div>
@@ -5127,7 +5285,7 @@ export default function AdminPage() {
                         value={newMediaUrl}
                         onChange={(e) => setNewMediaUrl(e.target.value)}
                         placeholder="e.g. https://images.unsplash.com/..."
-                        className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white font-mono"
+                        className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-text-primary font-mono"
                       />
                     </div>
                   </div>
@@ -5138,7 +5296,7 @@ export default function AdminPage() {
                         setNewMediaName("");
                         setNewMediaUrl("");
                       }}
-                      className="px-4 py-1.5 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs font-bold text-white transition-colors cursor-pointer"
+                      className="px-4 py-1.5 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs font-bold text-text-primary transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -5233,10 +5391,8 @@ export default function AdminPage() {
                 <div className="px-6 py-3.5 bg-bg-secondary/40 border-b border-divider flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => {
-                        setEditingProject(null);
-                        showToast("Returned to projects catalog");
-                      }}
+                      onClick={handleProjectBack}
+                      title="Discard changes and return to the catalog"
                       className="p-2 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary border border-divider cursor-pointer transition-all"
                     >
                       <ArrowLeft className="w-4 h-4" />
@@ -5246,6 +5402,12 @@ export default function AdminPage() {
                         <span>Projects Studio Editor</span>
                         <span>/</span>
                         <span className="text-accent font-bold">{editingProject.slug}</span>
+                        {isNewProject && (
+                          <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 tracking-normal">DRAFT</span>
+                        )}
+                        {projectDirty && (
+                          <span className="ml-1 px-1.5 py-0.5 rounded bg-accent/15 text-accent tracking-normal">UNSAVED</span>
+                        )}
                       </div>
                       <h2 className="text-sm font-bold text-text-primary mt-0.5">{editingProject.name}</h2>
                     </div>
@@ -5253,22 +5415,15 @@ export default function AdminPage() {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => {
-                        const slug = editingProject.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-                        const updated = { ...editingProject, slug };
-                        setEditingProject(updated);
-                        updateProject(editingProject.id, updated);
-                        showToast(`Derived slug from name: ${slug}`);
-                      }}
+                      onClick={handleSyncSlug}
+                      title="Generate the URL slug from the project name (saved when you Publish & Close)"
                       className="px-4 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-divider text-xs font-bold text-text-primary transition-all cursor-pointer"
                     >
                       Sync Slug
                     </button>
                     <button
-                      onClick={() => {
-                        setEditingProject(null);
-                        showToast("All project specs synchronized successfully!");
-                      }}
+                      onClick={handleProjectPublish}
+                      title="Validate required fields and save this project"
                       className="px-5 py-2 rounded-xl bg-accent hover:opacity-90 text-xs font-bold text-white cursor-pointer shadow-md transition-all hover:scale-[1.02]"
                     >
                       Publish & Close
@@ -5336,11 +5491,17 @@ export default function AdminPage() {
 
                   {/* Right panel: Full real-time live preview (60% width) */}
                   <div className="flex-1 bg-bg-secondary/50 h-full overflow-y-auto relative overscroll-y-contain min-h-0">
-                    <div className="absolute top-4 left-4 bg-accent/20 border border-accent/40 px-3 py-1 rounded-full text-[9px] font-mono font-bold text-accent tracking-widest uppercase select-none z-[100] animate-pulse">
-                      Live Preview (Updates Instantly)
+                    {/* Sticky label in normal flow (not absolutely positioned) so
+                        it reserves its own height and never lands on top of the
+                        previewed hero's status pills — the overlap that was
+                        reported. pointer-events-none keeps preview clicks working. */}
+                    <div className="sticky top-0 z-[100] px-4 pt-4 pb-2 pointer-events-none">
+                      <span className="inline-block bg-accent/20 border border-accent/40 px-3 py-1 rounded-full text-[9px] font-mono font-bold text-accent tracking-widest uppercase select-none animate-pulse">
+                        Live Preview (Updates Instantly)
+                      </span>
                     </div>
                     {/* Embed the actual page component passing the modified project object */}
-                    <div 
+                    <div
                       className="scale-[0.98] origin-top-left transform w-[102%] h-auto overscroll-y-contain"
                       onClick={(e) => {
                         const target = e.target as HTMLElement;
@@ -5370,38 +5531,7 @@ export default function AdminPage() {
                     <p className="text-xs text-text-secondary mt-0.5">Manage modular products, codebases, cover assets, status indicators, and deployment paths.</p>
                   </div>
                   <button
-                    onClick={() => {
-                      const slug = `project-${Date.now()}`;
-                      const newProj: Project = {
-                        id: slug,
-                        slug,
-                        name: "New Kiwik Project",
-                        tagline: "High-performance modular service node.",
-                        description: "Detailed system architecture parameters and specifications will be updated here.",
-                        status: "in-progress" as const,
-                        category: "web" as const,
-                        lastUpdated: new Date().toISOString().split("T")[0],
-                        createdAt: new Date().toISOString().split("T")[0],
-                        owner: "Admin",
-                        version: "1.0.0",
-                        completionPercent: 0,
-                        coverImage: "/images/kiwik-cover.jpg",
-                        tags: ["web"],
-                        images: [],
-                        techStack: [],
-                        features: [],
-                        changelog: [],
-                        contributors: [],
-                        timeline: [],
-                        readme: "# New Project Documentation",
-                        stars: 0,
-                        forks: 0,
-                        views: 0
-                      };
-                      addProject(newProj);
-                      setEditingProject(newProj);
-                      showToast("Created project catalog card! Opening editor specs...");
-                    }}
+                    onClick={openNewProjectEditor}
                     className="px-5 py-2.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
                   >
                     <Plus className="w-4 h-4" /> Add Project
@@ -5423,9 +5553,7 @@ export default function AdminPage() {
 
                       <div className="flex items-center justify-between pt-3 border-t border-divider">
                         <button
-                          onClick={() => {
-                            setEditingProject(proj);
-                          }}
+                          onClick={() => openProjectEditor(proj)}
                           className="text-xs font-bold text-accent-blue flex items-center gap-1 cursor-pointer hover:underline"
                         >
                           <Edit className="w-3.5 h-3.5" /> Edit Specs
@@ -5873,15 +6001,23 @@ export default function AdminPage() {
               <div className="space-y-4">
                 <div>
                   <label className="text-xs font-bold text-text-secondary block mb-1">Color Theme Mode</label>
+                  {/* Applies the theme immediately via the app-wide theme store
+                      (so the change is visible at once, in both the studio and
+                      the public site) and records it in the CMS so "Save All
+                      Changes" persists it as the site default. The old
+                      "System Default" option was dropped: ThemeMode is only
+                      "dark" | "light", so "system" set an unknown value that
+                      applied nothing. */}
                   <select
-                    value={cms.theme.mode}
+                    value={themeMode}
                     onChange={(e) => {
-                      updateTheme({ mode: e.target.value as any });
-                      showToast("Updated theme mode!");
+                      const mode = e.target.value as "dark" | "light";
+                      setThemeMode(mode);
+                      updateTheme({ mode });
+                      showToast(`Theme set to ${mode === "dark" ? "Dark" : "Light"} Mode`);
                     }}
                     className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold"
                   >
-                    <option value="system">System Default</option>
                     <option value="dark">Dark Mode</option>
                     <option value="light">Light Mode</option>
                   </select>
@@ -5957,12 +6093,12 @@ export default function AdminPage() {
               initial={{ scale: 0.95, y: 15 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
-              className="w-full max-w-4xl bg-[#0d0f13] border border-white/10 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] shadow-2xl text-left"
+              className="w-full max-w-4xl bg-bg-secondary border border-white/10 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] shadow-2xl text-left"
             >
               {/* Modal Header */}
               <div className="p-5 border-b border-white/10 flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-accent-blue animate-pulse-slow" /> Media Library Assets DAM Picker
                   </h3>
                   <p className="text-[10px] text-text-secondary mt-0.5">
@@ -5971,7 +6107,7 @@ export default function AdminPage() {
                 </div>
                 <button 
                   onClick={() => setMediaPickerTarget(null)}
-                  className="p-1.5 rounded-full hover:bg-white/10 text-text-muted hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 rounded-full hover:bg-white/10 text-text-muted hover:text-text-primary transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -5988,7 +6124,7 @@ export default function AdminPage() {
                       placeholder="Search assets by name..."
                       value={pickerSearch}
                       onChange={(e) => setPickerSearch(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-white placeholder-text-muted focus:outline-none focus:border-accent-blue"
+                      className="w-full pl-9 pr-4 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-blue"
                     />
                   </div>
 
@@ -6014,7 +6150,7 @@ export default function AdminPage() {
                           value={newPickerAssetName}
                           onChange={(e) => setNewPickerAssetName(e.target.value)}
                           placeholder="e.g. Logo Icon"
-                          className="w-full px-2.5 py-1.5 rounded bg-bg-primary border border-glass-border text-xs text-white"
+                          className="w-full px-2.5 py-1.5 rounded bg-bg-primary border border-glass-border text-xs text-text-primary"
                         />
                       </div>
                       <div>
@@ -6024,7 +6160,7 @@ export default function AdminPage() {
                           value={newPickerAssetUrl}
                           onChange={(e) => setNewPickerAssetUrl(e.target.value)}
                           placeholder="e.g. /logo.png"
-                          className="w-full px-2.5 py-1.5 rounded bg-bg-primary border border-glass-border text-xs text-white font-mono"
+                          className="w-full px-2.5 py-1.5 rounded bg-bg-primary border border-glass-border text-xs text-text-primary font-mono"
                         />
                       </div>
                     </div>
@@ -6070,7 +6206,7 @@ export default function AdminPage() {
                         "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer",
                         pickerFolder === folder
                           ? "bg-accent-blue text-white"
-                          : "bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white"
+                          : "bg-white/5 hover:bg-white/10 text-text-secondary hover:text-text-primary"
                       )}
                     >
                       {folder}
@@ -6116,11 +6252,11 @@ export default function AdminPage() {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
                             />
                             <div className="absolute inset-0 bg-accent-blue/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <Check className="w-5 h-5 text-white" />
+                              <Check className="w-5 h-5 text-text-primary" />
                             </div>
                           </div>
                           <div className="text-left">
-                            <div className="text-[10px] font-bold text-white truncate group-hover:text-accent-blue transition-colors">
+                            <div className="text-[10px] font-bold text-text-primary truncate group-hover:text-accent-blue transition-colors">
                               {med.name}
                             </div>
                             <div className="text-[8px] font-mono text-text-muted truncate">
@@ -6141,7 +6277,7 @@ export default function AdminPage() {
                 </span>
                 <button
                   onClick={() => setMediaPickerTarget(null)}
-                  className="px-4 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-semibold cursor-pointer"
+                  className="px-4 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-text-primary text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
