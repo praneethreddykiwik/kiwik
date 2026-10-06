@@ -4,7 +4,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { mediaRewritingLocalStorage } from "@/lib/media";
 import { useEffect, useState } from "react";
 import type { Project } from "@/types";
 import { projects as defaultProjects } from "@/data/projects";
@@ -173,6 +174,7 @@ export const useProjectsStore = create<ProjectsState>()(
     }),
     {
       name: "kiwik-projects-store-v2",
+      storage: createJSONStorage(() => mediaRewritingLocalStorage),
     }
   )
 );

@@ -62,8 +62,33 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  /**
+   * Same-origin proxy for Supabase Storage. Several Indian ISPs DNS-block
+   * *.supabase.co, so images linked straight at the bucket failed with
+   * ERR_CONNECTION_RESET for visitors there. Vercel fetches through this
+   * rewrite server-side; see src/lib/media.ts.
+   */
+  async rewrites() {
+    return [
+      {
+        source: "/media/:path*",
+        destination: "https://ynueobhylfxnilqldisy.supabase.co/storage/v1/object/public/:path*",
+      },
+    ];
+  },
   async headers() {
     return [
+      {
+        // Let Vercel's CDN hold proxied media so repeat views neither re-fetch
+        // from Supabase nor count against its egress allowance.
+        source: "/media/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
       {
         source: "/(.*)",
         headers: [

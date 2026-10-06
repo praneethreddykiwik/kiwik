@@ -125,7 +125,7 @@ export default async function ProjectDetailPage({ params }: Props) {
         description: project.description || project.tagline,
         url: absoluteUrl(`/projects/${project.slug}`),
         applicationCategory: project.category || "WebApplication",
-        ...(project.coverImage ? { image: project.coverImage } : {}),
+        ...(project.coverImage ? { image: project.coverImage.startsWith("/") ? absoluteUrl(project.coverImage) : project.coverImage } : {}),
         ...(techNames.length ? { keywords: techNames.join(", ") } : {}),
         ...(project.liveUrl ? { installUrl: project.liveUrl } : {}),
         publisher: { "@type": "Organization", name: "Kiwik", url: absoluteUrl("/") },

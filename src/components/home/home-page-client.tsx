@@ -62,12 +62,9 @@ export function HomePageClient() {
     return <IconComponent className={cn("w-4 h-4", colorClass)} />;
   };
 
-  useEffect(() => {
-    // Record visitor session
-    fetch("/api/visitors", { method: "POST" }).catch((err) =>
-      console.error("Error logging visitor session", err)
-    );
-  }, []);
+  // Visits are recorded by TelemetryProvider in the root layout. A second,
+  // body-less POST here used to run on every home load; with no sessionId the
+  // API minted a fresh random session each time, inflating unique visitors.
 
   return (
     <div className="min-h-screen text-text-primary overflow-x-hidden relative">

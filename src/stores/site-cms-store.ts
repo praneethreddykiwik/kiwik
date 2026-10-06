@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { proxyMediaUrls } from "@/lib/media";
 import { useProjectsStore } from "@/stores/projects-store";
 import { subscribeToEndpoint } from "@/lib/shared-poller";
 import type {
@@ -790,7 +791,8 @@ export function setCmsPersistEnabled(enabled: boolean) {
 const gatedCmsStorage = {
   getItem: (name: string): string | null => {
     try {
-      return typeof localStorage !== "undefined" ? localStorage.getItem(name) : null;
+      const raw = typeof localStorage !== "undefined" ? localStorage.getItem(name) : null;
+      return raw == null ? raw : proxyMediaUrls(raw);
     } catch {
       return null;
     }

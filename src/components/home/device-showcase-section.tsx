@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionValue, type MotionValue } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteCMS } from "@/stores/site-cms-store";
@@ -11,7 +11,11 @@ import { InteractiveLogo } from "./interactive-logo";
 export function DeviceShowcaseSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  // Pointer parallax lives in motion values, not React state. As state, every
+  // mousemove re-rendered all five phone cards (each a large tree) and
+  // restarted five spring animations, which is what made the section stutter.
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   // On phones the strip overflows and used to open scrolled to its left edge,
@@ -48,7 +52,8 @@ export function DeviceShowcaseSection() {
     const rect = sectionRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePos({ x: x * 12, y: y * 12 });
+    mouseX.set(x * 12);
+    mouseY.set(y * 12);
   };
 
   // Render cards sorted and filtered
@@ -127,23 +132,31 @@ export function DeviceShowcaseSection() {
           const isDarkBg = bg.startsWith("#0") || bg === "black" || bg === "#111" || bg === "#0C0D12" || bg === "#0E1F18" || bg === "#0D150B" || card.template === "pm" || card.template === "botanist" || card.template === "marketer";
 
           return (
-            <motion.div
+            <ParallaxLayer
               key={card.id || idx}
+              mouseX={mouseX}
+              mouseY={mouseY}
+              factor={0.8 - (idx % 3) * 0.15}
+              className={cn(
+                // snap-center: the container declares snap-x snap-mandatory,
+                // but snapping is inert unless each child states its alignment.
+                "relative flex-shrink-0 snap-center",
+                isHovered ? "z-50" : settings.zIndex
+              )}
+            >
+            <motion.div
               onMouseEnter={() => setHoveredIndex(idx)}
               onMouseLeave={() => setHoveredIndex(null)}
               animate={{
-                y: isHovered ? settings.yOffset - 8 : settings.yOffset + mousePos.y * (0.8 - (idx % 3) * 0.15),
-                x: mousePos.x * (0.8 - (idx % 3) * 0.15),
+                y: isHovered ? settings.yOffset - 8 : settings.yOffset,
                 scale: isHovered ? settings.hoverScale : settings.baseScale,
               }}
               transition={{ type: "spring", stiffness: 240, damping: 26, mass: 0.8 }}
               className={cn(
-                // snap-center: the container declares snap-x snap-mandatory,
-                // but snapping is inert unless each child states its alignment.
-                "relative flex-shrink-0 snap-center shadow-[25px_35px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer group rounded-[48px] sm:rounded-[54px] transition-shadow duration-300",
+                "relative shadow-[25px_35px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer group rounded-[48px] sm:rounded-[54px] transition-shadow duration-300",
                 settings.width,
                 settings.height,
-                isHovered ? "z-50 shadow-[0_50px_120px_rgba(0,0,0,0.35)] dark:shadow-[0_50px_130px_rgba(0,0,0,0.95)]" : settings.zIndex
+                isHovered && "shadow-[0_50px_120px_rgba(0,0,0,0.35)] dark:shadow-[0_50px_130px_rgba(0,0,0,0.95)]"
               )}
             >
               {/* Screen Container */}
@@ -537,9 +550,35 @@ export function DeviceShowcaseSection() {
                 className="absolute inset-0 w-full h-full object-fill pointer-events-none z-30"
               />
             </motion.div>
+            </ParallaxLayer>
           );
         })}
       </motion.div>
     </section>
+  );
+}
+
+const PARALLAX_SPRING = { stiffness: 240, damping: 26, mass: 0.8 };
+
+/** Follows the shared pointer motion values without re-rendering on mousemove. */
+function ParallaxLayer({
+  mouseX,
+  mouseY,
+  factor,
+  className,
+  children,
+}: {
+  mouseX: MotionValue<number>;
+  mouseY: MotionValue<number>;
+  factor: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const x = useSpring(useTransform(mouseX, (v) => v * factor), PARALLAX_SPRING);
+  const y = useSpring(useTransform(mouseY, (v) => v * factor), PARALLAX_SPRING);
+  return (
+    <motion.div style={{ x, y }} className={className}>
+      {children}
+    </motion.div>
   );
 }

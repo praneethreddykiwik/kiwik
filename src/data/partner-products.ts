@@ -3,7 +3,8 @@ import type { PartnerProduct } from "@/types/partner";
 // Large partner media (video, brochure) lives in Supabase Storage rather than
 // the repository: ~145MB of video in git would bloat every clone and deploy
 // permanently, and Vercel serves these far better from the storage CDN.
-const MEDIA_ROOT = "https://ynueobhylfxnilqldisy.supabase.co/storage/v1/object/public/partner-media";
+// Served through the same-origin /media proxy (see lib/media.ts).
+const MEDIA_ROOT = "/media/partner-media";
 const MEDIA = `${MEDIA_ROOT}/glentree-serenity`;
 
 // Seed set for the Alliance showcase — the brands Kiwik partners with.

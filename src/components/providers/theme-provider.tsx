@@ -30,14 +30,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // User toggled theme
     if (
       typeof document !== 'undefined' &&
+      document.visibilityState === 'visible' &&
       'startViewTransition' in document &&
       typeof (document as any).startViewTransition === 'function'
     ) {
       // Use native View Transitions API (Chrome 111+, Edge 111+, Safari 18+)
       // This performs a hardware-accelerated GPU screen cross-fade without DOM element thrashing
-      (document as any).startViewTransition(() => {
+      const transition = (document as any).startViewTransition(() => {
         applyTheme();
       });
+      // A transition the browser skips (tab hidden, another one started)
+      // still applies the theme but rejects these promises; unhandled, that
+      // surfaced as "Uncaught InvalidStateError" in the console.
+      transition?.ready?.catch(() => {});
+      transition?.finished?.catch(() => {});
     } else {
       // Fallback for browsers without View Transitions: lightweight targeted CSS transition
       root.classList.add('theme-transitioning');

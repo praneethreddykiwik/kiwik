@@ -4,8 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 
 export function InteractiveLogo() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [leftEyeOffset, setLeftEyeOffset] = useState({ x: 0, y: 0 });
-  const [rightEyeOffset, setRightEyeOffset] = useState({ x: 0, y: 0 });
+  // Eye positions are written straight to the DOM once per animation frame.
+  // They used to be two pieces of React state set on every window mousemove,
+  // re-rendering the logo dozens of times a second while the page scrolled.
+  const leftEyeRef = useRef<HTMLDivElement>(null);
+  const rightEyeRef = useRef<HTMLDivElement>(null);
   const [isBlinking, setIsBlinking] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -20,7 +23,12 @@ export function InteractiveLogo() {
       }, 150); // Blink duration 150ms
     }, 4000 + Math.random() * 2000); // Blink every 4-6 seconds
 
-    const handleMouseMove = (e: MouseEvent) => {
+    let rafId: number | null = null;
+    let lastX = 0;
+    let lastY = 0;
+
+    const updateEyes = () => {
+      rafId = null;
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const width = rect.width;
@@ -45,8 +53,8 @@ export function InteractiveLogo() {
       const maxDistance = 10; // Maximum travel distance of eyeball inside socket (in px)
 
       const calculateOffset = (center: { x: number; y: number }) => {
-        const dx = e.clientX - center.x;
-        const dy = e.clientY - center.y;
+        const dx = lastX - center.x;
+        const dy = lastY - center.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         if (distance === 0) return { x: 0, y: 0 };
 
@@ -58,13 +66,22 @@ export function InteractiveLogo() {
         };
       };
 
-      setLeftEyeOffset(calculateOffset(leftEyeCenter));
-      setRightEyeOffset(calculateOffset(rightEyeCenter));
+      const l = calculateOffset(leftEyeCenter);
+      const r = calculateOffset(rightEyeCenter);
+      if (leftEyeRef.current) leftEyeRef.current.style.transform = `translate(${l.x}px, ${l.y}px)`;
+      if (rightEyeRef.current) rightEyeRef.current.style.transform = `translate(${r.x}px, ${r.y}px)`;
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    const handleMouseMove = (e: MouseEvent) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (rafId === null) rafId = requestAnimationFrame(updateEyes);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
     return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
       clearInterval(blinkInterval);
       window.removeEventListener("mousemove", handleMouseMove);
     };
@@ -101,9 +118,9 @@ export function InteractiveLogo() {
       >
         {/* Eyeball sphere with specular highlight tracking the cursor */}
         <div
+          ref={leftEyeRef}
           className="w-full h-full rounded-full transition-transform duration-75 ease-out"
           style={{
-            transform: `translate(${leftEyeOffset.x}px, ${leftEyeOffset.y}px)`,
             background: "radial-gradient(circle at 32% 28%, #5a5a5a 0%, #2a2a2a 20%, #0d0d0d 70%)",
             boxShadow: "inset -2px -3px 6px rgba(0,0,0,0.8), inset 1px 2px 4px rgba(255,255,255,0.25)",
           }}
@@ -133,9 +150,9 @@ export function InteractiveLogo() {
       >
         {/* Eyeball sphere with specular highlight tracking the cursor */}
         <div
+          ref={rightEyeRef}
           className="w-full h-full rounded-full transition-transform duration-75 ease-out"
           style={{
-            transform: `translate(${rightEyeOffset.x}px, ${rightEyeOffset.y}px)`,
             background: "radial-gradient(circle at 32% 28%, #5a5a5a 0%, #2a2a2a 20%, #0d0d0d 70%)",
             boxShadow: "inset -2px -3px 6px rgba(0,0,0,0.8), inset 1px 2px 4px rgba(255,255,255,0.25)",
           }}

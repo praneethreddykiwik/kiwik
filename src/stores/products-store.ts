@@ -5,7 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { mediaRewritingLocalStorage } from "@/lib/media";
 import { useEffect, useState } from "react";
 import type { PartnerProduct } from "@/types/partner";
 import { partnerProducts as defaultProducts } from "@/data/partner-products";
@@ -119,7 +120,7 @@ export const useProductsStore = create<ProductsState>()(
     // next "Save All Changes" — which is exactly how the old placeholder
     // partners kept reappearing after being deleted. Discarding the cache lets
     // the database (polled below) be the single source of truth.
-    { name: "kiwik-products-store-v2" }
+    { name: "kiwik-products-store-v2", storage: createJSONStorage(() => mediaRewritingLocalStorage) }
   )
 );
 

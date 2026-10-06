@@ -6,8 +6,8 @@ import type { Project } from "@/types";
 
 // Project imagery is served from Supabase Storage rather than the repository,
 // so screenshots can be refreshed without a redeploy.
-const MEDIA_ROOT =
-  "https://ynueobhylfxnilqldisy.supabase.co/storage/v1/object/public/partner-media";
+// Served through the same-origin /media proxy (see lib/media.ts).
+const MEDIA_ROOT = "/media/partner-media";
 
 export const projects: Project[] = [
   {

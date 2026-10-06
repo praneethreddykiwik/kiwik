@@ -66,7 +66,7 @@ export default async function PartnerDetailPage({ params }: Props) {
         name: product.name,
         description: product.description || product.tagline,
         url: product.liveUrl || absoluteUrl(`/partners/${product.slug}`),
-        ...(product.coverImage ? { image: product.coverImage } : {}),
+        ...(product.coverImage ? { image: product.coverImage.startsWith("/") ? absoluteUrl(product.coverImage) : product.coverImage } : {}),
       }
     : null;
 

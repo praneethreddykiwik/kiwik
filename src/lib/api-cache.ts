@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { proxyMediaUrls } from "@/lib/media";
 
 /**
  * Cache headers for the read-only endpoints the site polls.
@@ -51,7 +52,9 @@ function etagFor(body: string): string {
  * Pass the incoming Request so `If-None-Match` can be honoured.
  */
 export function cachedJson(data: unknown, request?: Request, extraHeaders: Record<string, string> = {}) {
-  const body = JSON.stringify(data);
+  // Stored content links media at *.supabase.co, which some ISPs block; serve
+  // it through the same-origin /media proxy instead (see lib/media.ts).
+  const body = proxyMediaUrls(JSON.stringify(data));
   const etag = etagFor(body);
 
   // A request carrying ?v=<stamp> names one specific version of this content,

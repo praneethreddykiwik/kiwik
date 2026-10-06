@@ -30,6 +30,8 @@ export function TelemetryProvider() {
 
     const sendPing = () => {
       if (!sessionIdRef.current) return;
+      // A background tab is not an active visitor; skip the heartbeat.
+      if (document.visibilityState !== "visible") return;
       fetch("/api/visitors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
