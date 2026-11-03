@@ -727,6 +727,61 @@ export default function AdminPage() {
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [activeEditorTab, setActiveEditorTab] = useState<string>("general");
 
+  // Width of the project editor's form panel, adjustable by dragging the divider
+  // between it and the live preview. Remembered per browser.
+  const EDITOR_PANEL_DEFAULT = 440;
+  const EDITOR_PANEL_MIN = 360;
+  const EDITOR_PREVIEW_MIN = 380;
+  const [editorPanelWidth, setEditorPanelWidth] = useState<number>(EDITOR_PANEL_DEFAULT);
+  const [isResizingEditor, setIsResizingEditor] = useState(false);
+  const clampEditorWidth = (w: number) => {
+    const max = typeof window !== "undefined" ? Math.max(EDITOR_PANEL_MIN, window.innerWidth - EDITOR_PREVIEW_MIN) : 900;
+    return Math.round(Math.min(max, Math.max(EDITOR_PANEL_MIN, w)));
+  };
+  useEffect(() => {
+    try {
+      const saved = Number(localStorage.getItem("kiwik-editor-panel-width"));
+      if (saved) setEditorPanelWidth(clampEditorWidth(saved));
+    } catch {
+      /* storage unavailable — keep the default */
+    }
+    const onResize = () => setEditorPanelWidth((w) => clampEditorWidth(w));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const commitEditorWidth = (w: number) => {
+    const next = clampEditorWidth(w);
+    setEditorPanelWidth(next);
+    try {
+      localStorage.setItem("kiwik-editor-panel-width", String(next));
+    } catch {
+      /* ignore */
+    }
+  };
+  const startEditorResize = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = editorPanelWidth;
+    const handle = e.currentTarget;
+    handle.setPointerCapture(e.pointerId);
+    setIsResizingEditor(true);
+    let latest = startW;
+    const onMove = (ev: PointerEvent) => {
+      latest = clampEditorWidth(startW + ev.clientX - startX);
+      setEditorPanelWidth(latest);
+    };
+    const onUp = () => {
+      handle.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointerup", onUp);
+      handle.removeEventListener("pointercancel", onUp);
+      setIsResizingEditor(false);
+      commitEditorWidth(latest);
+    };
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onUp);
+    handle.addEventListener("pointercancel", onUp);
+  };
+
   // Fields a project must have before it can be published. Chosen to match the
   // real data contract: a routable URL (slug), a name, a one-line tagline, a
   // category, and a full description. Order drives which tab the editor jumps to
@@ -1162,7 +1217,7 @@ export default function AdminPage() {
                 type="text"
                 value={editingProject.accentColor || ""}
                 onChange={(e) => updateProjField({ accentColor: e.target.value })}
-                className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
+                className="min-w-0 flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
               />
             </div>
           </div>
@@ -1179,7 +1234,7 @@ export default function AdminPage() {
                 type="text"
                 value={editingProject.themeColor || ""}
                 onChange={(e) => updateProjField({ themeColor: e.target.value })}
-                className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
+                className="min-w-0 flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
               />
             </div>
           </div>
@@ -1539,7 +1594,7 @@ export default function AdminPage() {
                     hl[bIdx] = e.target.value;
                     updateProjField({ overviewHighlights: hl });
                   }}
-                  className="flex-1 px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
+                  className="min-w-0 flex-1 px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
                 />
                 <button
                   type="button"
@@ -2010,7 +2065,7 @@ export default function AdminPage() {
                 <div>
                   <label className="text-[9px] text-text-secondary block">Feature Image</label>
                   <div className="flex gap-1.5">
-                    <input type="text" value={feat.image || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
+                    <input type="text" value={feat.image || ""} readOnly className="min-w-0 flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                     <button
                       type="button"
                       onClick={() => setMediaPickerTarget({
@@ -2021,7 +2076,7 @@ export default function AdminPage() {
                           updateProjField({ features: copy });
                         }
                       })}
-                      className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
+                      className="shrink-0 whitespace-nowrap px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                     >
                       Browse
                     </button>
@@ -2123,7 +2178,7 @@ export default function AdminPage() {
                 <div>
                   <label className="text-[9px] text-text-secondary block">Logo Icon</label>
                   <div className="flex gap-1.5">
-                    <input type="text" value={tech.logo || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
+                    <input type="text" value={tech.logo || ""} readOnly className="min-w-0 flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                     <button
                       type="button"
                       onClick={() => setMediaPickerTarget({
@@ -2134,7 +2189,7 @@ export default function AdminPage() {
                           updateProjField({ techStack: copy });
                         }
                       })}
-                      className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
+                      className="shrink-0 whitespace-nowrap px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                     >
                       Browse
                     </button>
@@ -2248,7 +2303,7 @@ export default function AdminPage() {
                         updateProjField({ images: copy });
                       }
                     })}
-                    className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
+                    className="shrink-0 whitespace-nowrap px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                   >
                     Browse
                   </button>
@@ -2308,7 +2363,7 @@ export default function AdminPage() {
                       updateProjField({ images: copy });
                     }}
                     placeholder="Video MP4/YouTube link"
-                    className="flex-1 px-2 py-0.5 rounded bg-bg-secondary text-[10px] text-text-primary font-mono"
+                    className="min-w-0 flex-1 px-2 py-0.5 rounded bg-bg-secondary text-[10px] text-text-primary font-mono"
                   />
                 )}
               </div>
@@ -2437,7 +2492,7 @@ export default function AdminPage() {
                 <div>
                   <label className="text-[9px] text-text-secondary block">Optional image</label>
                   <div className="flex gap-1.5">
-                    <input type="text" value={event.image || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
+                    <input type="text" value={event.image || ""} readOnly className="min-w-0 flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                     <button
                       type="button"
                       onClick={() => setMediaPickerTarget({
@@ -2448,7 +2503,7 @@ export default function AdminPage() {
                           updateProjField({ timeline: copy });
                         }
                       })}
-                      className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
+                      className="shrink-0 whitespace-nowrap px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                     >
                       Browse
                     </button>
@@ -2536,7 +2591,7 @@ export default function AdminPage() {
               <div>
                 <label className="text-[9px] text-text-secondary block">Avatar</label>
                 <div className="flex gap-1.5">
-                  <input type="text" value={member.avatar || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
+                  <input type="text" value={member.avatar || ""} readOnly className="min-w-0 flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                   <button
                     type="button"
                     onClick={() => setMediaPickerTarget({
@@ -2547,7 +2602,7 @@ export default function AdminPage() {
                         updateProjField({ contributors: copy });
                       }
                     })}
-                    className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
+                    className="shrink-0 whitespace-nowrap px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                   >
                     Browse
                   </button>
@@ -3334,7 +3389,7 @@ export default function AdminPage() {
                                   const updated = (cms.hero.galleryImages || []).map((g) => (g.id === img.id ? { ...g, url: e.target.value } : g));
                                   updateHero({ galleryImages: updated });
                                 }}
-                                className="flex-1 px-3 py-1.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono"
+                                className="min-w-0 flex-1 px-3 py-1.5 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono"
                               />
                               <button
                                 type="button"
@@ -3346,7 +3401,7 @@ export default function AdminPage() {
                                     showToast("Linked ribbon image from DAM!");
                                   }
                                 })}
-                                className="px-3 rounded-xl bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] font-bold text-text-primary transition-colors cursor-pointer"
+                                className="shrink-0 whitespace-nowrap px-3 rounded-xl bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] font-bold text-text-primary transition-colors cursor-pointer"
                               >
                                 Browse
                               </button>
@@ -3402,7 +3457,7 @@ export default function AdminPage() {
                             updated[idx] = e.target.value;
                             updateHero({ rotatingWords: updated });
                           }}
-                          className="flex-1 bg-transparent text-xs font-mono font-medium text-text-primary focus:outline-none"
+                          className="min-w-0 flex-1 bg-transparent text-xs font-mono font-medium text-text-primary focus:outline-none"
                         />
                         <button
                           onClick={() => {
@@ -3704,7 +3759,7 @@ export default function AdminPage() {
                             useSiteCMSStore.getState().updateEarthShowcase({ earthImageUrl: e.target.value });
                             showToast("Updated Earth background image!");
                           }}
-                          className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono text-text-primary"
+                          className="min-w-0 flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs font-mono text-text-primary"
                         />
                         <button
                           type="button"
@@ -3715,7 +3770,7 @@ export default function AdminPage() {
                               showToast("Linked Earth background image!");
                             }
                           })}
-                          className="px-4 rounded-xl bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-xs font-bold text-text-primary transition-colors cursor-pointer"
+                          className="shrink-0 whitespace-nowrap px-4 rounded-xl bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-xs font-bold text-text-primary transition-colors cursor-pointer"
                         >
                           Browse
                         </button>
@@ -3989,7 +4044,7 @@ export default function AdminPage() {
                                           type="text"
                                           value={card.avatarUrl || ""}
                                           onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { avatarUrl: e.target.value })}
-                                          className="flex-1 px-2 py-1 rounded bg-bg-primary text-[10px] font-mono"
+                                          className="min-w-0 flex-1 px-2 py-1 rounded bg-bg-primary text-[10px] font-mono"
                                         />
                                         <button
                                           type="button"
@@ -3997,7 +4052,7 @@ export default function AdminPage() {
                                             title: `Avatar for ${card.name}`,
                                             onSelect: (url) => useSiteCMSStore.getState().updateDeviceCard(card.id, { avatarUrl: url })
                                           })}
-                                          className="px-3 rounded bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] text-text-primary"
+                                          className="shrink-0 whitespace-nowrap px-3 rounded bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] text-text-primary"
                                         >
                                           Browse
                                         </button>
@@ -4124,7 +4179,7 @@ export default function AdminPage() {
                                             type="text"
                                             value={card.buttonLink || ""}
                                             onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { buttonLink: e.target.value })}
-                                            className="flex-1 px-2 py-1 rounded bg-bg-primary text-[10px] font-mono"
+                                            className="min-w-0 flex-1 px-2 py-1 rounded bg-bg-primary text-[10px] font-mono"
                                           />
                                         </div>
                                       </div>
@@ -4247,7 +4302,7 @@ export default function AdminPage() {
                                           type="text"
                                           value={card.backgroundImageUrl || ""}
                                           onChange={(e) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundImageUrl: e.target.value })}
-                                          className="flex-1 px-2 py-1 rounded bg-bg-primary text-[10px] font-mono"
+                                          className="min-w-0 flex-1 px-2 py-1 rounded bg-bg-primary text-[10px] font-mono"
                                         />
                                         <button
                                           type="button"
@@ -4255,7 +4310,7 @@ export default function AdminPage() {
                                             title: `BG for ${card.name}`,
                                             onSelect: (url) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundImageUrl: url })
                                           })}
-                                          className="px-3 rounded bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] text-text-primary"
+                                          className="shrink-0 whitespace-nowrap px-3 rounded bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] text-text-primary"
                                         >
                                           Browse
                                         </button>
@@ -4675,7 +4730,7 @@ export default function AdminPage() {
                                 useSiteCMSStore.getState().updateHowWeWork({ steps: updated });
                                 showToast("Updated step title!");
                               }}
-                              className="font-bold text-xs text-text-primary bg-transparent focus:outline-none flex-1"
+                              className="min-w-0 font-bold text-xs text-text-primary bg-transparent focus:outline-none flex-1"
                             />
                           </div>
                           <button
@@ -4849,7 +4904,7 @@ export default function AdminPage() {
                           onChange={(e) => {
                             useSiteCMSStore.getState().updateFooter({ statusBadgeText: e.target.value });
                           }}
-                          className="flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
+                          className="min-w-0 flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
                         />
                         <div className="flex items-center gap-1">
                           <input
@@ -5445,9 +5500,12 @@ export default function AdminPage() {
                 </div>
 
                 {/* Left/Right Split Panel layout */}
-                <div className="flex-1 flex min-h-0 overflow-hidden bg-bg-primary">
-                  {/* Left panel: Collapsible form builder (440px width) */}
-                  <div className="w-[440px] flex-shrink-0 bg-bg-secondary border-r border-divider flex h-full overflow-hidden min-h-0">
+                <div className={cn("flex-1 flex min-h-0 overflow-hidden bg-bg-primary", isResizingEditor && "select-none cursor-col-resize")}>
+                  {/* Left panel: form builder, resizable via the divider below */}
+                  <div
+                    style={{ width: editorPanelWidth }}
+                    className="flex-shrink-0 bg-bg-secondary flex h-full overflow-hidden min-h-0"
+                  >
                     {/* Tiny Nav list on the left side of the CMS sidebar */}
                     <div className="w-[85px] bg-bg-tertiary border-r border-divider py-4 flex flex-col gap-1 items-center overflow-y-auto no-scrollbar">
                       {editorTabs.map((tab) => {
@@ -5458,9 +5516,11 @@ export default function AdminPage() {
                             onClick={() => setActiveEditorTab(tab.id)}
                             title={tab.label}
                             className={cn(
-                              "p-2.5 w-16 h-16 rounded-xl transition-all flex flex-col items-center justify-center gap-1 group cursor-pointer",
+                              // Height tracks the viewport so all 13 sections fit on a
+                              // 720px-tall laptop instead of the last ones being cut off.
+                              "px-2 w-16 h-[clamp(44px,6vh,64px)] shrink-0 rounded-xl transition-colors flex flex-col items-center justify-center gap-1 group cursor-pointer",
                               isSelected 
-                                ? "text-accent bg-accent/10 scale-105 font-bold" 
+                                ? "text-accent bg-accent/10 font-bold" 
                                 : "text-text-secondary hover:text-text-primary hover:bg-bg-primary/5"
                             )}
                           >
@@ -5502,8 +5562,33 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Right panel: Full real-time live preview (60% width) */}
-                  <div className="flex-1 bg-bg-secondary/50 h-full overflow-y-auto relative overscroll-y-contain min-h-0">
+                  {/* Drag divider: resizes the form panel against the live preview.
+                      Double-click resets; arrow keys nudge for keyboard users. */}
+                  <div
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label="Resize editor panel"
+                    aria-valuenow={editorPanelWidth}
+                    aria-valuemin={EDITOR_PANEL_MIN}
+                    tabIndex={0}
+                    title="Drag to resize · double-click to reset"
+                    onPointerDown={startEditorResize}
+                    onDoubleClick={() => commitEditorWidth(EDITOR_PANEL_DEFAULT)}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowLeft") { e.preventDefault(); commitEditorWidth(editorPanelWidth - 24); }
+                      if (e.key === "ArrowRight") { e.preventDefault(); commitEditorWidth(editorPanelWidth + 24); }
+                    }}
+                    className="group relative w-1.5 shrink-0 cursor-col-resize bg-divider hover:bg-accent/60 focus-visible:bg-accent/60 outline-none transition-colors touch-none"
+                  >
+                    <span className={cn(
+                      "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-1 rounded-full bg-text-muted/50 group-hover:bg-white transition-colors",
+                      isResizingEditor && "bg-white"
+                    )} />
+                  </div>
+
+                  {/* Right panel: Full real-time live preview. Pointer events are
+                      off while dragging so the preview cannot swallow the drag. */}
+                  <div className={cn("flex-1 min-w-0 bg-bg-secondary/50 h-full overflow-y-auto relative overscroll-y-contain min-h-0", isResizingEditor && "pointer-events-none")}>
                     {/* Sticky label in normal flow (not absolutely positioned) so
                         it reserves its own height and never lands on top of the
                         previewed hero's status pills — the overlap that was
@@ -5651,7 +5736,7 @@ export default function AdminPage() {
                               })
                             }
                             placeholder="slug"
-                            className="flex-1 px-3 py-1.5 rounded-lg bg-bg-secondary text-[11px] font-mono text-accent-blue border border-text-primary/5 focus:border-accent-blue outline-none"
+                            className="min-w-0 flex-1 px-3 py-1.5 rounded-lg bg-bg-secondary text-[11px] font-mono text-accent-blue border border-text-primary/5 focus:border-accent-blue outline-none"
                           />
                           <input
                             value={prod.category || ""}
@@ -5683,11 +5768,11 @@ export default function AdminPage() {
                         <input
                           value={prod.coverImage}
                           onChange={(e) => updateProduct(prod.id, { coverImage: e.target.value })}
-                          className="flex-1 px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none"
+                          className="min-w-0 flex-1 px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none"
                         />
                         <button
                           onClick={() => openMediaPicker((url) => updateProduct(prod.id, { coverImage: url }), "Select cover image")}
-                          className="px-3 py-2 rounded-lg bg-bg-tertiary border border-text-primary/10 text-[11px] font-bold hover:bg-bg-secondary cursor-pointer"
+                          className="shrink-0 whitespace-nowrap px-3 py-2 rounded-lg bg-bg-tertiary border border-text-primary/10 text-[11px] font-bold hover:bg-bg-secondary cursor-pointer"
                         >
                           Media
                         </button>
