@@ -7,12 +7,25 @@ import { Search, Command, ArrowUp, ArrowDown, CornerDownLeft, X, LayoutTemplate 
 import Fuse from "fuse.js";
 import { cn } from "@/lib/utils";
 import { useProjects } from "@/stores/projects-store";
-import { useSiteCMSStore } from "@/stores/site-cms-store";
 import { Project } from "@/types";
 
 export function CommandPalette() {
   const projects = useProjects();
-  const recordSearch = useSiteCMSStore((state) => state.recordSearch);
+  // Searches are counted on the server for the admin Analytics tab. Each term
+  // is sent at most once per palette opening, and only once the visitor has
+  // paused or picked a result — not on every keystroke ("sow", "sowc", …).
+  const sentSearches = useRef<Set<string>>(new Set());
+  const recordSearch = (q: string) => {
+    const term = q.trim().toLowerCase();
+    if (term.length < 3 || sentSearches.current.has(term)) return;
+    sentSearches.current.add(term);
+    fetch("/api/analytics/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: term }),
+      keepalive: true,
+    }).catch(() => {});
+  };
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -63,10 +76,15 @@ export function CommandPalette() {
 
   useEffect(() => {
     setActiveIndex(0);
-    if (query.length > 2) {
-      recordSearch(query);
-    }
-  }, [query, recordSearch]);
+    if (query.trim().length < 3) return;
+    const t = setTimeout(() => recordSearch(query), 1500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  useEffect(() => {
+    if (!isOpen) sentSearches.current.clear();
+  }, [isOpen]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {

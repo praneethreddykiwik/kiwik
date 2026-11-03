@@ -108,9 +108,14 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary pb-24 relative select-none">
-      <div className="fixed top-0 left-0 right-0 h-1 bg-white/10 z-50">
-        <div className="h-full bg-accent-blue transition-all duration-150" style={{ width: `${scrollProgress}%` }} />
-      </div>
+      {/* Window scroll progress. Skipped in the studio's live preview, where
+          the page is embedded in a panel: a fixed bar there was drawn across
+          the top of the admin itself and tracked the wrong scroller. */}
+      {!projectOverride && (
+        <div className="fixed top-0 left-0 right-0 h-1 bg-white/10 z-50">
+          <div className="h-full bg-accent-blue transition-all duration-150" style={{ width: `${scrollProgress}%` }} />
+        </div>
+      )}
 
       <div className="relative overflow-hidden border-b border-white/10 bg-gradient-to-b from-bg-secondary/80 to-bg-primary">
         {/* The hero previously rendered a flat glow and ignored the project's own

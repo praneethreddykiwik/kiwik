@@ -201,6 +201,17 @@ async function runDDL() {
     // now" and lifetime totals; rows older than 30 days serve no purpose and
     // indefinite retention is exactly what a regulator objects to.
     () => sql`DELETE FROM site_visitor_sessions WHERE last_ping < NOW() - INTERVAL '30 days';`,
+    // Aggregate analytics counters (searches, project views, countries). Only
+    // the counted key is stored — no IP, session or user agent — so the admin
+    // Analytics tab can show real numbers without retaining personal data.
+    () => sql`
+      CREATE TABLE IF NOT EXISTS site_analytics_counts (
+        kind VARCHAR(20) NOT NULL,
+        key VARCHAR(120) NOT NULL,
+        count INT NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (kind, key)
+      );`,
   ];
   for (const stmt of statements) {
     try {
@@ -242,6 +253,7 @@ const REQUIRED_TABLES = [
   "contact_submissions",
   "admin_security",
   "site_visitor_sessions",
+  "site_analytics_counts",
 ] as const;
 
 /**

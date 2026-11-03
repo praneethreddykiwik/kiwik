@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql, ensureDbTables } from "@/lib/db";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { bumpAnalytics, projectSlugFromPath } from "@/lib/analytics";
 
 // Fallback in-memory map for fast response when DB is initializing
 const globalForVisitors = globalThis as unknown as {
@@ -123,6 +124,16 @@ export async function POST(req: Request) {
 
     // DB Persistence
     await ensureDbTables();
+
+    // What this ping changes, for the Analytics tab: a new session counts its
+    // country once, and arriving on a project page counts a view. Country comes
+    // from Vercel's edge header (ISO code); the IP itself is never read.
+    const prior = await sql`
+      SELECT pathname FROM site_visitor_sessions WHERE session_id = ${sessionId} LIMIT 1;
+    `;
+    const isNewSession = prior.length === 0;
+    const changedPage = isNewSession || prior[0].pathname !== pathname;
+
     await sql`
       INSERT INTO site_visitor_sessions (
         session_id, device_type, browser_name, pathname, pageviews, last_ping
@@ -136,6 +147,16 @@ export async function POST(req: Request) {
         pageviews = site_visitor_sessions.pageviews + (CASE WHEN site_visitor_sessions.pathname != EXCLUDED.pathname THEN 1 ELSE 0 END),
         last_ping = CURRENT_TIMESTAMP;
     `;
+
+    try {
+      const country = (req.headers.get("x-vercel-ip-country") || "").toUpperCase();
+      if (isNewSession && /^[A-Z]{2}$/.test(country)) await bumpAnalytics("country", country);
+      const slug = changedPage ? projectSlugFromPath(pathname) : null;
+      if (slug) await bumpAnalytics("project", slug);
+    } catch (err) {
+      // Analytics must never fail a presence ping.
+      console.warn("analytics bump failed:", err);
+    }
 
     const activeRes = await sql`
       SELECT COUNT(*)::int as count 

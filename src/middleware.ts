@@ -15,6 +15,7 @@ const PUBLIC_WRITE_PREFIXES = [
   "/api/auth", // login, logout, the Google OAuth handshake
   "/api/chat", // the site assistant
   "/api/visitors", // anonymous presence ping
+  "/api/analytics/search", // anonymous search counter (rate limited)
   "/api/subscribe", // newsletter signup
   "/api/contact", // contact form POST — its PATCH re-checks the session itself
 ];

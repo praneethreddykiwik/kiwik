@@ -83,6 +83,7 @@ import { useProjectsStore, useProjects, SYNC_ERROR_EVENT } from "@/stores/projec
 import { clampNumber, validateEmail, validateUrl, isBlank } from "@/lib/validation";
 import { AdminSecurityPanel } from "@/components/admin/admin-security-panel";
 import { ContactInbox } from "@/components/admin/contact-inbox";
+import { AnalyticsPanel } from "@/components/admin/analytics-panel";
 import { MediaAssetForm, MediaThumb } from "@/components/admin/media-asset-form";
 import { useProductsStore, useProducts } from "@/stores/products-store";
 import type { PartnerProduct } from "@/types/partner";
@@ -116,7 +117,6 @@ type MainSidebarTab =
   | "ai"
   | "inbox"
   | "analytics"
-  | "users"
   | "appearance"
   | "settings"
 ;
@@ -3024,16 +3024,6 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={() => handleSelectTab("users")}
-                className={cn(
-                  "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
-                  mainTab === "users" ? "bg-accent-blue text-white shadow-md" : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
-                )}
-              >
-                <Users className="w-4 h-4" /> Users & Roles
-              </button>
-
-              <button
                 onClick={() => handleSelectTab("appearance")}
                 className={cn(
                   "w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-3 transition-colors cursor-pointer text-left",
@@ -5586,32 +5576,34 @@ export default function AdminPage() {
                     )} />
                   </div>
 
-                  {/* Right panel: Full real-time live preview. Pointer events are
-                      off while dragging so the preview cannot swallow the drag. */}
-                  <div className={cn("flex-1 min-w-0 bg-bg-secondary/50 h-full overflow-y-auto relative overscroll-y-contain min-h-0", isResizingEditor && "pointer-events-none")}>
-                    {/* Sticky label in normal flow (not absolutely positioned) so
-                        it reserves its own height and never lands on top of the
-                        previewed hero's status pills — the overlap that was
-                        reported. pointer-events-none keeps preview clicks working. */}
-                    <div className="sticky top-0 z-[100] px-4 pt-4 pb-2 pointer-events-none">
-                      <span className="inline-block bg-accent/20 border border-accent/40 px-3 py-1 rounded-full text-[9px] font-mono font-bold text-accent tracking-widest uppercase select-none animate-pulse">
+                  {/* Right panel: live preview. The label sits in its own strip
+                      above the scroll area: as a sticky element inside it, the
+                      badge floated over the previewed hero title once scrolled.
+                      Pointer events are off while dragging the divider so the
+                      preview cannot swallow the drag. */}
+                  <div className={cn("flex-1 min-w-0 h-full min-h-0 flex flex-col bg-bg-secondary/50", isResizingEditor && "pointer-events-none")}>
+                    <div className="shrink-0 px-4 py-2.5 border-b border-divider bg-bg-secondary flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 bg-accent/15 border border-accent/30 px-3 py-1 rounded-full text-[9px] font-mono font-bold text-accent tracking-widest uppercase select-none">
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                         Live Preview (Updates Instantly)
                       </span>
                     </div>
-                    {/* Embed the actual page component passing the modified project object */}
-                    <div
-                      className="scale-[0.98] origin-top-left transform w-[102%] h-auto overscroll-y-contain"
-                      onClick={(e) => {
-                        const target = e.target as HTMLElement;
-                        const anchor = target.closest("a");
-                        if (anchor) {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          showToast("Navigation is disabled in Live Preview");
-                        }
-                      }}
-                    >
-                      <ProjectDetailContent projectOverride={editingProject} />
+                    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-contain relative">
+                      {/* Embed the actual page component passing the modified project object */}
+                      <div
+                        className="w-full h-auto"
+                        onClick={(e) => {
+                          const target = e.target as HTMLElement;
+                          const anchor = target.closest("a");
+                          if (anchor) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            showToast("Navigation is disabled in Live Preview");
+                          }
+                        }}
+                      >
+                        <ProjectDetailContent projectOverride={editingProject} />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -6010,85 +6002,7 @@ export default function AdminPage() {
             </GlassCard>
           )}
 
-          {mainTab === "analytics" && (
-            <div className="space-y-6 text-left">
-              <div className="p-6 rounded-2xl bg-glass-bg border border-glass-border space-y-2">
-                <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-emerald-400" /> Real-time Analytics & Search Telemetry
-                </h3>
-                <p className="text-xs text-text-secondary">Tracks visitor activity, command palette searches, project clicks, and country breakdown.</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <GlassCard tilt={false} hover={false} className="p-5 space-y-4">
-                  <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-text-muted">Top Search Queries</h4>
-                  <div className="space-y-2">
-                    {(cms.analytics?.searches || []).map((s, i) => (
-                      <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-bg-secondary text-xs">
-                        <span className="font-mono font-bold text-text-primary">{s.query}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-accent-blue/10 text-accent-blue font-mono font-bold text-[10px]">{s.count} searches</span>
-                      </div>
-                    ))}
-                  </div>
-                </GlassCard>
-
-                <GlassCard tilt={false} hover={false} className="p-5 space-y-4">
-                  <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-text-muted">Project Clicks Leaderboard</h4>
-                  <div className="space-y-2">
-                    {Object.entries(cms.analytics?.projectClicks || {}).map(([slug, count], i) => (
-                      <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-bg-secondary text-xs">
-                        <span className="font-mono font-bold text-text-primary">/projects/{slug}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono font-bold text-[10px]">{count} clicks</span>
-                      </div>
-                    ))}
-                  </div>
-                </GlassCard>
-
-                <GlassCard tilt={false} hover={false} className="p-5 space-y-4">
-                  <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-text-muted">Visitor Geographic Breakdown</h4>
-                  <div className="space-y-2">
-                    {(cms.analytics?.countryBreakdown || []).map((c, i) => (
-                      <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-bg-secondary text-xs">
-                        <div className="flex items-center gap-2">
-                          <span>{c.flag}</span>
-                          <span className="font-bold text-text-primary">{c.country}</span>
-                        </div>
-                        <span className="font-mono text-text-secondary text-[11px] font-semibold">{c.count.toLocaleString()}</span>
-                      </div>
-                    ))}
-                  </div>
-                </GlassCard>
-              </div>
-            </div>
-          )}
-
-          {/* USERS TAB */}
-          {mainTab === "users" && (
-            <div className="space-y-6 text-left">
-              <div className="p-6 rounded-2xl bg-glass-bg border border-glass-border space-y-2">
-                <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-                  <Users className="w-4 h-4 text-purple-400" /> User Permissions & Role Governance
-                </h3>
-                <p className="text-xs text-text-secondary">Assign granular roles (Owner, Admin, Editor, Developer, Viewer).</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  { name: "Praneeth", role: "Owner", email: "praneeth@kiwik.one" },
-                  { name: "Sarah Lin", role: "Admin", email: "praneeth@kiwik.one" },
-                  { name: "Alex Mercer", role: "Developer", email: "praneeth@kiwik.one" }
-                ].map((usr, i) => (
-                  <GlassCard tilt={false} hover={false} key={i} className="p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-text-primary">{usr.name}</h4>
-                      <span className="px-2 py-0.5 rounded-full bg-accent-blue/10 text-accent-blue font-mono font-bold text-[10px]">{usr.role}</span>
-                    </div>
-                    <div className="text-xs font-mono text-text-secondary">{usr.email}</div>
-                  </GlassCard>
-                ))}
-              </div>
-            </div>
-          )}
+          {mainTab === "analytics" && <AnalyticsPanel />}
 
           {/* APPEARANCE TAB */}
           {mainTab === "appearance" && (
