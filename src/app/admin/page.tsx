@@ -1141,163 +1141,38 @@ export default function AdminPage() {
     );
   };
 
+  // Only fields the public project page actually renders. Dark/light logos,
+  // favicon, thumbnail, card image, accent/theme colours and the gradient were
+  // editable here but never displayed anywhere, so they were removed to keep
+  // the form short. Existing values stay in the record untouched.
   const renderBrandingSection = () => {
     if (!editingProject) return null;
+    const assetRow = (label: string, hint: string, value: string, pickerTitle: string, onPick: (url: string) => void) => (
+      <div>
+        <label className="text-[10px] font-bold text-text-secondary block mb-1">{label}</label>
+        <div className="flex gap-2 items-stretch">
+          <div className="w-12 h-10 rounded-lg overflow-hidden border border-glass-border bg-bg-tertiary/60 shrink-0">
+            <MediaThumb src={value} alt={label} className="w-full h-full object-cover" />
+          </div>
+          <input type="text" value={value} readOnly className="min-w-0 flex-1 px-3 py-1.5 rounded-lg bg-bg-secondary text-[10px] text-text-primary" />
+          <button
+            type="button"
+            onClick={() => setMediaPickerTarget({ title: pickerTitle, onSelect: onPick })}
+            className="shrink-0 whitespace-nowrap px-3 rounded-lg bg-text-primary/5 border border-glass-border text-[10px] font-bold text-text-primary"
+          >
+            Browse
+          </button>
+        </div>
+        <p className="text-[9px] text-text-muted mt-1">{hint}</p>
+      </div>
+    );
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Dark Logo</label>
-            <div className="flex gap-2">
-              <input type="text" value={editingProject.logoDark || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
-              <button
-                type="button"
-                onClick={() => setMediaPickerTarget({ title: "Dark Logo Asset", onSelect: (url) => updateProjField({ logoDark: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
-              >
-                Browse
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Light Logo</label>
-            <div className="flex gap-2">
-              <input type="text" value={editingProject.logoLight || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
-              <button
-                type="button"
-                onClick={() => setMediaPickerTarget({ title: "Light Logo Asset", onSelect: (url) => updateProjField({ logoLight: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
-              >
-                Browse
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Project Icon</label>
-            <div className="flex gap-2">
-              <input type="text" value={editingProject.logo || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
-              <button
-                type="button"
-                onClick={() => setMediaPickerTarget({ title: "Project Icon", onSelect: (url) => updateProjField({ logo: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
-              >
-                Browse
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Favicon Asset</label>
-            <div className="flex gap-2">
-              <input type="text" value={editingProject.favicon || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
-              <button
-                type="button"
-                onClick={() => setMediaPickerTarget({ title: "Favicon", onSelect: (url) => updateProjField({ favicon: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
-              >
-                Browse
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Accent Hex Color</label>
-            <div className="flex gap-2">
-              <input
-                type="color"
-                value={editingProject.accentColor || "#3b82f6"}
-                onChange={(e) => updateProjField({ accentColor: e.target.value })}
-                className="w-10 h-8 rounded border-0 bg-transparent cursor-pointer"
-              />
-              <input
-                type="text"
-                value={editingProject.accentColor || ""}
-                onChange={(e) => updateProjField({ accentColor: e.target.value })}
-                className="min-w-0 flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Theme Color</label>
-            <div className="flex gap-2">
-              <input
-                type="color"
-                value={editingProject.themeColor || "#0b0f19"}
-                onChange={(e) => updateProjField({ themeColor: e.target.value })}
-                className="w-10 h-8 rounded border-0 bg-transparent cursor-pointer"
-              />
-              <input
-                type="text"
-                value={editingProject.themeColor || ""}
-                onChange={(e) => updateProjField({ themeColor: e.target.value })}
-                className="min-w-0 flex-1 px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Cover Image</label>
-            <div className="flex gap-2">
-              <input type="text" value={editingProject.coverImage || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
-              <button
-                type="button"
-                onClick={() => setMediaPickerTarget({ title: "Cover Image", onSelect: (url) => updateProjField({ coverImage: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
-              >
-                Browse
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Background Gradient</label>
-            <input
-              type="text"
-              value={editingProject.brandingGradient || ""}
-              onChange={(e) => updateProjField({ brandingGradient: e.target.value })}
-              placeholder="e.g. from-blue-500/10 to-transparent"
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-xs text-text-primary font-mono"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Thumbnail</label>
-            <div className="flex gap-2">
-              <input type="text" value={editingProject.thumbnail || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
-              <button
-                type="button"
-                onClick={() => setMediaPickerTarget({ title: "Thumbnail Image", onSelect: (url) => updateProjField({ thumbnail: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
-              >
-                Browse
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-text-secondary block mb-1">Card Image</label>
-            <div className="flex gap-2">
-              <input type="text" value={editingProject.cardImage || ""} readOnly className="flex-1 min-w-0 px-3 py-1.5 rounded bg-bg-secondary text-[10px] text-text-primary" />
-              <button
-                type="button"
-                onClick={() => setMediaPickerTarget({ title: "Card Image Showcase", onSelect: (url) => updateProjField({ cardImage: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
-              >
-                Browse
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="space-y-5">
+        {assetRow("Project Icon", "Square logo shown beside the project name.", editingProject.logo || "", "Project Icon", (url) => updateProjField({ logo: url }))}
+        {assetRow("Cover Image", "Backs the project hero and is used for social share previews.", editingProject.coverImage || "", "Cover Image", (url) => updateProjField({ coverImage: url }))}
       </div>
     );
   };
-
   const renderHeroSection = () => {
     if (!editingProject) return null;
     return (
@@ -1931,291 +1806,174 @@ export default function AdminPage() {
     );
   };
 
+  // Only what the public Features tab shows: icon, title and description.
+  // The accent colour, image picker and "visible" toggle that used to sit here
+  // had no effect on the site and were removed.
   const renderFeaturesSection = () => {
     if (!editingProject) return null;
-    const feats = editingProject.features || [];
+    const feats: Feature[] = [...(editingProject.features || [])].sort(
+      (a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)
+    );
+    const updateFeat = (idx: number, patch: Partial<Feature>) => {
+      const copy = [...feats];
+      copy[idx] = { ...copy[idx], ...patch };
+      updateProjField({ features: copy });
+    };
+    const inputCls = "min-w-0 w-full px-2.5 py-1.5 rounded-lg bg-bg-secondary border border-glass-border text-xs text-text-primary";
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-text-primary/5 pb-2">
-          <span className="text-xs font-bold text-text-primary uppercase font-mono">Dynamic Features Cards ({feats.length})</span>
+        <div className="flex items-center justify-between gap-3 border-b border-text-primary/5 pb-2">
+          <span className="text-xs font-bold text-text-primary uppercase font-mono">Feature Cards ({feats.length})</span>
           <button
             type="button"
-            onClick={() => {
-              const newFeat: Feature = {
-                title: "New Modular Pipeline",
-                description: "Optimized for latency and dynamic edge configurations.",
-                icon: "Sparkles",
-                id: `feat-${Date.now()}`,
-                visible: true,
-                order: feats.length + 1
-              };
-              updateProjField({ features: [...feats, newFeat] });
-            }}
-            className="px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
+            onClick={() =>
+              updateProjField({
+                features: [
+                  ...feats,
+                  { id: `feat-${Date.now()}`, title: "", description: "", icon: "Sparkles", visible: true, order: feats.length + 1 },
+                ],
+              })
+            }
+            className="shrink-0 px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
           >
             Add Feature
           </button>
         </div>
 
-        <div className="space-y-4">
-          {feats.sort((a: any,b: any) => a.order - b.order).map((feat: any, idx: number) => (
-            <div key={feat.id || idx} className="p-4 rounded-2xl bg-bg-secondary/40 border border-glass-border space-y-3 relative">
-              <div className="absolute top-3 right-3 flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (idx > 0) {
-                      const copy = [...feats];
-                      const temp = copy[idx - 1].order;
-                      copy[idx - 1].order = copy[idx].order;
-                      copy[idx].order = temp;
-                      updateProjField({ features: copy });
-                    }
-                  }}
-                  className="p-1 rounded bg-text-primary/5 text-text-primary"
-                >
-                  <ArrowUp className="w-3 h-3" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (idx < feats.length - 1) {
-                      const copy = [...feats];
-                      const temp = copy[idx + 1].order;
-                      copy[idx + 1].order = copy[idx].order;
-                      copy[idx].order = temp;
-                      updateProjField({ features: copy });
-                    }
-                  }}
-                  className="p-1 rounded bg-text-primary/5 text-text-primary"
-                >
-                  <ArrowDown className="w-3 h-3" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const copy = feats.filter((_: any, i: number) => i !== idx);
-                    updateProjField({ features: copy });
-                  }}
-                  className="p-1.5 rounded bg-rose-500/10 text-rose-500"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-text-secondary block mb-1">Feature Title</label>
-                <input
-                  type="text"
-                  value={feat.title || ""}
-                  onChange={(e) => {
-                    const copy = [...feats];
-                    copy[idx] = { ...copy[idx], title: e.target.value };
-                    updateProjField({ features: copy });
-                  }}
-                  className="w-full px-3 py-1.5 rounded bg-bg-secondary border border-glass-border text-xs text-text-primary"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-text-secondary block mb-1">Description</label>
-                <textarea
-                  rows={2}
-                  value={feat.description || ""}
-                  onChange={(e) => {
-                    const copy = [...feats];
-                    copy[idx] = { ...copy[idx], description: e.target.value };
-                    updateProjField({ features: copy });
-                  }}
-                  className="w-full px-3 py-1.5 rounded bg-bg-secondary border border-glass-border text-xs text-text-primary"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[9px] text-text-secondary block">Icon (Lucide)</label>
-                  <input
-                    type="text"
-                    value={feat.icon || ""}
-                    onChange={(e) => {
-                      const copy = [...feats];
-                      copy[idx] = { ...copy[idx], icon: e.target.value };
-                      updateProjField({ features: copy });
-                    }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
-                  />
+        <div className="space-y-3">
+          {feats.map((feat, idx) => {
+            const Icon = (LucideIcons as any)[feat.icon || ""] as React.ComponentType<{ className?: string }> | undefined;
+            return (
+              <div key={feat.id || idx} className="p-3 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-2">
+                <div className="grid grid-cols-[minmax(0,1fr)_28px] gap-2 items-end">
+                  <div className="min-w-0">
+                    <label className="text-[9px] text-text-secondary block mb-0.5">Title</label>
+                    <input
+                      type="text"
+                      value={feat.title || ""}
+                      placeholder="e.g. Curated collections"
+                      onChange={(e) => updateFeat(idx, { title: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    title={`Remove ${feat.title || "feature"}`}
+                    aria-label={`Remove ${feat.title || "feature"}`}
+                    onClick={() => updateProjField({ features: feats.filter((_, i) => i !== idx) })}
+                    className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <div>
-                  <label className="text-[9px] text-text-secondary block">Accent Border Hex</label>
-                  <input
-                    type="text"
-                    value={feat.accent || ""}
-                    onChange={(e) => {
-                      const copy = [...feats];
-                      copy[idx] = { ...copy[idx], accent: e.target.value };
-                      updateProjField({ features: copy });
-                    }}
-                    placeholder="e.g. #3b82f6"
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[9px] text-text-secondary block">Feature Image</label>
-                  <div className="flex gap-1.5">
-                    <input type="text" value={feat.image || ""} readOnly className="min-w-0 flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
-                    <button
-                      type="button"
-                      onClick={() => setMediaPickerTarget({
-                        title: `Image for feature ${feat.title}`,
-                        onSelect: (url) => {
-                          const copy = [...feats];
-                          copy[idx] = { ...copy[idx], image: url };
-                          updateProjField({ features: copy });
-                        }
-                      })}
-                      className="shrink-0 whitespace-nowrap px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
-                    >
-                      Browse
-                    </button>
+                <div className="min-w-0">
+                  <label className="text-[9px] text-text-secondary block mb-0.5">
+                    Icon <a href="https://lucide.dev/icons" target="_blank" rel="noopener noreferrer" className="text-accent-blue hover:underline">(Lucide name)</a>
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-7 h-7 shrink-0 rounded-lg bg-accent-blue/10 text-accent-blue flex items-center justify-center" title={Icon ? feat.icon : "Unknown icon name"}>
+                      {Icon ? <Icon className="w-3.5 h-3.5" /> : <LucideIcons.HelpCircle className="w-3.5 h-3.5 opacity-50" />}
+                    </span>
+                    <input
+                      type="text"
+                      value={feat.icon || ""}
+                      placeholder="Sparkles"
+                      onChange={(e) => updateFeat(idx, { icon: e.target.value })}
+                      className={inputCls}
+                    />
                   </div>
                 </div>
-                <div className="flex items-center pt-4 gap-2">
-                  <input
-                    type="checkbox"
-                    checked={feat.visible !== false}
-                    onChange={(e) => {
-                      const copy = [...feats];
-                      copy[idx] = { ...copy[idx], visible: e.target.checked };
-                      updateProjField({ features: copy });
-                    }}
-                    className="w-3.5 h-3.5 rounded"
+                <div>
+                  <label className="text-[9px] text-text-secondary block mb-0.5">Description</label>
+                  <textarea
+                    rows={2}
+                    value={feat.description || ""}
+                    placeholder="One or two sentences shown on the card."
+                    onChange={(e) => updateFeat(idx, { description: e.target.value })}
+                    className={inputCls + " resize-y"}
                   />
-                  <label className="text-[10px] text-text-secondary">Visible</label>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
   };
-
   const renderTechStackSection = () => {
     if (!editingProject) return null;
-    const stack = editingProject.techStack || [];
+    const stack: TechItem[] = [...(editingProject.techStack || [])].sort(
+      (a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)
+    );
+    const updateTech = (idx: number, patch: Partial<TechItem>) => {
+      const copy = [...stack];
+      copy[idx] = { ...copy[idx], ...patch };
+      updateProjField({ techStack: copy });
+    };
+    const inputCls = "min-w-0 w-full px-2.5 py-1.5 rounded-lg bg-bg-secondary border border-glass-border text-xs text-text-primary";
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-text-primary/5 pb-2">
+        <div className="flex items-center justify-between gap-3 border-b border-text-primary/5 pb-2">
           <span className="text-xs font-bold text-text-primary uppercase font-mono">Technologies ({stack.length})</span>
           <button
             type="button"
-            onClick={() => {
-              const newTech: TechItem = {
-                name: "React Next.js",
-                logo: "/logo.png",
-                category: "frontend",
-                version: "16.2",
-                website: "https://nextjs.org",
-                order: stack.length + 1
-              };
-              updateProjField({ techStack: [...stack, newTech] });
-            }}
-            className="px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
+            onClick={() =>
+              updateProjField({
+                techStack: [...stack, { name: "", category: "frontend", order: stack.length + 1 }],
+              })
+            }
+            className="shrink-0 px-3 py-1 rounded bg-accent-blue text-white text-[10px] font-bold"
           >
-            Add Tech Item
+            Add Technology
           </button>
         </div>
 
-        <div className="space-y-3">
-          {stack.sort((a: any,b: any) => a.order - b.order).map((tech: any, idx: number) => (
-            <div key={idx} className="p-3.5 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3 relative">
-              <div className="absolute top-2 right-2 flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const copy = stack.filter((_: any, i: number) => i !== idx);
-                    updateProjField({ techStack: copy });
-                  }}
-                  className="p-1 rounded bg-rose-500/10 text-rose-500"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
+        {stack.length > 0 && (
+          <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_28px] gap-2 px-1 text-[9px] font-bold uppercase tracking-wider text-text-muted">
+            <span>Name</span>
+            <span>Category</span>
+            <span />
+          </div>
+        )}
 
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <div>
-                  <label className="text-[9px] text-text-secondary block">Name</label>
-                  <input
-                    type="text"
-                    value={tech.name || ""}
-                    onChange={(e) => {
-                      const copy = [...stack];
-                      copy[idx] = { ...copy[idx], name: e.target.value };
-                      updateProjField({ techStack: copy });
-                    }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-[9px] text-text-secondary block">Version</label>
-                  <input
-                    type="text"
-                    value={tech.version || ""}
-                    onChange={(e) => {
-                      const copy = [...stack];
-                      copy[idx] = { ...copy[idx], version: e.target.value };
-                      updateProjField({ techStack: copy });
-                    }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[9px] text-text-secondary block">Logo Icon</label>
-                  <div className="flex gap-1.5">
-                    <input type="text" value={tech.logo || ""} readOnly className="min-w-0 flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
-                    <button
-                      type="button"
-                      onClick={() => setMediaPickerTarget({
-                        title: `Logo for ${tech.name}`,
-                        onSelect: (url) => {
-                          const copy = [...stack];
-                          copy[idx] = { ...copy[idx], logo: url };
-                          updateProjField({ techStack: copy });
-                        }
-                      })}
-                      className="shrink-0 whitespace-nowrap px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
-                    >
-                      Browse
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[9px] text-text-secondary block">Website URL</label>
-                  <input
-                    type="text"
-                    value={tech.website || ""}
-                    onChange={(e) => {
-                      const copy = [...stack];
-                      copy[idx] = { ...copy[idx], website: e.target.value };
-                      updateProjField({ techStack: copy });
-                    }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
-                  />
-                </div>
-              </div>
+        <div className="space-y-2">
+          {stack.map((tech, idx) => (
+            <div key={idx} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_28px] gap-2 items-center">
+              <input
+                type="text"
+                value={tech.name || ""}
+                placeholder="e.g. Next.js 15"
+                onChange={(e) => updateTech(idx, { name: e.target.value })}
+                className={inputCls}
+              />
+              <input
+                type="text"
+                list="tech-category-options"
+                value={tech.category || ""}
+                placeholder="e.g. frontend"
+                onChange={(e) => updateTech(idx, { category: e.target.value })}
+                className={inputCls}
+              />
+              <button
+                type="button"
+                title={`Remove ${tech.name || "technology"}`}
+                aria-label={`Remove ${tech.name || "technology"}`}
+                onClick={() => updateProjField({ techStack: stack.filter((_, i) => i !== idx) })}
+                className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
             </div>
           ))}
+          <datalist id="tech-category-options">
+            {["frontend", "backend", "database", "infrastructure", "devops", "ai", "mobile", "design"].map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
         </div>
       </div>
     );
   };
-
   const renderReadmeSection = () => {
     if (!editingProject) return null;
     return (
@@ -2374,6 +2132,8 @@ export default function AdminPage() {
     );
   };
 
+  // Date, status, title and description are what the public Timeline tab
+  // renders; the badge and image fields that used to be here were not shown.
   const renderTimelineSection = () => {
     if (!editingProject) return null;
     const timeline = editingProject.timeline || [];
@@ -2429,19 +2189,6 @@ export default function AdminPage() {
                     className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary font-mono"
                   />
                 </div>
-                <div>
-                  <label className="text-[9px] text-text-secondary block">Badge text</label>
-                  <input
-                    type="text"
-                    value={event.badge || ""}
-                    onChange={(e) => {
-                      const copy = [...timeline];
-                      copy[idx] = { ...copy[idx], badge: e.target.value };
-                      updateProjField({ timeline: copy });
-                    }}
-                    className="w-full px-2 py-1 rounded bg-bg-secondary text-xs text-text-primary"
-                  />
-                </div>
               </div>
 
               <div>
@@ -2488,26 +2235,6 @@ export default function AdminPage() {
                     <option value="in-progress">In Progress</option>
                     <option value="planned">Planned</option>
                   </select>
-                </div>
-                <div>
-                  <label className="text-[9px] text-text-secondary block">Optional image</label>
-                  <div className="flex gap-1.5">
-                    <input type="text" value={event.image || ""} readOnly className="min-w-0 flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
-                    <button
-                      type="button"
-                      onClick={() => setMediaPickerTarget({
-                        title: `Image for event ${event.title}`,
-                        onSelect: (url) => {
-                          const copy = [...timeline];
-                          copy[idx] = { ...copy[idx], image: url };
-                          updateProjField({ timeline: copy });
-                        }
-                      })}
-                      className="shrink-0 whitespace-nowrap px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
-                    >
-                      Browse
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>

@@ -188,9 +188,9 @@ export function MediaThumb({ src, alt, className }: { src: string; alt: string; 
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   if (!src || failedSrc === src) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-text-muted bg-bg-tertiary/60" title={src || "No link"}>
-        <ImageOff className="w-5 h-5 opacity-70" />
-        <span className="text-[8px] font-bold uppercase tracking-wider">Link broken</span>
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-text-muted bg-bg-tertiary/60" title={src || "No image set"}>
+        <ImageOff className="w-4 h-4 opacity-70 shrink-0" />
+        <span className="text-[8px] font-bold uppercase tracking-wider leading-none text-center">{src ? "Link broken" : "No image"}</span>
       </div>
     );
   }
