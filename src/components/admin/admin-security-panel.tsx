@@ -112,7 +112,7 @@ export function AdminSecurityPanel({ onClose }: { onClose: () => void }) {
           <button
             onClick={onClose}
             aria-label="Close"
-            className="p-2 rounded-full hover:bg-white/10 text-text-secondary transition-colors"
+            className="p-2 rounded-full hover:bg-text-primary/10 text-text-secondary transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

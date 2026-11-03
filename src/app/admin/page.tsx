@@ -90,6 +90,10 @@ import { useSiteCMSStore, setCmsPersistEnabled, flushCmsToStorage } from "@/stor
 import { useDocsStore } from "@/stores/docs-store";
 import { useThemeStore } from "@/stores/theme-store";
 import { ProjectDetailContent } from "@/components/projects/project-detail-content";
+// Every studio card passes tilt={false} hover={false}: GlassCard's default 3D
+// tilt and hover lift are decoration for the public site, but here the cards
+// hold forms, and inputs that rotate and rise under the cursor while you type
+// are what made the studio feel jittery.
 import { GlassCard } from "@/components/glass/glass-card";
 import type {
   Project,
@@ -210,7 +214,7 @@ function LineListTextarea({
         setText(e.target.value);
         onText(e.target.value);
       }}
-      className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
+      className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none resize-y"
     />
   );
 }
@@ -738,19 +742,19 @@ export default function AdminPage() {
     REQUIRED_PROJECT_FIELDS.filter((f) => !String(p?.[f.key] ?? "").trim());
 
   const editorTabs = [
-    { id: "general", label: "General Specs", icon: <LucideIcons.Settings className="w-3.5 h-3.5" /> },
-    { id: "branding", label: "Branding/Identity", icon: <LucideIcons.Layers className="w-3.5 h-3.5" /> },
-    { id: "hero", label: "Hero Showcase", icon: <LucideIcons.Layout className="w-3.5 h-3.5" /> },
-    { id: "overview", label: "Overview Panel", icon: <LucideIcons.BookOpen className="w-3.5 h-3.5" /> },
-    { id: "telemetry", label: "Telemetry & Logs", icon: <LucideIcons.Activity className="w-3.5 h-3.5" /> },
-    { id: "quick", label: "Quick Actions", icon: <LucideIcons.Plus className="w-3.5 h-3.5" /> },
-    { id: "features", label: "Feature Cards", icon: <LucideIcons.Sparkles className="w-3.5 h-3.5" /> },
-    { id: "tech", label: "Tech Stack", icon: <LucideIcons.Cpu className="w-3.5 h-3.5" /> },
-    { id: "readme", label: "Documentation", icon: <LucideIcons.FileText className="w-3.5 h-3.5" /> },
-    { id: "gallery", label: "Gallery Assets", icon: <LucideIcons.Image className="w-3.5 h-3.5" /> },
-    { id: "timeline", label: "Timeline Nodes", icon: <LucideIcons.Calendar className="w-3.5 h-3.5" /> },
-    { id: "contributors", label: "Contributors", icon: <LucideIcons.Users className="w-3.5 h-3.5" /> },
-    { id: "seo", label: "SEO Config", icon: <LucideIcons.Globe className="w-3.5 h-3.5" /> }
+    { id: "general", short: "General", label: "General Specs", icon: <LucideIcons.Settings className="w-3.5 h-3.5" /> },
+    { id: "branding", short: "Brand", label: "Branding/Identity", icon: <LucideIcons.Layers className="w-3.5 h-3.5" /> },
+    { id: "hero", short: "Hero", label: "Hero Showcase", icon: <LucideIcons.Layout className="w-3.5 h-3.5" /> },
+    { id: "overview", short: "Overview", label: "Overview Panel", icon: <LucideIcons.BookOpen className="w-3.5 h-3.5" /> },
+    { id: "telemetry", short: "Telemetry", label: "Telemetry & Logs", icon: <LucideIcons.Activity className="w-3.5 h-3.5" /> },
+    { id: "quick", short: "Actions", label: "Quick Actions", icon: <LucideIcons.Plus className="w-3.5 h-3.5" /> },
+    { id: "features", short: "Features", label: "Feature Cards", icon: <LucideIcons.Sparkles className="w-3.5 h-3.5" /> },
+    { id: "tech", short: "Tech", label: "Tech Stack", icon: <LucideIcons.Cpu className="w-3.5 h-3.5" /> },
+    { id: "readme", short: "Docs", label: "Documentation", icon: <LucideIcons.FileText className="w-3.5 h-3.5" /> },
+    { id: "gallery", short: "Gallery", label: "Gallery Assets", icon: <LucideIcons.Image className="w-3.5 h-3.5" /> },
+    { id: "timeline", short: "Timeline", label: "Timeline Nodes", icon: <LucideIcons.Calendar className="w-3.5 h-3.5" /> },
+    { id: "contributors", short: "People", label: "Contributors", icon: <LucideIcons.Users className="w-3.5 h-3.5" /> },
+    { id: "seo", short: "SEO", label: "SEO Config", icon: <LucideIcons.Globe className="w-3.5 h-3.5" /> }
   ];
 
   // Prompt-less Media additions
@@ -1094,7 +1098,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Dark Logo Asset", onSelect: (url) => updateProjField({ logoDark: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
+                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1107,7 +1111,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Light Logo Asset", onSelect: (url) => updateProjField({ logoLight: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
+                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1123,7 +1127,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Project Icon", onSelect: (url) => updateProjField({ logo: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
+                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1136,7 +1140,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Favicon", onSelect: (url) => updateProjField({ favicon: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
+                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1189,7 +1193,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Cover Image", onSelect: (url) => updateProjField({ coverImage: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
+                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1215,7 +1219,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Thumbnail Image", onSelect: (url) => updateProjField({ thumbnail: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
+                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1228,7 +1232,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Card Image Showcase", onSelect: (url) => updateProjField({ cardImage: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
+                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1297,7 +1301,7 @@ export default function AdminPage() {
         </div>
 
         {/* CTA 1 */}
-        <div className="p-3 rounded-xl bg-black/20 border border-white/5 space-y-3">
+        <div className="p-3 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3">
           <span className="text-[9px] font-mono font-bold text-accent-blue uppercase block">Primary CTA Button</span>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -1343,7 +1347,7 @@ export default function AdminPage() {
         </div>
 
         {/* CTA 2 */}
-        <div className="p-3 rounded-xl bg-black/20 border border-white/5 space-y-3">
+        <div className="p-3 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3">
           <span className="text-[9px] font-mono font-bold text-text-muted uppercase block">Secondary CTA Button</span>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -1417,7 +1421,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setMediaPickerTarget({ title: "Hero background image", onSelect: (url) => updateProjField({ heroBgImage: url }) })}
-                className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
+                className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
               >
                 Browse
               </button>
@@ -1502,7 +1506,7 @@ export default function AdminPage() {
             <button
               type="button"
               onClick={() => setMediaPickerTarget({ title: "Overview asset image", onSelect: (url) => updateProjField({ overviewImage: url }) })}
-              className="shrink-0 px-2 py-1 rounded bg-white/5 border border-glass-border text-[10px] text-text-primary"
+              className="shrink-0 px-2 py-1 rounded bg-text-primary/5 border border-glass-border text-[10px] text-text-primary"
             >
               Browse
             </button>
@@ -1510,7 +1514,7 @@ export default function AdminPage() {
         </div>
 
         {/* Highlights bullets manager */}
-        <div className="p-4 rounded-xl bg-black/25 border border-white/5 space-y-3 text-left">
+        <div className="p-4 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3 text-left">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-accent-blue uppercase">Core Pillars / Highlights</span>
             <button
@@ -1519,7 +1523,7 @@ export default function AdminPage() {
                 const hl = editingProject.overviewHighlights || [];
                 updateProjField({ overviewHighlights: [...hl, "New Pillar Target"] });
               }}
-              className="text-[9px] font-bold text-text-primary px-2 py-0.5 rounded bg-white/10"
+              className="text-[9px] font-bold text-text-primary px-2 py-0.5 rounded bg-text-primary/10"
             >
               Add Bullet
             </button>
@@ -1661,7 +1665,7 @@ export default function AdminPage() {
         </div>
 
         {/* Telemetry Badges tags list */}
-        <div className="p-4 rounded-xl bg-black/25 border border-white/5 space-y-3 text-left">
+        <div className="p-4 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3 text-left">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-accent-blue uppercase">Telemetry Badges / Tags</span>
             <button
@@ -1670,14 +1674,14 @@ export default function AdminPage() {
                 const bg = editingProject.telemetryBadges || [];
                 updateProjField({ telemetryBadges: [...bg, "Stable v2"] });
               }}
-              className="text-[9px] font-bold text-text-primary px-2 py-0.5 rounded bg-white/10 animate-pulse-slow"
+              className="text-[9px] font-bold text-text-primary px-2 py-0.5 rounded bg-text-primary/10 animate-pulse-slow"
             >
               Add Badge Tag
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
             {(editingProject.telemetryBadges || []).map((badge: string, bIdx: number) => (
-              <div key={bIdx} className="flex gap-1.5 items-center bg-white/5 px-2 py-1 rounded-xl border border-white/5">
+              <div key={bIdx} className="flex gap-1.5 items-center bg-text-primary/5 px-2 py-1 rounded-xl border border-text-primary/5">
                 <input
                   type="text"
                   value={badge}
@@ -1711,7 +1715,7 @@ export default function AdminPage() {
     const actions = editingProject.quickActions || [];
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+        <div className="flex items-center justify-between border-b border-text-primary/5 pb-2">
           <span className="text-xs font-bold text-text-primary uppercase">Quick Link Buttons ({actions.length})</span>
           <button
             type="button"
@@ -1735,7 +1739,7 @@ export default function AdminPage() {
 
         <div className="space-y-3">
           {actions.sort((a: any,b: any) => a.order - b.order).map((act: any, idx: number) => (
-            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+            <div key={idx} className="p-3.5 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3 relative">
               <div className="absolute top-2 right-2 flex gap-1.5">
                 <button
                   type="button"
@@ -1748,7 +1752,7 @@ export default function AdminPage() {
                       updateProjField({ quickActions: copy });
                     }
                   }}
-                  className="p-1 rounded bg-white/5 hover:bg-white/10 text-text-primary"
+                  className="p-1 rounded bg-text-primary/5 hover:bg-text-primary/10 text-text-primary"
                 >
                   <ArrowUp className="w-3 h-3" />
                 </button>
@@ -1763,7 +1767,7 @@ export default function AdminPage() {
                       updateProjField({ quickActions: copy });
                     }
                   }}
-                  className="p-1 rounded bg-white/5 hover:bg-white/10 text-text-primary"
+                  className="p-1 rounded bg-text-primary/5 hover:bg-text-primary/10 text-text-primary"
                 >
                   <ArrowDown className="w-3 h-3" />
                 </button>
@@ -1877,7 +1881,7 @@ export default function AdminPage() {
     const feats = editingProject.features || [];
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+        <div className="flex items-center justify-between border-b border-text-primary/5 pb-2">
           <span className="text-xs font-bold text-text-primary uppercase font-mono">Dynamic Features Cards ({feats.length})</span>
           <button
             type="button"
@@ -1913,7 +1917,7 @@ export default function AdminPage() {
                       updateProjField({ features: copy });
                     }
                   }}
-                  className="p-1 rounded bg-white/5 text-text-primary"
+                  className="p-1 rounded bg-text-primary/5 text-text-primary"
                 >
                   <ArrowUp className="w-3 h-3" />
                 </button>
@@ -1928,7 +1932,7 @@ export default function AdminPage() {
                       updateProjField({ features: copy });
                     }
                   }}
-                  className="p-1 rounded bg-white/5 text-text-primary"
+                  className="p-1 rounded bg-text-primary/5 text-text-primary"
                 >
                   <ArrowDown className="w-3 h-3" />
                 </button>
@@ -2017,7 +2021,7 @@ export default function AdminPage() {
                           updateProjField({ features: copy });
                         }
                       })}
-                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
+                      className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                     >
                       Browse
                     </button>
@@ -2049,7 +2053,7 @@ export default function AdminPage() {
     const stack = editingProject.techStack || [];
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+        <div className="flex items-center justify-between border-b border-text-primary/5 pb-2">
           <span className="text-xs font-bold text-text-primary uppercase font-mono">Technologies ({stack.length})</span>
           <button
             type="button"
@@ -2072,7 +2076,7 @@ export default function AdminPage() {
 
         <div className="space-y-3">
           {stack.sort((a: any,b: any) => a.order - b.order).map((tech: any, idx: number) => (
-            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+            <div key={idx} className="p-3.5 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3 relative">
               <div className="absolute top-2 right-2 flex gap-1">
                 <button
                   type="button"
@@ -2130,7 +2134,7 @@ export default function AdminPage() {
                           updateProjField({ techStack: copy });
                         }
                       })}
-                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
+                      className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                     >
                       Browse
                     </button>
@@ -2191,7 +2195,7 @@ export default function AdminPage() {
     const imgs = editingProject.images || [];
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+        <div className="flex items-center justify-between border-b border-text-primary/5 pb-2">
           <span className="text-xs font-bold text-text-primary uppercase font-mono">System Gallery Screenshots ({imgs.length})</span>
           <button
             type="button"
@@ -2213,7 +2217,7 @@ export default function AdminPage() {
 
         <div className="space-y-3">
           {imgs.sort((a: any,b: any) => a.order - b.order).map((img: any, idx: number) => (
-            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+            <div key={idx} className="p-3.5 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3 relative">
               <div className="absolute top-2 right-2 flex gap-1">
                 <button
                   type="button"
@@ -2230,7 +2234,7 @@ export default function AdminPage() {
               <div>
                 <label className="text-[9px] text-text-secondary block">Select Image Asset</label>
                 <div className="flex gap-1.5 items-stretch">
-                  <div className="w-14 h-10 rounded overflow-hidden border border-glass-border flex-shrink-0 bg-black/20">
+                  <div className="w-14 h-10 rounded overflow-hidden border border-glass-border flex-shrink-0 bg-bg-tertiary/60">
                     <MediaThumb src={img.src || ""} alt={img.alt || ""} className="w-full h-full object-cover" />
                   </div>
                   <input type="text" value={img.src || ""} readOnly className="flex-1 min-w-0 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
@@ -2244,7 +2248,7 @@ export default function AdminPage() {
                         updateProjField({ images: copy });
                       }
                     })}
-                    className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
+                    className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                   >
                     Browse
                   </button>
@@ -2320,7 +2324,7 @@ export default function AdminPage() {
     const timeline = editingProject.timeline || [];
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+        <div className="flex items-center justify-between border-b border-text-primary/5 pb-2">
           <span className="text-xs font-bold text-text-primary uppercase font-mono">Timeline Releases ({timeline.length})</span>
           <button
             type="button"
@@ -2342,7 +2346,7 @@ export default function AdminPage() {
 
         <div className="space-y-3">
           {timeline.sort((a: any,b: any) => a.order - b.order).map((event: any, idx: number) => (
-            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+            <div key={idx} className="p-3.5 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3 relative">
               <div className="absolute top-2 right-2 flex gap-1">
                 <button
                   type="button"
@@ -2444,7 +2448,7 @@ export default function AdminPage() {
                           updateProjField({ timeline: copy });
                         }
                       })}
-                      className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
+                      className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                     >
                       Browse
                     </button>
@@ -2463,7 +2467,7 @@ export default function AdminPage() {
     const team = editingProject.contributors || [];
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+        <div className="flex items-center justify-between border-b border-text-primary/5 pb-2">
           <span className="text-xs font-bold text-text-primary uppercase font-mono">Team Contributors ({team.length})</span>
           <button
             type="button"
@@ -2486,7 +2490,7 @@ export default function AdminPage() {
 
         <div className="space-y-3">
           {team.sort((a: any,b: any) => a.order - b.order).map((member: any, idx: number) => (
-            <div key={idx} className="p-3.5 rounded-xl bg-black/25 border border-white/5 space-y-3 relative">
+            <div key={idx} className="p-3.5 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3 relative">
               <div className="absolute top-2 right-2 flex gap-1">
                 <button
                   type="button"
@@ -2543,7 +2547,7 @@ export default function AdminPage() {
                         updateProjField({ contributors: copy });
                       }
                     })}
-                    className="px-2 rounded bg-white/5 border border-glass-border text-[9px] text-text-primary"
+                    className="px-2 rounded bg-text-primary/5 border border-glass-border text-[9px] text-text-primary"
                   >
                     Browse
                   </button>
@@ -2677,8 +2681,8 @@ export default function AdminPage() {
       {/* ─────────────────────────────────────────────────────────────
           TOP CONTROL BAR (Enterprise CMS Studio Header)
          ───────────────────────────────────────────────────────────── */}
-      <header className="h-16 shrink-0 px-6 bg-glass-bg border-b border-glass-border backdrop-blur-xl flex items-center justify-between z-40">
-        <div className="flex items-center gap-3">
+      <header className="h-16 shrink-0 px-4 xl:px-6 gap-3 bg-glass-bg border-b border-glass-border backdrop-blur-xl flex items-center justify-between z-40">
+        <div className="flex items-center gap-3 min-w-0 shrink-0">
           <button
             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
             className="lg:hidden p-2 rounded-xl bg-bg-secondary border border-glass-border text-text-primary hover:bg-bg-primary cursor-pointer shrink-0"
@@ -2686,21 +2690,21 @@ export default function AdminPage() {
           >
             <Menu className="w-4 h-4" />
           </button>
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-accent-blue via-indigo-500 to-purple-600 p-[1px]">
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
+            <div className="w-8 h-8 shrink-0 rounded-xl bg-gradient-to-tr from-accent-blue via-indigo-500 to-purple-600 p-[1px]">
               <div className="w-full h-full bg-bg-primary rounded-[11px] flex items-center justify-center font-bold text-xs text-text-primary group-hover:scale-105 transition-transform">
                 K
               </div>
             </div>
-            <span className="font-serif font-bold text-base tracking-tight text-text-primary hidden sm:inline">Kiwik OS Studio</span>
+            <span className="font-serif font-bold text-base tracking-tight text-text-primary hidden sm:inline whitespace-nowrap">Kiwik OS Studio</span>
           </Link>
-          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold hidden sm:flex items-center gap-1.5">
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold hidden 2xl:flex items-center gap-1.5 whitespace-nowrap shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> {visitorTelemetry.active} {visitorTelemetry.active === 1 ? "Visitor" : "Visitors"} Online Now
           </span>
         </div>
 
         {/* Device Switcher & Mode Tools */}
-        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
+        <div className="flex items-center gap-2 xl:gap-3 min-w-0">
           {/* Viewport Frame Toggle */}
           <button
             onClick={() => {
@@ -2710,48 +2714,50 @@ export default function AdminPage() {
                 setMainTab("live-preview" as any);
               }
             }}
+            title={mainTab === ("live-preview" as any) ? "Back to Studio" : "Live Device Frame"}
+            aria-label={mainTab === ("live-preview" as any) ? "Back to Studio" : "Live Device Frame"}
             className={cn(
-              "px-3 py-1.5 rounded-xl text-xs font-bold hidden md:flex items-center gap-1.5 transition-all cursor-pointer border",
+              "px-3 py-2 rounded-xl text-xs font-bold hidden md:flex items-center gap-1.5 transition-all cursor-pointer border whitespace-nowrap shrink-0",
               mainTab === ("live-preview" as any)
                 ? "bg-accent-blue text-white border-transparent shadow-md"
                 : "bg-bg-secondary border-glass-border text-text-primary hover:bg-bg-primary"
             )}
           >
-            <Monitor className="w-4 h-4" />
-            <span>{mainTab === ("live-preview" as any) ? "Back to Studio" : "Live Device Frame"}</span>
+            <Monitor className="w-4 h-4 shrink-0" />
+            <span className="hidden 2xl:inline">{mainTab === ("live-preview" as any) ? "Back to Studio" : "Live Device Frame"}</span>
           </button>
 
           {/* Device Switcher Segment */}
-          <div className="hidden sm:flex items-center p-1 rounded-xl bg-bg-secondary border border-glass-border">
+          <div className="hidden sm:flex items-center p-1 rounded-xl bg-bg-secondary border border-glass-border shrink-0">
             <button
               onClick={() => setPreviewDevice("desktop")}
               className={cn(
-                "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer",
+                "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap",
                 previewDevice === "desktop" ? "bg-accent-blue text-white shadow-sm" : "text-text-secondary hover:text-text-primary"
               )}
               title="Desktop / Laptop View (1280px)"
             >
-              <Laptop className="w-3.5 h-3.5" /> Laptop
+              <Laptop className="w-3.5 h-3.5 shrink-0" /> <span className="hidden 2xl:inline">Laptop</span>
             </button>
             <button
               onClick={() => setPreviewDevice("tablet")}
               className={cn(
-                "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer",
+                "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap",
                 previewDevice === "tablet" ? "bg-accent-blue text-white shadow-sm" : "text-text-secondary hover:text-text-primary"
               )}
               title="Tablet View (768px)"
             >
-              <Tablet className="w-3.5 h-3.5" /> Tablet
+              <Tablet className="w-3.5 h-3.5 shrink-0" /> <span className="hidden 2xl:inline">Tablet</span>
             </button>
             <button
               onClick={() => setPreviewDevice("mobile")}
               className={cn(
-                "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer",
+                "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap",
                 previewDevice === "mobile" ? "bg-accent-blue text-white shadow-sm" : "text-text-secondary hover:text-text-primary"
               )}
               title="Mobile Smartphone View (375px)"
             >
-              <Smartphone className="w-3.5 h-3.5" /> Mobile
+              <Smartphone className="w-3.5 h-3.5 shrink-0" /> <span className="hidden 2xl:inline">Mobile</span>
             </button>
           </div>
 
@@ -2761,7 +2767,7 @@ export default function AdminPage() {
             title="Switch the studio and public site between dark and light themes"
           >
             {themeMode === "dark" ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
-            <span className="hidden sm:inline">{themeMode === "dark" ? "Dark Mode" : "Light Mode"}</span>
+            <span className="hidden 2xl:inline whitespace-nowrap">{themeMode === "dark" ? "Dark Mode" : "Light Mode"}</span>
           </button>
 
           {/* Explicit Save All Changes Button — the single commit point for CMS
@@ -2770,7 +2776,7 @@ export default function AdminPage() {
           <button
             onClick={handleSaveGlobalCMS}
             disabled={isSavingGlobal}
-            className="relative px-3.5 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-neutral-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer shrink-0"
+            className="relative px-3.5 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-neutral-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer shrink-0 whitespace-nowrap"
             title="Save all CMS text & project edits globally to the database (Cmd/Ctrl+S)"
           >
             {isSavingGlobal ? (
@@ -2781,9 +2787,9 @@ export default function AdminPage() {
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4 text-neutral-950" />
-                <span>{cmsDirty ? "Save All Changes •" : "Save All Changes"}</span>
+                <span>Save<span className="hidden lg:inline"> All Changes</span></span>
                 {cmsDirty && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-white/70 animate-pulse" title="You have unsaved changes" />
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-text-primary/70 animate-pulse" title="You have unsaved changes" />
                 )}
               </>
             )}
@@ -2792,9 +2798,10 @@ export default function AdminPage() {
           <Link
             href="/"
             target="_blank"
+            title="View public site"
             className="px-3 sm:px-4 py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 text-xs font-bold shadow-md hover:scale-102 transition-all flex items-center gap-1.5 shrink-0"
           >
-            <Eye className="w-4 h-4" /> <span className="hidden sm:inline">View Public Site</span>
+            <Eye className="w-4 h-4 shrink-0" /> <span className="hidden xl:inline whitespace-nowrap">View Public Site</span>
           </Link>
 
           {/* Admin security: manage who can sign in, without an env change. */}
@@ -2803,7 +2810,7 @@ export default function AdminPage() {
             className="px-3 py-2 rounded-xl bg-bg-secondary border border-glass-border text-text-primary hover:border-accent-blue/40 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
             title="Admin security"
           >
-            <ShieldCheck className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Security</span>
+            <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> <span className="hidden 2xl:inline">Security</span>
           </button>
 
           {/* Logout Button */}
@@ -2812,7 +2819,7 @@ export default function AdminPage() {
             className="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
             title="Log out of Admin Studio"
           >
-            <LogOut className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Logout</span>
+            <LogOut className="w-3.5 h-3.5 shrink-0" /> <span className="hidden 2xl:inline">Logout</span>
           </button>
         </div>
       </header>
@@ -2882,7 +2889,7 @@ export default function AdminPage() {
                       onClick={() => handleSelectPage(pg.id as PageSubTab)}
                       className={cn(
                         "w-full px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-2 transition-colors cursor-pointer text-left",
-                        activePage === pg.id ? "bg-white/10 text-accent-blue font-extrabold" : "text-text-secondary hover:text-text-primary"
+                        activePage === pg.id ? "bg-text-primary/10 text-accent-blue font-extrabold" : "text-text-secondary hover:text-text-primary"
                       )}
                     >
                       <pg.icon className="w-3 h-3" /> {pg.label}
@@ -3065,7 +3072,7 @@ export default function AdminPage() {
 
               {/* Real Empirical Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <GlassCard className="p-4 space-y-2 border-emerald-500/30 bg-emerald-500/5">
+                <GlassCard tilt={false} hover={false} className="p-4 space-y-2 border-emerald-500/30 bg-emerald-500/5">
                   <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 block flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live Active Visitors
                   </span>
@@ -3073,19 +3080,19 @@ export default function AdminPage() {
                   <span className="text-[10px] text-emerald-400/80 font-mono font-bold">● Live Online Now</span>
                 </GlassCard>
 
-                <GlassCard className="p-4 space-y-2">
+                <GlassCard tilt={false} hover={false} className="p-4 space-y-2">
                   <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Total Pageviews</span>
                   <div className="text-2xl font-bold font-mono text-text-primary">{visitorTelemetry.totalPageviews.toLocaleString()}</div>
                   <span className="text-[10px] text-accent-blue font-mono font-bold">Empirical Database Count</span>
                 </GlassCard>
 
-                <GlassCard className="p-4 space-y-2">
+                <GlassCard tilt={false} hover={false} className="p-4 space-y-2">
                   <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Unique Visitors</span>
                   <div className="text-2xl font-bold font-mono text-text-primary">{visitorTelemetry.totalUnique.toLocaleString()}</div>
                   <span className="text-[10px] text-purple-400 font-mono font-bold">Persistent Session Count</span>
                 </GlassCard>
 
-                <GlassCard className="p-4 space-y-2">
+                <GlassCard tilt={false} hover={false} className="p-4 space-y-2">
                   <span className="text-[10px] font-mono font-bold uppercase text-text-muted block">Active Projects</span>
                   <div className="text-2xl font-bold font-mono text-text-primary">{projects.length}</div>
                   <span className="text-[10px] text-cyan-400 font-mono font-bold">Catalog Inventory</span>
@@ -3111,7 +3118,7 @@ export default function AdminPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs font-mono">
                       <thead>
-                        <tr className="border-b border-white/10 text-text-muted text-[10px] uppercase">
+                        <tr className="border-b border-text-primary/10 text-text-muted text-[10px] uppercase">
                           <th className="pb-2">Session ID</th>
                           <th className="pb-2">Device</th>
                           <th className="pb-2">Browser</th>
@@ -3120,9 +3127,9 @@ export default function AdminPage() {
                           <th className="pb-2 text-right">Last Active</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-text-primary/5">
                         {visitorTelemetry.recentSessions.map((sess, idx) => (
-                          <tr key={idx} className="hover:bg-white/5 transition-colors">
+                          <tr key={idx} className="hover:bg-text-primary/5 transition-colors">
                             <td className="py-2.5 font-bold text-accent-blue">{sess.sessionId.substring(0, 16)}</td>
                             <td className="py-2.5 capitalize text-text-primary">
                               {sess.deviceType === "mobile" ? "📱 Mobile" : sess.deviceType === "tablet" ? "タブ Tablet" : "💻 Desktop"}
@@ -3196,7 +3203,7 @@ export default function AdminPage() {
               {activePage === "home" && homeSection === "hero" && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
                   <div className="lg:col-span-6 space-y-6">
-                    <GlassCard className="p-6 space-y-4">
+                    <GlassCard tilt={false} hover={false} className="p-6 space-y-4">
                       <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-accent-blue" /> Hero Headlines & Subtitle
                       </h3>
@@ -3232,7 +3239,7 @@ export default function AdminPage() {
 
                   {/* REAL-TIME LIVE PREVIEW */}
                   <div className="lg:col-span-6">
-                    <GlassCard className="p-6 space-y-4 sticky top-24">
+                    <GlassCard tilt={false} hover={false} className="p-6 space-y-4 sticky top-24">
                       <span className="text-xs font-mono font-bold uppercase tracking-wider text-text-muted block">Live Visual Preview</span>
                       <div className="p-8 rounded-2xl bg-black text-center space-y-4 border border-white/20">
                         {/* The preview box is always black, so the headline must
@@ -3285,8 +3292,8 @@ export default function AdminPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {(cms.hero.galleryImages || []).map((img, idx) => (
-                      <GlassCard key={img.id || idx} className="p-4 space-y-3 flex flex-col justify-between">
-                        <div className="h-36 w-full rounded-xl bg-black/40 overflow-hidden relative border border-white/10">
+                      <GlassCard tilt={false} hover={false} key={img.id || idx} className="p-4 space-y-3 flex flex-col justify-between">
+                        <div className="h-36 w-full rounded-xl bg-black/40 overflow-hidden relative border border-text-primary/10">
                           <img src={img.url} alt={img.title} className="w-full h-full object-cover" />
                         </div>
                         
@@ -3339,7 +3346,7 @@ export default function AdminPage() {
                                     showToast("Linked ribbon image from DAM!");
                                   }
                                 })}
-                                className="px-3 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] font-bold text-text-primary transition-colors cursor-pointer"
+                                className="px-3 rounded-xl bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] font-bold text-text-primary transition-colors cursor-pointer"
                               >
                                 Browse
                               </button>
@@ -3368,7 +3375,7 @@ export default function AdminPage() {
 
               {/* 3. PROMPT BAR EDITOR */}
               {activePage === "home" && homeSection === "prompt-bar" && (
-                <GlassCard className="p-6 space-y-5 text-left">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                       <Terminal className="w-4 h-4 text-accent-blue" /> Hero Prompt Bar Typewriter Suggestions ({(cms.hero.rotatingWords || []).length})
@@ -3445,7 +3452,7 @@ export default function AdminPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     {(cms.architectureNodes || []).map((node) => (
-                      <GlassCard key={node.id} className="p-4 space-y-3">
+                      <GlassCard tilt={false} hover={false} key={node.id} className="p-4 space-y-3">
                         <div className="flex items-center justify-between">
                           <input
                             type="text"
@@ -3487,7 +3494,7 @@ export default function AdminPage() {
               {/* 5. FEATURE PILLARS EDITOR */}
               {activePage === "home" && homeSection === "why-kiwik" && (
                 <div className="space-y-6 text-left">
-                  <GlassCard className="p-6 space-y-4">
+                  <GlassCard tilt={false} hover={false} className="p-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-emerald-400" /> Why Kiwik Pills Manager ({(cms.whyKiwikPills || []).length})
@@ -3554,7 +3561,7 @@ export default function AdminPage() {
 
               {/* 6. DASHBOARD SHOWCASE EDITOR */}
               {activePage === "home" && homeSection === "dashboard-showcase" && (
-                <GlassCard className="p-6 space-y-5 text-left">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left">
                   <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                     <Laptop className="w-4 h-4 text-cyan-400" /> macOS Telemetry Dashboard Showcase Config
                   </h3>
@@ -3589,7 +3596,7 @@ export default function AdminPage() {
 
               {/* 7. FEATURED PRODUCTS EDITOR */}
               {activePage === "home" && homeSection === "featured-products" && (
-                <GlassCard className="p-6 space-y-5 text-left">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left">
                   <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                     <Folder className="w-4 h-4 text-indigo-400" /> Featured Products Section Config
                   </h3>
@@ -3658,7 +3665,7 @@ export default function AdminPage() {
 
               {/* 8. EARTH SECTION EDITOR */}
               {activePage === "home" && homeSection === "earth-section" && (
-                <GlassCard className="p-6 space-y-5 text-left">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left">
                   <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                     <Globe className="w-4 h-4 text-cyan-400" /> Earth Telemetry Section Header & Metrics
                   </h3>
@@ -3708,7 +3715,7 @@ export default function AdminPage() {
                               showToast("Linked Earth background image!");
                             }
                           })}
-                          className="px-4 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs font-bold text-text-primary transition-colors cursor-pointer"
+                          className="px-4 rounded-xl bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-xs font-bold text-text-primary transition-colors cursor-pointer"
                         >
                           Browse
                         </button>
@@ -3756,8 +3763,8 @@ export default function AdminPage() {
 
               {/* 9. DEVICE SHOWCASE EDITOR */}
               {activePage === "home" && homeSection === "device-showcase" && (
-                <GlassCard className="p-6 space-y-6 text-left">
-                  <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-6 text-left">
+                  <div className="flex items-center justify-between border-b border-text-primary/5 pb-4">
                     <div>
                       <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                         <Smartphone className="w-4 h-4 text-emerald-400" /> Device Showcase Cards ({(cms.deviceShowcase?.cards || []).length})
@@ -3820,7 +3827,7 @@ export default function AdminPage() {
                         return (
                           <div key={card.id} className="p-5 rounded-2xl bg-bg-secondary/40 border border-glass-border space-y-4">
                             {/* Card Header summary info */}
-                            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                            <div className="flex items-center justify-between border-b border-text-primary/5 pb-3">
                               <div className="flex items-center gap-3">
                                 <span className="w-6 h-6 rounded-full bg-accent-blue/15 text-accent-blue text-xs font-mono font-bold flex items-center justify-center">
                                   #{cardIdx + 1}
@@ -3828,7 +3835,7 @@ export default function AdminPage() {
                                 <div>
                                   <h4 className="text-xs font-bold text-text-primary flex items-center gap-2">
                                     {card.name || "Unnamed Mockup"}
-                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-text-secondary uppercase">
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-text-primary/5 text-text-secondary uppercase">
                                       {card.template || "custom"}
                                     </span>
                                   </h4>
@@ -3838,7 +3845,7 @@ export default function AdminPage() {
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => setExpandedCardId(isExpanded ? null : card.id)}
-                                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] font-bold text-text-primary transition-colors cursor-pointer"
+                                  className="px-3 py-1.5 rounded-lg bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] font-bold text-text-primary transition-colors cursor-pointer"
                                 >
                                   {isExpanded ? "Collapse Specs Editor" : "Edit Specs Editor"}
                                 </button>
@@ -3858,7 +3865,7 @@ export default function AdminPage() {
                               <div className="space-y-6 pt-2">
                                 
                                 {/* GENERAL SETTINGS */}
-                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                <div className="p-4 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-4">
                                   <span className="text-xs font-bold text-accent-blue uppercase tracking-wider block">1. General Configuration</span>
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <div>
@@ -3972,7 +3979,7 @@ export default function AdminPage() {
                                 </div>
 
                                 {/* HEADER SETTINGS */}
-                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                <div className="p-4 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-4">
                                   <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider block">2. Header Details</span>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
@@ -3990,7 +3997,7 @@ export default function AdminPage() {
                                             title: `Avatar for ${card.name}`,
                                             onSelect: (url) => useSiteCMSStore.getState().updateDeviceCard(card.id, { avatarUrl: url })
                                           })}
-                                          className="px-3 rounded bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] text-text-primary"
+                                          className="px-3 rounded bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] text-text-primary"
                                         >
                                           Browse
                                         </button>
@@ -4033,7 +4040,7 @@ export default function AdminPage() {
                                 </div>
 
                                 {/* MAIN TITLE & TEXTS */}
-                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                <div className="p-4 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-4">
                                   <span className="text-xs font-bold text-purple-400 uppercase tracking-wider block">3. Large Heading & Descriptions</span>
                                   <div className="space-y-3">
                                     <div>
@@ -4076,11 +4083,11 @@ export default function AdminPage() {
                                 </div>
 
                                 {/* PRIMARY & SECONDARY BUTTONS */}
-                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                <div className="p-4 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-4">
                                   <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block">4. Action Triggers & Links</span>
                                   
                                   {/* Primary Button */}
-                                  <div className="space-y-3 p-3 rounded-lg bg-white/5 border border-white/5">
+                                  <div className="space-y-3 p-3 rounded-lg bg-text-primary/5 border border-text-primary/5">
                                     <span className="text-[10px] font-bold text-text-primary uppercase tracking-wider block">Primary Button Config</span>
                                     <div className="grid grid-cols-2 gap-3">
                                       <div>
@@ -4175,7 +4182,7 @@ export default function AdminPage() {
                                   </div>
 
                                   {/* Secondary Button */}
-                                  <div className="space-y-3 p-3 rounded-lg bg-white/5 border border-white/5">
+                                  <div className="space-y-3 p-3 rounded-lg bg-text-primary/5 border border-text-primary/5">
                                     <div className="flex items-center justify-between">
                                       <span className="text-[10px] font-bold text-text-primary uppercase tracking-wider">Secondary Button Config</span>
                                       <div className="flex items-center gap-1.5">
@@ -4230,7 +4237,7 @@ export default function AdminPage() {
                                 </div>
 
                                 {/* BACKGROUND DETAILS */}
-                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
+                                <div className="p-4 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-4">
                                   <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">5. Screen Background Details</span>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
@@ -4248,7 +4255,7 @@ export default function AdminPage() {
                                             title: `BG for ${card.name}`,
                                             onSelect: (url) => useSiteCMSStore.getState().updateDeviceCard(card.id, { backgroundImageUrl: url })
                                           })}
-                                          className="px-3 rounded bg-white/5 border border-glass-border hover:bg-white/10 text-[10px] text-text-primary"
+                                          className="px-3 rounded bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-[10px] text-text-primary"
                                         >
                                           Browse
                                         </button>
@@ -4304,7 +4311,7 @@ export default function AdminPage() {
                                 </div>
 
                                 {/* PROFILE PHOTO METADATA */}
-                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-3">
+                                <div className="p-4 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-3">
                                   <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">6. Profile Image Metadata</span>
                                   <div>
                                     <label className="text-[10px] font-bold text-text-muted block mb-1">Image Alt Text (SEO)</label>
@@ -4319,8 +4326,8 @@ export default function AdminPage() {
                                 </div>
 
                                 {/* DYNAMIC CONTENT BLOCKS MANAGER */}
-                                <div className="p-4 rounded-xl bg-black/10 border border-white/5 space-y-4">
-                                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                <div className="p-4 rounded-xl bg-bg-tertiary/60 border border-text-primary/5 space-y-4">
+                                  <div className="flex items-center justify-between border-b border-text-primary/5 pb-2">
                                     <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">7. Dynamic Content Blocks</span>
                                     <select
                                       onChange={(e) => {
@@ -4358,7 +4365,7 @@ export default function AdminPage() {
                                       <div key={block.id} className="p-4 rounded-xl bg-bg-primary/40 border border-glass-border space-y-3">
                                         <div className="flex items-center justify-between">
                                           <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-mono uppercase bg-white/5 px-2 py-0.5 rounded text-neutral-400">{block.type}</span>
+                                            <span className="text-[10px] font-mono uppercase bg-text-primary/5 px-2 py-0.5 rounded text-neutral-400">{block.type}</span>
                                             <input
                                               type="text"
                                               value={block.title || ""}
@@ -4367,7 +4374,7 @@ export default function AdminPage() {
                                                 useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
                                               }}
                                               placeholder="Block Title"
-                                              className="text-xs font-bold text-text-primary bg-transparent border-b border-transparent focus:border-white/20 focus:outline-none max-w-[150px]"
+                                              className="text-xs font-bold text-text-primary bg-transparent border-b border-transparent focus:border-text-primary/20 focus:outline-none max-w-[150px]"
                                             />
                                           </div>
                                           <div className="flex items-center gap-1.5">
@@ -4381,7 +4388,7 @@ export default function AdminPage() {
                                                   useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
                                                 }
                                               }}
-                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-text-primary cursor-pointer"
+                                              className="p-1 rounded bg-text-primary/5 text-neutral-400 hover:text-text-primary cursor-pointer"
                                             >
                                               <ChevronUp className="w-3.5 h-3.5" />
                                             </button>
@@ -4395,7 +4402,7 @@ export default function AdminPage() {
                                                   useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
                                                 }
                                               }}
-                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-text-primary cursor-pointer"
+                                              className="p-1 rounded bg-text-primary/5 text-neutral-400 hover:text-text-primary cursor-pointer"
                                             >
                                               <ChevronDown className="w-3.5 h-3.5" />
                                             </button>
@@ -4406,7 +4413,7 @@ export default function AdminPage() {
                                                 useSiteCMSStore.getState().updateDeviceCard(card.id, { blocks: updated });
                                                 showToast("Duplicated block!");
                                               }}
-                                              className="p-1 rounded bg-white/5 text-neutral-400 hover:text-text-primary cursor-pointer"
+                                              className="p-1 rounded bg-text-primary/5 text-neutral-400 hover:text-text-primary cursor-pointer"
                                             >
                                               <Copy className="w-3.5 h-3.5" />
                                             </button>
@@ -4424,7 +4431,7 @@ export default function AdminPage() {
                                         </div>
 
                                         {block.type !== "form" && (
-                                          <div className="space-y-2 pl-2 border-l border-white/5">
+                                          <div className="space-y-2 pl-2 border-l border-text-primary/5">
                                             <div className="flex items-center justify-between">
                                               <span className="text-[10px] font-mono text-text-muted">Block Items ({(block.items || []).length})</span>
                                               <button
@@ -4442,7 +4449,7 @@ export default function AdminPage() {
 
                                             <div className="space-y-2">
                                               {(block.items || []).map((item, itemIdx) => (
-                                                <div key={itemIdx} className="p-2.5 rounded bg-bg-secondary/40 border border-white/5 space-y-1.5">
+                                                <div key={itemIdx} className="p-2.5 rounded bg-bg-secondary/40 border border-text-primary/5 space-y-1.5">
                                                   <div className="grid grid-cols-2 gap-2">
                                                     <div>
                                                       <input
@@ -4573,7 +4580,7 @@ export default function AdminPage() {
 
               {/* 10. CAPABILITIES EDITOR */}
               {activePage === "home" && homeSection === "capabilities" && (
-                <GlassCard className="p-6 space-y-5 text-left">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                       <Cpu className="w-4 h-4 text-purple-400" /> Capabilities Grid Manager ({(cms.capabilities?.items || []).length})
@@ -4636,7 +4643,7 @@ export default function AdminPage() {
 
               {/* 11. HOW WE WORK EDITOR */}
               {activePage === "home" && homeSection === "how-we-work" && (
-                <GlassCard className="p-6 space-y-5 text-left">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                       <Workflow className="w-4 h-4 text-accent-blue" /> Workflow Timeline Steps Builder ({(cms.howWeWork?.steps || []).length})
@@ -4704,7 +4711,7 @@ export default function AdminPage() {
 
               {/* 12. TRUST SECTION EDITOR */}
               {activePage === "home" && homeSection === "trust" && (
-                <GlassCard className="p-6 space-y-5 text-left">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-emerald-400" /> Trust Section Badges & Metrics ({(cms.trust?.items || []).length})
@@ -4767,7 +4774,7 @@ export default function AdminPage() {
 
               {/* 13. NEWSLETTER EDITOR */}
               {activePage === "home" && homeSection === "newsletter" && (
-                <GlassCard className="p-6 space-y-5 text-left max-w-xl">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left max-w-xl">
                   <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                     <Mail className="w-4 h-4 text-indigo-400" /> Newsletter Subscription Config
                   </h3>
@@ -4802,13 +4809,13 @@ export default function AdminPage() {
 
               {/* 14. FOOTER EDITOR */}
               {(homeSection === "footer" || activePage === "footer-page") && (
-                <GlassCard className="p-6 space-y-6 text-left">
+                <GlassCard tilt={false} hover={false} className="p-6 space-y-6 text-left">
                   <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                     <Layers className="w-4 h-4 text-accent-blue" /> Footer Layout & Details Editor
                   </h3>
                   
                   {/* Brand logo & Copyright */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-white/5 pb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-text-primary/5 pb-4">
                     <div>
                       <label className="text-xs font-bold text-text-secondary block mb-1">Footer Brand Logo Text</label>
                       <input
@@ -4923,7 +4930,7 @@ export default function AdminPage() {
               {activePage === "projects-page" && (
                 <div className="space-y-6">
                   {/* HEADER & HERO COPY EDITOR */}
-                  <GlassCard className="p-6 space-y-5 text-left border border-white/10">
+                  <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left border border-text-primary/10">
                     <div className="flex items-center justify-between">
                       <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                         <Folder className="w-5 h-5 text-accent-blue" /> Catalog Page Header & Hero Customization
@@ -4940,7 +4947,7 @@ export default function AdminPage() {
                           type="text"
                           value={cms.projectsPage?.badgeText || "FEATURED PRODUCTS"}
                           onChange={(e) => updateProjectsPage({ badgeText: e.target.value })}
-                          className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold border border-white/5 focus:border-accent-blue outline-none"
+                          className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold border border-text-primary/5 focus:border-accent-blue outline-none"
                           placeholder="e.g. FEATURED PRODUCTS"
                         />
                       </div>
@@ -4951,7 +4958,7 @@ export default function AdminPage() {
                           type="text"
                           value={cms.projectsPage?.title || "Next-Generation Enterprise Stack"}
                           onChange={(e) => updateProjectsPage({ title: e.target.value })}
-                          className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold border border-white/5 focus:border-accent-blue outline-none"
+                          className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold border border-text-primary/5 focus:border-accent-blue outline-none"
                           placeholder="e.g. Next-Generation Enterprise Stack"
                         />
                       </div>
@@ -4963,15 +4970,15 @@ export default function AdminPage() {
                         rows={3}
                         value={cms.projectsPage?.description || "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik."}
                         onChange={(e) => updateProjectsPage({ description: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-bg-secondary text-xs font-medium border border-white/5 focus:border-accent-blue outline-none"
+                        className="w-full p-3 rounded-xl bg-bg-secondary text-xs font-medium border border-text-primary/5 focus:border-accent-blue outline-none"
                         placeholder="Describe your project catalog..."
                       />
                     </div>
                   </GlassCard>
 
                   {/* 3D SHOWCASE SLIDER MEDIA & IMAGES STUDIO */}
-                  <GlassCard className="p-6 space-y-6 text-left border border-white/10">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                  <GlassCard tilt={false} hover={false} className="p-6 space-y-6 text-left border border-text-primary/10">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-text-primary/10">
                       <div>
                         <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                           <ImageIcon className="w-5 h-5 text-accent-cyan" /> Catalog 3D Showcase Slider & Media Studio
@@ -5004,10 +5011,10 @@ export default function AdminPage() {
                       {(cms.projectsPage?.sliderCards || []).map((card, idx) => (
                         <div
                           key={card.id}
-                          className="p-4 rounded-2xl bg-bg-secondary border border-white/10 space-y-3 relative group"
+                          className="p-4 rounded-2xl bg-bg-secondary border border-text-primary/10 space-y-3 relative group"
                         >
                           {/* Top Card Bar with Index & Delete */}
-                          <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                          <div className="flex items-center justify-between pb-2 border-b border-text-primary/5">
                             <span className="text-[10px] font-mono font-bold text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded-md">
                               Card #{String(idx + 1).padStart(2, "0")}
                             </span>
@@ -5024,7 +5031,7 @@ export default function AdminPage() {
                           </div>
 
                           {/* Image Thumbnail & Media Picker Button */}
-                          <div className="relative w-full h-36 rounded-xl overflow-hidden bg-black/40 border border-white/10 group/img">
+                          <div className="relative w-full h-36 rounded-xl overflow-hidden bg-black/40 border border-text-primary/10 group/img">
                             <img
                               src={card.image}
                               alt={card.name}
@@ -5052,7 +5059,7 @@ export default function AdminPage() {
                               type="text"
                               value={card.image}
                               onChange={(e) => updateSliderCard(card.id, { image: e.target.value })}
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-[11px] font-mono text-text-primary border border-white/5 focus:border-accent-cyan outline-none"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-[11px] font-mono text-text-primary border border-text-primary/5 focus:border-accent-cyan outline-none"
                               placeholder="https://..."
                             />
                           </div>
@@ -5064,7 +5071,7 @@ export default function AdminPage() {
                               type="text"
                               value={card.name}
                               onChange={(e) => updateSliderCard(card.id, { name: e.target.value })}
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-xs font-bold text-text-primary border border-white/5 focus:border-accent-cyan outline-none"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-xs font-bold text-text-primary border border-text-primary/5 focus:border-accent-cyan outline-none"
                               placeholder="e.g. Meta, Kiwik AI, Vidu"
                             />
                           </div>
@@ -5076,7 +5083,7 @@ export default function AdminPage() {
                               type="text"
                               value={card.tag}
                               onChange={(e) => updateSliderCard(card.id, { tag: e.target.value })}
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-[11px] font-medium text-text-secondary border border-white/5 focus:border-accent-cyan outline-none"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-[11px] font-medium text-text-secondary border border-text-primary/5 focus:border-accent-cyan outline-none"
                               placeholder="e.g. High-Fidelity Motion"
                             />
                           </div>
@@ -5088,7 +5095,7 @@ export default function AdminPage() {
                               type="text"
                               value={card.domain || ""}
                               onChange={(e) => updateSliderCard(card.id, { domain: e.target.value })}
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-[11px] font-mono text-text-secondary border border-white/5 focus:border-accent-cyan outline-none"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-bg-primary text-[11px] font-mono text-text-secondary border border-text-primary/5 focus:border-accent-cyan outline-none"
                               placeholder="e.g. kiwik.ai"
                             />
                           </div>
@@ -5098,8 +5105,8 @@ export default function AdminPage() {
                   </GlassCard>
 
                   {/* PROJECTS INVENTORY, PICTURES & REORDERING STUDIO */}
-                  <GlassCard className="p-6 space-y-6 text-left border border-white/10">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                  <GlassCard tilt={false} hover={false} className="p-6 space-y-6 text-left border border-text-primary/10">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-text-primary/10">
                       <div>
                         <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                           <Layers className="w-5 h-5 text-accent-blue" /> Central Projects Inventory, Pictures & Ordering Studio
@@ -5119,7 +5126,7 @@ export default function AdminPage() {
                           placeholder="Search projects by name, tagline, or slug..."
                           value={projectSearchQuery}
                           onChange={(e) => setProjectSearchQuery(e.target.value)}
-                          className="w-full pl-9 pr-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-primary border border-white/5 focus:border-accent-blue outline-none"
+                          className="w-full pl-9 pr-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-primary border border-text-primary/5 focus:border-accent-blue outline-none"
                         />
                       </div>
                       <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -5127,7 +5134,7 @@ export default function AdminPage() {
                         <select
                           value={projectCategoryFilter}
                           onChange={(e) => setProjectCategoryFilter(e.target.value as any)}
-                          className="px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold text-text-primary border border-white/5 outline-none cursor-pointer w-full sm:w-auto"
+                          className="px-3 py-2 rounded-xl bg-bg-secondary text-xs font-bold text-text-primary border border-text-primary/5 outline-none cursor-pointer w-full sm:w-auto"
                         >
                           <option value="all">All Categories</option>
                           <option value="web">Web</option>
@@ -5156,13 +5163,13 @@ export default function AdminPage() {
                         .map((proj, idx) => (
                           <div
                             key={proj.id}
-                            className="p-4 rounded-2xl bg-bg-secondary/60 border border-white/5 hover:border-accent-blue/30 transition-all space-y-4"
+                            className="p-4 rounded-2xl bg-bg-secondary/60 border border-text-primary/5 hover:border-accent-blue/30 transition-all space-y-4"
                           >
                             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                               {/* LEFT: COVER PICTURE & BASIC INFO */}
                               <div className="flex items-start gap-4 flex-1">
                                 {/* COVER PICTURE PREVIEW & MEDIA PICKER TRIGGER */}
-                                <div className="relative group shrink-0 w-24 h-16 rounded-xl overflow-hidden bg-bg-tertiary border border-white/10">
+                                <div className="relative group shrink-0 w-24 h-16 rounded-xl overflow-hidden bg-bg-tertiary border border-text-primary/10">
                                   <img
                                     src={proj.coverImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80"}
                                     alt={proj.name}
@@ -5192,10 +5199,10 @@ export default function AdminPage() {
                                       type="text"
                                       value={proj.name}
                                       onChange={(e) => updateProject(proj.id, { name: e.target.value })}
-                                      className="text-sm font-bold text-text-primary bg-transparent border-b border-transparent hover:border-white/20 focus:border-accent-blue outline-none px-1 py-0.5 rounded w-full max-w-sm"
+                                      className="text-sm font-bold text-text-primary bg-transparent border-b border-transparent hover:border-text-primary/20 focus:border-accent-blue outline-none px-1 py-0.5 rounded w-full max-w-sm"
                                       placeholder="Project Name"
                                     />
-                                    <span className="text-[10px] font-mono text-text-secondary px-2 py-0.5 rounded-full bg-white/5 border border-white/10 shrink-0">
+                                    <span className="text-[10px] font-mono text-text-secondary px-2 py-0.5 rounded-full bg-text-primary/5 border border-text-primary/10 shrink-0">
                                       /{proj.slug}
                                     </span>
                                   </div>
@@ -5204,7 +5211,7 @@ export default function AdminPage() {
                                     type="text"
                                     value={proj.tagline}
                                     onChange={(e) => updateProject(proj.id, { tagline: e.target.value })}
-                                    className="text-xs text-text-secondary bg-transparent border-b border-transparent hover:border-white/20 focus:border-accent-blue outline-none px-1 py-0.5 rounded w-full"
+                                    className="text-xs text-text-secondary bg-transparent border-b border-transparent hover:border-text-primary/20 focus:border-accent-blue outline-none px-1 py-0.5 rounded w-full"
                                     placeholder="Project Tagline"
                                   />
                                 </div>
@@ -5218,7 +5225,7 @@ export default function AdminPage() {
                                   <select
                                     value={proj.category}
                                     onChange={(e) => updateProject(proj.id, { category: e.target.value as any })}
-                                    className="px-2.5 py-1.5 rounded-lg bg-bg-tertiary text-xs font-bold text-text-primary border border-white/10 outline-none cursor-pointer"
+                                    className="px-2.5 py-1.5 rounded-lg bg-bg-tertiary text-xs font-bold text-text-primary border border-text-primary/10 outline-none cursor-pointer"
                                   >
                                     <option value="web">Web</option>
                                     <option value="ai">AI</option>
@@ -5237,7 +5244,7 @@ export default function AdminPage() {
                                   <select
                                     value={proj.status}
                                     onChange={(e) => updateProject(proj.id, { status: e.target.value as any })}
-                                    className="px-2.5 py-1.5 rounded-lg bg-bg-tertiary text-xs font-bold text-text-primary border border-white/10 outline-none cursor-pointer"
+                                    className="px-2.5 py-1.5 rounded-lg bg-bg-tertiary text-xs font-bold text-text-primary border border-text-primary/10 outline-none cursor-pointer"
                                   >
                                     <option value="in-progress">In Progress</option>
                                     <option value="completed">Completed</option>
@@ -5253,7 +5260,7 @@ export default function AdminPage() {
                                       onClick={() => movePriority(proj.id, "up")}
                                       disabled={idx === 0}
                                       title="Move Up in Catalog"
-                                      className="p-1.5 rounded-lg bg-bg-tertiary hover:bg-accent-blue/20 text-text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border border-white/10"
+                                      className="p-1.5 rounded-lg bg-bg-tertiary hover:bg-accent-blue/20 text-text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border border-text-primary/10"
                                     >
                                       <ArrowUp className="w-3.5 h-3.5" />
                                     </button>
@@ -5261,7 +5268,7 @@ export default function AdminPage() {
                                       onClick={() => movePriority(proj.id, "down")}
                                       disabled={idx === projects.length - 1}
                                       title="Move Down in Catalog"
-                                      className="p-1.5 rounded-lg bg-bg-tertiary hover:bg-accent-blue/20 text-text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border border-white/10"
+                                      className="p-1.5 rounded-lg bg-bg-tertiary hover:bg-accent-blue/20 text-text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border border-text-primary/10"
                                     >
                                       <ArrowDown className="w-3.5 h-3.5" />
                                     </button>
@@ -5270,7 +5277,7 @@ export default function AdminPage() {
                                       min={0}
                                       value={proj.priority || idx + 1}
                                       onChange={(e) => updateProject(proj.id, { priority: clampNumber(e.target.value, { min: 0 }) })}
-                                      className="w-12 px-2 py-1 rounded-lg bg-bg-tertiary text-xs font-mono font-bold text-center border border-white/10 outline-none"
+                                      className="w-12 px-2 py-1 rounded-lg bg-bg-tertiary text-xs font-mono font-bold text-center border border-text-primary/10 outline-none"
                                       title="Priority Index (Lower = Higher Rank)"
                                     />
                                   </div>
@@ -5278,14 +5285,14 @@ export default function AdminPage() {
                               </div>
 
                               {/* RIGHT: TOGGLES & ACTIONS */}
-                              <div className="flex items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/5 shrink-0">
+                              <div className="flex items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-text-primary/5 shrink-0">
                                 {/* FEATURED TOGGLE */}
                                 <button
                                   onClick={() => updateProject(proj.id, { featured: !proj.featured })}
                                   className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
                                     proj.featured
                                       ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                                      : "bg-white/5 text-text-secondary border-white/10 hover:text-text-primary"
+                                      : "bg-text-primary/5 text-text-secondary border-text-primary/10 hover:text-text-primary"
                                   }`}
                                   title="Toggle Featured Badge"
                                 >
@@ -5339,8 +5346,8 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {cms.media.map((med) => (
-                  <GlassCard key={med.id} className="p-3 space-y-2.5 flex flex-col justify-between group relative">
-                    <div className="h-28 w-full rounded-xl bg-black/40 overflow-hidden flex items-center justify-center border border-white/10 relative">
+                  <GlassCard tilt={false} hover={false} key={med.id} className="p-3 space-y-2.5 flex flex-col justify-between group relative">
+                    <div className="h-28 w-full rounded-xl bg-black/40 overflow-hidden flex items-center justify-center border border-text-primary/10 relative">
                       <MediaThumb src={med.url} alt={med.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                     </div>
                     <div className="text-left space-y-1">
@@ -5353,7 +5360,7 @@ export default function AdminPage() {
                             const updated = cms.media.map((m) => (m.id === med.id ? { ...m, name: e.target.value } : m));
                             useSiteCMSStore.setState({ cms: { ...cms, media: updated } });
                           }}
-                          className="w-full text-xs font-bold text-text-primary bg-transparent focus:outline-none border-b border-transparent focus:border-white/10"
+                          className="w-full text-xs font-bold text-text-primary bg-transparent focus:outline-none border-b border-transparent focus:border-text-primary/10"
                         />
                       </div>
                       <div>
@@ -5365,7 +5372,7 @@ export default function AdminPage() {
                             const updated = cms.media.map((m) => (m.id === med.id ? { ...m, url: e.target.value } : m));
                             useSiteCMSStore.setState({ cms: { ...cms, media: updated } });
                           }}
-                          className="w-full text-[9px] font-mono text-text-muted bg-transparent focus:outline-none border-b border-transparent focus:border-white/10"
+                          className="w-full text-[9px] font-mono text-text-muted bg-transparent focus:outline-none border-b border-transparent focus:border-text-primary/10"
                         />
                       </div>
                     </div>
@@ -5459,7 +5466,7 @@ export default function AdminPage() {
                           >
                             {tab.icon}
                             <span className="text-[8px] font-bold text-center truncate w-full">
-                              {tab.label.split(" ")[0]}
+                              {tab.short}
                             </span>
                           </button>
                         );
@@ -5546,7 +5553,7 @@ export default function AdminPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredProjects.map((proj) => (
-                    <GlassCard key={proj.id} className="p-5 space-y-4 flex flex-col justify-between">
+                    <GlassCard tilt={false} hover={false} key={proj.id} className="p-5 space-y-4 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-sm font-bold text-text-primary">{proj.name}</h4>
@@ -5621,9 +5628,9 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {partnerProductsList.map((prod) => (
-                  <GlassCard key={prod.id} className="p-5 space-y-4">
+                  <GlassCard tilt={false} hover={false} key={prod.id} className="p-5 space-y-4">
                     <div className="flex items-start gap-4">
-                      <div className="h-20 w-28 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0">
+                      <div className="h-20 w-28 rounded-xl overflow-hidden bg-black/40 border border-text-primary/10 shrink-0">
                         {prod.coverImage && (
                           <img src={prod.coverImage} alt={prod.name} className="w-full h-full object-cover" />
                         )}
@@ -5633,7 +5640,7 @@ export default function AdminPage() {
                           value={prod.name}
                           onChange={(e) => updateProduct(prod.id, { name: e.target.value })}
                           placeholder="Product name"
-                          className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-sm font-bold border border-white/5 focus:border-accent-blue outline-none"
+                          className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-sm font-bold border border-text-primary/5 focus:border-accent-blue outline-none"
                         />
                         <div className="flex gap-2">
                           <input
@@ -5644,13 +5651,13 @@ export default function AdminPage() {
                               })
                             }
                             placeholder="slug"
-                            className="flex-1 px-3 py-1.5 rounded-lg bg-bg-secondary text-[11px] font-mono text-accent-blue border border-white/5 focus:border-accent-blue outline-none"
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-bg-secondary text-[11px] font-mono text-accent-blue border border-text-primary/5 focus:border-accent-blue outline-none"
                           />
                           <input
                             value={prod.category || ""}
                             onChange={(e) => updateProduct(prod.id, { category: e.target.value })}
                             placeholder="Category"
-                            className="w-28 px-3 py-1.5 rounded-lg bg-bg-secondary text-[11px] font-bold border border-white/5 focus:border-accent-blue outline-none"
+                            className="w-28 px-3 py-1.5 rounded-lg bg-bg-secondary text-[11px] font-bold border border-text-primary/5 focus:border-accent-blue outline-none"
                           />
                         </div>
                       </div>
@@ -5661,14 +5668,14 @@ export default function AdminPage() {
                       <input
                         value={prod.tagline}
                         onChange={(e) => updateProduct(prod.id, { tagline: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-xs border border-white/5 focus:border-accent-blue outline-none"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-xs border border-text-primary/5 focus:border-accent-blue outline-none"
                       />
 
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Card summary</label>
                       <input
                         value={prod.summary || ""}
                         onChange={(e) => updateProduct(prod.id, { summary: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-xs border border-white/5 focus:border-accent-blue outline-none"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-xs border border-text-primary/5 focus:border-accent-blue outline-none"
                       />
 
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Cover image URL</label>
@@ -5676,11 +5683,11 @@ export default function AdminPage() {
                         <input
                           value={prod.coverImage}
                           onChange={(e) => updateProduct(prod.id, { coverImage: e.target.value })}
-                          className="flex-1 px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                          className="flex-1 px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none"
                         />
                         <button
                           onClick={() => openMediaPicker((url) => updateProduct(prod.id, { coverImage: url }), "Select cover image")}
-                          className="px-3 py-2 rounded-lg bg-bg-tertiary border border-white/10 text-[11px] font-bold hover:bg-bg-secondary cursor-pointer"
+                          className="px-3 py-2 rounded-lg bg-bg-tertiary border border-text-primary/10 text-[11px] font-bold hover:bg-bg-secondary cursor-pointer"
                         >
                           Media
                         </button>
@@ -5694,7 +5701,7 @@ export default function AdminPage() {
                             tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean),
                           })
                         }
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none"
                       />
 
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Detail body (Markdown)</label>
@@ -5702,7 +5709,7 @@ export default function AdminPage() {
                         rows={4}
                         value={prod.body || ""}
                         onChange={(e) => updateProduct(prod.id, { body: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none resize-y"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none resize-y"
                       />
 
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Live URL (optional)</label>
@@ -5710,7 +5717,7 @@ export default function AdminPage() {
                         value={prod.liveUrl || ""}
                         onChange={(e) => updateProduct(prod.id, { liveUrl: e.target.value })}
                         placeholder="https://..."
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none"
                       />
 
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Repository URL (optional)</label>
@@ -5718,7 +5725,7 @@ export default function AdminPage() {
                         value={prod.repoUrl || ""}
                         onChange={(e) => updateProduct(prod.id, { repoUrl: e.target.value })}
                         placeholder="https://github.com/..."
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none"
                       />
 
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">Logo URL (optional)</label>
@@ -5726,7 +5733,7 @@ export default function AdminPage() {
                         value={prod.logoUrl || ""}
                         onChange={(e) => updateProduct(prod.id, { logoUrl: e.target.value })}
                         placeholder="https://.../logo.svg"
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none"
                       />
 
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
@@ -5748,7 +5755,7 @@ export default function AdminPage() {
                             "Add gallery image"
                           )
                         }
-                        className="px-3 py-2 rounded-lg bg-bg-tertiary border border-white/10 text-[11px] font-bold hover:bg-bg-secondary cursor-pointer w-fit"
+                        className="px-3 py-2 rounded-lg bg-bg-tertiary border border-text-primary/10 text-[11px] font-bold hover:bg-bg-secondary cursor-pointer w-fit"
                       >
                         + Add image from Media
                       </button>
@@ -5789,7 +5796,7 @@ export default function AdminPage() {
                         value={prod.brochureUrl || ""}
                         onChange={(e) => updateProduct(prod.id, { brochureUrl: e.target.value })}
                         placeholder="https://.../brochure.pdf"
-                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-white/5 focus:border-accent-blue outline-none"
+                        className="w-full px-3 py-2 rounded-lg bg-bg-secondary text-[11px] font-mono border border-text-primary/5 focus:border-accent-blue outline-none"
                       />
 
                       <label className="text-[10px] font-mono font-bold uppercase text-text-muted">
@@ -5857,7 +5864,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {docsCategories.map((cat) => (
-                  <GlassCard key={cat.id} className="p-5 space-y-4">
+                  <GlassCard tilt={false} hover={false} key={cat.id} className="p-5 space-y-4">
                     <div className="flex items-center justify-between border-b border-divider pb-3">
                       <h4 className="text-sm font-bold text-text-primary">{cat.name}</h4>
                       <span className="text-[10px] font-mono font-bold text-accent-blue">{cat.articles.length} Articles</span>
@@ -5891,7 +5898,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {(cms.aiKnowledge?.articles || []).map((art) => (
-                  <GlassCard key={art.id} className="p-5 space-y-3">
+                  <GlassCard tilt={false} hover={false} key={art.id} className="p-5 space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-bold text-text-primary">{art.title}</h4>
                       <span className="text-[10px] font-mono text-accent-blue uppercase font-bold">{art.category}</span>
@@ -5913,7 +5920,7 @@ export default function AdminPage() {
 
           {/* ANALYTICS TAB */}
           {mainTab === "inbox" && (
-            <GlassCard className="p-6">
+            <GlassCard tilt={false} hover={false} className="p-6">
               <ContactInbox />
             </GlassCard>
           )}
@@ -5928,7 +5935,7 @@ export default function AdminPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <GlassCard className="p-5 space-y-4">
+                <GlassCard tilt={false} hover={false} className="p-5 space-y-4">
                   <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-text-muted">Top Search Queries</h4>
                   <div className="space-y-2">
                     {(cms.analytics?.searches || []).map((s, i) => (
@@ -5940,7 +5947,7 @@ export default function AdminPage() {
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-5 space-y-4">
+                <GlassCard tilt={false} hover={false} className="p-5 space-y-4">
                   <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-text-muted">Project Clicks Leaderboard</h4>
                   <div className="space-y-2">
                     {Object.entries(cms.analytics?.projectClicks || {}).map(([slug, count], i) => (
@@ -5952,7 +5959,7 @@ export default function AdminPage() {
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-5 space-y-4">
+                <GlassCard tilt={false} hover={false} className="p-5 space-y-4">
                   <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-text-muted">Visitor Geographic Breakdown</h4>
                   <div className="space-y-2">
                     {(cms.analytics?.countryBreakdown || []).map((c, i) => (
@@ -5986,7 +5993,7 @@ export default function AdminPage() {
                   { name: "Sarah Lin", role: "Admin", email: "praneeth@kiwik.one" },
                   { name: "Alex Mercer", role: "Developer", email: "praneeth@kiwik.one" }
                 ].map((usr, i) => (
-                  <GlassCard key={i} className="p-5 space-y-3">
+                  <GlassCard tilt={false} hover={false} key={i} className="p-5 space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-bold text-text-primary">{usr.name}</h4>
                       <span className="px-2 py-0.5 rounded-full bg-accent-blue/10 text-accent-blue font-mono font-bold text-[10px]">{usr.role}</span>
@@ -6000,7 +6007,7 @@ export default function AdminPage() {
 
           {/* APPEARANCE TAB */}
           {mainTab === "appearance" && (
-            <GlassCard className="p-6 space-y-5 text-left max-w-2xl">
+            <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left max-w-2xl">
               <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                 <Palette className="w-4 h-4 text-pink-400" /> Theme System & Design Engine
               </h3>
@@ -6034,7 +6041,7 @@ export default function AdminPage() {
 
           {/* SETTINGS TAB */}
           {mainTab === "settings" && (
-            <GlassCard className="p-6 space-y-5 text-left max-w-2xl">
+            <GlassCard tilt={false} hover={false} className="p-6 space-y-5 text-left max-w-2xl">
               <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
                 <Settings className="w-4 h-4 text-accent-blue" /> Website Branding & General Settings
               </h3>
@@ -6099,10 +6106,10 @@ export default function AdminPage() {
               initial={{ scale: 0.95, y: 15 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
-              className="w-full max-w-4xl bg-bg-secondary border border-white/10 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] shadow-2xl text-left"
+              className="w-full max-w-4xl bg-bg-secondary border border-text-primary/10 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] shadow-2xl text-left"
             >
               {/* Modal Header */}
-              <div className="p-5 border-b border-white/10 flex items-center justify-between">
+              <div className="p-5 border-b border-text-primary/10 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-accent-blue animate-pulse-slow" /> Media Library Assets DAM Picker
@@ -6113,14 +6120,14 @@ export default function AdminPage() {
                 </div>
                 <button 
                   onClick={() => setMediaPickerTarget(null)}
-                  className="p-1.5 rounded-full hover:bg-white/10 text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                  className="p-1.5 rounded-full hover:bg-text-primary/10 text-text-muted hover:text-text-primary transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Modal Subheader: Search, Folders & Quick Add */}
-              <div className="p-4 bg-black/20 border-b border-white/5 space-y-3">
+              <div className="p-4 bg-bg-tertiary/60 border-b border-text-primary/5 space-y-3">
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 justify-between">
                   {/* Search Bar */}
                   <div className="relative flex-1">
@@ -6164,7 +6171,7 @@ export default function AdminPage() {
 
                 {/* Folder filter chips */}
                 <div className="flex flex-wrap gap-1.5">
-                  {["all", "Avatars", "Logos", "Banners", "General"].map((folder) => (
+                  {Array.from(new Set(["all", "Avatars", "Logos", "Banners", "General", ...(cms.media || []).map((m) => m.folder).filter(Boolean)])).map((folder) => (
                     <button
                       key={folder}
                       onClick={() => setPickerFolder(folder)}
@@ -6172,7 +6179,7 @@ export default function AdminPage() {
                         "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer",
                         pickerFolder === folder
                           ? "bg-accent-blue text-white"
-                          : "bg-white/5 hover:bg-white/10 text-text-secondary hover:text-text-primary"
+                          : "bg-text-primary/5 hover:bg-text-primary/10 text-text-secondary hover:text-text-primary"
                       )}
                     >
                       {folder}
@@ -6209,9 +6216,9 @@ export default function AdminPage() {
                             setMediaPickerTarget(null);
                             showToast(`Linked image to [${med.name}]`);
                           }}
-                          className="p-2 bg-white/5 border border-white/10 hover:border-accent-blue/60 rounded-2xl cursor-pointer group flex flex-col justify-between space-y-2 transition-all hover:bg-white/[0.08]"
+                          className="p-2 bg-text-primary/5 border border-text-primary/10 hover:border-accent-blue/60 rounded-2xl cursor-pointer group flex flex-col justify-between space-y-2 transition-all hover:bg-text-primary/[0.08]"
                         >
-                          <div className="h-20 w-full rounded-xl bg-black/40 overflow-hidden flex items-center justify-center border border-white/5 relative">
+                          <div className="h-20 w-full rounded-xl bg-black/40 overflow-hidden flex items-center justify-center border border-text-primary/5 relative">
                             <MediaThumb
                               src={med.url}
                               alt={med.name}
@@ -6237,13 +6244,13 @@ export default function AdminPage() {
               </div>
 
               {/* Footer */}
-              <div className="p-4 bg-black/25 border-t border-white/10 flex items-center justify-between">
+              <div className="p-4 bg-bg-tertiary/60 border-t border-text-primary/10 flex items-center justify-between">
                 <span className="text-[10px] text-text-muted font-mono">
                   Double-click or click to insert.
                 </span>
                 <button
                   onClick={() => setMediaPickerTarget(null)}
-                  className="px-4 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-text-primary text-xs font-semibold cursor-pointer"
+                  className="px-4 py-1.5 rounded-lg bg-text-primary/5 hover:bg-text-primary/10 text-text-primary text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>

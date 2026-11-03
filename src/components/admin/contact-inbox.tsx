@@ -21,9 +21,9 @@ const STATUSES: Submission["status"][] = ["new", "read", "replied", "archived"];
 
 const STATUS_STYLE: Record<Submission["status"], string> = {
   new: "bg-accent-blue/15 text-accent-blue border-accent-blue/30",
-  read: "bg-white/5 text-text-secondary border-glass-border",
+  read: "bg-text-primary/5 text-text-secondary border-glass-border",
   replied: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-  archived: "bg-white/5 text-text-muted border-glass-border",
+  archived: "bg-text-primary/5 text-text-muted border-glass-border",
 };
 
 /**

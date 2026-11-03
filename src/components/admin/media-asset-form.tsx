@@ -6,7 +6,7 @@ import type { MediaItem } from "@/types/site-cms-types";
 import { checkImageUrl, uploadMediaFile } from "@/lib/media-upload";
 import { cn } from "@/lib/utils";
 
-const FOLDERS = ["General", "Avatars", "Logos", "Banners"];
+const FOLDERS = ["General", "Avatars", "Logos", "Banners", "Branding"];
 
 /**
  * Add an asset to the media library, either by uploading a file or by pasting
@@ -93,7 +93,7 @@ export function MediaAssetForm({
   const inputCls = "w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-text-primary";
 
   return (
-    <div className={cn("rounded-xl bg-white/5 border border-white/10 text-left", compact ? "p-3.5 space-y-3" : "p-5 space-y-4")}>
+    <div className={cn("rounded-xl bg-text-primary/5 border border-text-primary/10 text-left", compact ? "p-3.5 space-y-3" : "p-5 space-y-4")}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-[10px] font-bold text-text-secondary block mb-1">Asset Name</label>
@@ -173,7 +173,7 @@ export function MediaAssetForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-1.5 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs font-bold text-text-primary cursor-pointer"
+            className="px-4 py-1.5 rounded-xl bg-text-primary/5 border border-glass-border hover:bg-text-primary/10 text-xs font-bold text-text-primary cursor-pointer"
           >
             Cancel
           </button>
@@ -188,11 +188,11 @@ export function MediaThumb({ src, alt, className }: { src: string; alt: string; 
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   if (!src || failedSrc === src) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-text-muted bg-black/20" title={src || "No link"}>
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-text-muted bg-bg-tertiary/60" title={src || "No link"}>
         <ImageOff className="w-5 h-5 opacity-70" />
         <span className="text-[8px] font-bold uppercase tracking-wider">Link broken</span>
       </div>
     );
   }
-  return <img src={src} alt={alt} loading="lazy" onError={() => setFailedSrc(src)} className={className} />;
+  return <img src={src} alt={alt} onError={() => setFailedSrc(src)} className={className} />;
 }
