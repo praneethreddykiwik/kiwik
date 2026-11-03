@@ -65,7 +65,14 @@ export function cachedJson(data: unknown, request?: Request, extraHeaders: Recor
   // TTL to lapse.
   let cacheHeaders: Record<string, string> = { ...PUBLIC_READ_CACHE };
   try {
-    if (request && new URL(request.url).searchParams.has("v")) {
+    const params = request ? new URL(request.url).searchParams : null;
+    if (params?.has("fresh")) {
+      // The admin studio reads with ?fresh=<now>: it must see exactly what is
+      // in the database. The bare URL is CDN-cached for up to ~6 minutes, so a
+      // studio reload after a save used to pull the pre-save content back in —
+      // deleted media and edits "came back". Never store these responses.
+      cacheHeaders = { ...NO_STORE };
+    } else if (params?.has("v")) {
       cacheHeaders = { "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable" };
     }
   } catch {

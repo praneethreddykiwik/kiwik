@@ -83,6 +83,7 @@ import { useProjectsStore, useProjects, SYNC_ERROR_EVENT } from "@/stores/projec
 import { clampNumber, validateEmail, validateUrl, isBlank } from "@/lib/validation";
 import { AdminSecurityPanel } from "@/components/admin/admin-security-panel";
 import { ContactInbox } from "@/components/admin/contact-inbox";
+import { MediaAssetForm, MediaThumb } from "@/components/admin/media-asset-form";
 import { useProductsStore, useProducts } from "@/stores/products-store";
 import type { PartnerProduct } from "@/types/partner";
 import { useSiteCMSStore, setCmsPersistEnabled, flushCmsToStorage } from "@/stores/site-cms-store";
@@ -298,7 +299,9 @@ export default function AdminPage() {
     (async () => {
       const load = async (url: string, apply: (data: any) => void) => {
         try {
-          const res = await fetch(url, { cache: "no-store" });
+          // ?fresh bypasses the CDN copy of these endpoints (see lib/api-cache);
+          // `cache: "no-store"` alone only skips the browser cache.
+          const res = await fetch(`${url}?fresh=${Date.now()}`, { cache: "no-store" });
           const data = await res.json();
           if (!cancelled && data.status === "ok" && !data.fallback) apply(data);
         } catch {
@@ -439,6 +442,48 @@ export default function AdminPage() {
       );
     } finally {
       setIsSavingGlobal(false);
+    }
+  };
+
+  // Media library adds and deletes are committed straight away rather than
+  // staged for "Save All Changes". A deleted image coming back after a reload
+  // read as a bug, and an upload is already a real file in storage, so leaving
+  // its library entry as an unsaved draft only invites losing it. Only the
+  // `media` list is written: it is merged into the CMS as stored in the
+  // database, so other unsaved drafts in this tab are not published with it.
+  const commitMediaLibrary = async (successMsg: string) => {
+    const media = useSiteCMSStore.getState().cms.media || [];
+    try {
+      const res = await fetch(`/api/cms?fresh=${Date.now()}`, { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.fallback) throw new Error("Could not read the saved CMS.");
+      const stored = data.cms && typeof data.cms === "object" ? data.cms : useSiteCMSStore.getState().cms;
+
+      const save = await fetch("/api/cms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...stored, media }),
+      });
+      if (save.status === 401) throw new Error("Session expired — sign in again.");
+      if (!save.ok) {
+        const err = await save.json().catch(() => ({}));
+        throw new Error(err.error || `Save failed (HTTP ${save.status}).`);
+      }
+
+      // The saved baseline now has this media list too, so it must not count
+      // as an unsaved change.
+      try {
+        const baseline = JSON.parse(lastSavedCmsSigRef.current || "{}");
+        baseline.media = media;
+        lastSavedCmsSigRef.current = JSON.stringify(baseline);
+      } catch {
+        /* keep previous baseline */
+      }
+      const { analytics: _a, ...editable } = (useSiteCMSStore.getState().cms as any) || {};
+      setCmsDirty(JSON.stringify(editable) !== lastSavedCmsSigRef.current);
+      showToast(successMsg);
+    } catch (err) {
+      showToast(`⚠️ ${err instanceof Error ? err.message : "Media library was not saved."}`, "Use “Save All Changes” to retry.");
     }
   };
 
@@ -710,11 +755,7 @@ export default function AdminPage() {
 
   // Prompt-less Media additions
   const [showAddMediaForm, setShowAddMediaForm] = useState(false);
-  const [newMediaName, setNewMediaName] = useState("");
-  const [newMediaUrl, setNewMediaUrl] = useState("");
   const [showPickerAddForm, setShowPickerAddForm] = useState(false);
-  const [newPickerAssetName, setNewPickerAssetName] = useState("");
-  const [newPickerAssetUrl, setNewPickerAssetUrl] = useState("");
 
   const updateProjField = (updatedFields: Partial<Project>) => {
     if (!editingProject) return;
@@ -2188,8 +2229,11 @@ export default function AdminPage() {
 
               <div>
                 <label className="text-[9px] text-text-secondary block">Select Image Asset</label>
-                <div className="flex gap-1.5">
-                  <input type="text" value={img.src || ""} readOnly className="flex-1 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
+                <div className="flex gap-1.5 items-stretch">
+                  <div className="w-14 h-10 rounded overflow-hidden border border-glass-border flex-shrink-0 bg-black/20">
+                    <MediaThumb src={img.src || ""} alt={img.alt || ""} className="w-full h-full object-cover" />
+                  </div>
+                  <input type="text" value={img.src || ""} readOnly className="flex-1 min-w-0 px-2 py-1.5 rounded bg-bg-secondary text-[9px] text-text-primary" />
                   <button
                     type="button"
                     onClick={() => setMediaPickerTarget({
@@ -5280,79 +5324,24 @@ export default function AdminPage() {
                 </button>
               </div>
 
-              {/* Inline Upload Form */}
+              {/* Upload a file or add a verified link */}
               {showAddMediaForm && (
-                <GlassCard className="p-5 space-y-4">
-                  <div className="text-xs font-bold text-text-primary uppercase tracking-wider">Configure Image Metadata & Link</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[10px] font-bold text-text-muted block mb-1">Asset Name</label>
-                      <input
-                        type="text"
-                        value={newMediaName}
-                        onChange={(e) => setNewMediaName(e.target.value)}
-                        placeholder="e.g. Profile Photo Leslie"
-                        className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-text-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-text-muted block mb-1">Image Asset Link / URL (Unsplash or local path)</label>
-                      <input
-                        type="text"
-                        value={newMediaUrl}
-                        onChange={(e) => setNewMediaUrl(e.target.value)}
-                        placeholder="e.g. https://images.unsplash.com/..."
-                        className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-glass-border text-xs text-text-primary font-mono"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => {
-                        setShowAddMediaForm(false);
-                        setNewMediaName("");
-                        setNewMediaUrl("");
-                      }}
-                      className="px-4 py-1.5 rounded-xl bg-white/5 border border-glass-border hover:bg-white/10 text-xs font-bold text-text-primary transition-colors cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (newMediaName && newMediaUrl) {
-                          addMediaItem({
-                            id: `med-${Date.now()}`,
-                            name: newMediaName,
-                            url: newMediaUrl,
-                            type: "image",
-                            sizeBytes: 18400,
-                            mimeType: "image/png",
-                            folder: "General",
-                            tags: ["asset"],
-                            usedIn: ["Hero Section", "Public Navbar"],
-                            createdAt: new Date().toISOString()
-                          });
-                          showToast(`Uploaded Asset [${newMediaName}] to Library`);
-                          setNewMediaName("");
-                          setNewMediaUrl("");
-                          setShowAddMediaForm(false);
-                        } else {
-                          showToast("Please enter both Name and Image URL!");
-                        }
-                      }}
-                      className="px-4 py-1.5 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-xs font-bold text-white transition-colors cursor-pointer"
-                    >
-                      Save Asset
-                    </button>
-                  </div>
-                </GlassCard>
+                <MediaAssetForm
+                  usedIn={["Media Library"]}
+                  onAdd={(item) => {
+                    addMediaItem(item);
+                    commitMediaLibrary(`Added [${item.name}] to the library`);
+                    setShowAddMediaForm(false);
+                  }}
+                  onCancel={() => setShowAddMediaForm(false)}
+                />
               )}
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {cms.media.map((med) => (
                   <GlassCard key={med.id} className="p-3 space-y-2.5 flex flex-col justify-between group relative">
                     <div className="h-28 w-full rounded-xl bg-black/40 overflow-hidden flex items-center justify-center border border-white/10 relative">
-                      <img src={med.url} alt={med.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <MediaThumb src={med.url} alt={med.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                     </div>
                     <div className="text-left space-y-1">
                       <div>
@@ -5385,7 +5374,7 @@ export default function AdminPage() {
                       <button
                         onClick={() => {
                           deleteMediaItem(med.id);
-                          showToast(`Deleted media [${med.name}]`);
+                          commitMediaLibrary(`Deleted [${med.name}] from the library`);
                         }}
                         className="p-1 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer"
                       >
@@ -6156,61 +6145,21 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* Inline form inside picker */}
+                {/* Upload inside the picker: the new asset is added to the
+                    library and linked to the field that opened the picker. */}
                 {showPickerAddForm && (
-                  <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-3">
-                    <div className="grid grid-cols-2 gap-3 text-left">
-                      <div>
-                        <label className="text-[10px] font-bold text-text-secondary block mb-1">Asset Name</label>
-                        <input
-                          type="text"
-                          value={newPickerAssetName}
-                          onChange={(e) => setNewPickerAssetName(e.target.value)}
-                          placeholder="e.g. Logo Icon"
-                          className="w-full px-2.5 py-1.5 rounded bg-bg-primary border border-glass-border text-xs text-text-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-text-secondary block mb-1">Image Link / URL</label>
-                        <input
-                          type="text"
-                          value={newPickerAssetUrl}
-                          onChange={(e) => setNewPickerAssetUrl(e.target.value)}
-                          placeholder="e.g. /logo.png"
-                          className="w-full px-2.5 py-1.5 rounded bg-bg-primary border border-glass-border text-xs text-text-primary font-mono"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end">
-                      <button
-                        onClick={() => {
-                          if (newPickerAssetName && newPickerAssetUrl) {
-                            addMediaItem({
-                              id: `med-${Date.now()}`,
-                              name: newPickerAssetName,
-                              url: newPickerAssetUrl,
-                              type: "image",
-                              sizeBytes: 15400,
-                              mimeType: "image/png",
-                              folder: "General",
-                              tags: ["uploaded"],
-                              usedIn: ["Media Picker"],
-                              createdAt: new Date().toISOString()
-                            });
-                            showToast(`Uploaded Asset [${newPickerAssetName}] to Library`);
-                            setNewPickerAssetName("");
-                            setNewPickerAssetUrl("");
-                            setShowPickerAddForm(false);
-                          } else {
-                            showToast("Please fill in both Name and URL fields.");
-                          }
-                        }}
-                        className="px-4 py-1.5 rounded-xl bg-accent-blue text-xs text-white font-bold cursor-pointer"
-                      >
-                        Save Asset
-                      </button>
-                    </div>
-                  </div>
+                  <MediaAssetForm
+                    compact
+                    usedIn={[mediaPickerTarget.title]}
+                    onAdd={(item) => {
+                      addMediaItem(item);
+                      commitMediaLibrary(`Added [${item.name}] to the library`);
+                      mediaPickerTarget.onSelect(item.url);
+                      setMediaPickerTarget(null);
+                      setShowPickerAddForm(false);
+                    }}
+                    onCancel={() => setShowPickerAddForm(false)}
+                  />
                 )}
 
                 {/* Folder filter chips */}
@@ -6263,10 +6212,10 @@ export default function AdminPage() {
                           className="p-2 bg-white/5 border border-white/10 hover:border-accent-blue/60 rounded-2xl cursor-pointer group flex flex-col justify-between space-y-2 transition-all hover:bg-white/[0.08]"
                         >
                           <div className="h-20 w-full rounded-xl bg-black/40 overflow-hidden flex items-center justify-center border border-white/5 relative">
-                            <img 
-                              src={med.url} 
-                              alt={med.name} 
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                            <MediaThumb
+                              src={med.url}
+                              alt={med.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                             <div className="absolute inset-0 bg-accent-blue/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                               <Check className="w-5 h-5 text-text-primary" />
