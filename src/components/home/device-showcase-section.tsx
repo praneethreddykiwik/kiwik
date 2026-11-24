@@ -95,10 +95,10 @@ export function DeviceShowcaseSection() {
       ref={sectionRef}
       onMouseMove={handleMouseMove}
       id="device-showcase-section"
-      className="py-24 sm:py-32 md:py-36 lg:py-40 px-0 max-w-[1700px] mx-auto relative z-20 select-none overflow-hidden bg-bg-primary transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28"
+      className="py-12 sm:py-16 px-0 max-w-[1700px] mx-auto relative z-20 select-none overflow-hidden bg-bg-primary transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28"
     >
       {/* Centered Kiwik Logo */}
-      <div className="flex justify-center mb-[50px] relative z-30">
+      <div className="flex justify-center mb-2 relative z-30">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ 
@@ -124,7 +124,7 @@ export function DeviceShowcaseSection() {
           {deviceShowcase.topBadgeText}
         </span>
         <h2 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary tracking-tight">
-          Real products, built by Kiwik
+          What could we build for you?
         </h2>
       </div>
 
@@ -132,7 +132,7 @@ export function DeviceShowcaseSection() {
       <motion.div
         ref={scrollerRef}
         style={{ y: smoothY }}
-        className="relative w-full flex items-center justify-start 2xl:justify-center snap-x snap-mandatory -space-x-4 sm:space-x-3 md:space-x-6 overflow-x-auto pt-16 sm:pt-24 md:pt-28 lg:pt-32 pb-16 sm:pb-20 md:pb-24 lg:pb-28 no-scrollbar px-6 sm:px-12"
+        className="relative w-full flex items-center justify-start 2xl:justify-center snap-x snap-mandatory -space-x-4 sm:space-x-3 md:space-x-6 overflow-x-auto pt-12 sm:pt-16 pb-12 sm:pb-14 no-scrollbar px-6 sm:px-12"
       >
         {activeCards.map((card, idx) => {
           const isHovered = hoveredIndex === idx;

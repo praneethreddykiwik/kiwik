@@ -26,7 +26,7 @@ const productCard = ({ points, ...card }: ProductCardInput): DeviceShowcaseCard 
  * whatever is published in the Projects studio.
  */
 export const defaultDeviceShowcase: DeviceShowcaseCMS = {
-  topBadgeText: "What we build",
+  topBadgeText: "Made by Kiwik",
   cards: [
     productCard({
       id: "show-sowcha", order: 1, projectSlug: "sowcha", name: "Sowcha", role: "E-commerce",
@@ -45,8 +45,8 @@ export const defaultDeviceShowcase: DeviceShowcaseCMS = {
     productCard({
       id: "show-kiwik", order: 3, name: "Kiwik", role: "Our services",
       quote: "From idea to live product.",
-      description: "Systems, apps and infrastructure, designed, built and supported by Kiwik.",
-      points: ["AI & Knowledge Systems", "App Development", "Identity & Security", "Automation & Workflows", "Cloud & DevOps"],
+      description: "Designed, built and supported by Kiwik.",
+      points: ["Websites", "Mobile apps", "AI systems", "Online stores", "SaaS platforms"],
       accentColor: "#8FACD9", backgroundColor: "#0B1030", ctaText: "Start a project", buttonLink: "/contact",
     }),
     productCard({

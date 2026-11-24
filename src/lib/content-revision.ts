@@ -1,5 +1,6 @@
 import { defaultDeviceShowcase, isSampleShowcase } from "@/data/device-showcase";
-import type { CapabilityItem, SiteCMSData } from "@/types/site-cms-types";
+import { OLD, PROCESS_STEPS, SERVICES, SERVICES_TITLE } from "@/data/home-content";
+import type { SiteCMSData } from "@/types/site-cms-types";
 
 /**
  * Content changes that have to reach the copy of the CMS already saved in
@@ -9,14 +10,7 @@ import type { CapabilityItem, SiteCMSData } from "@/types/site-cms-types";
  * saved navbar for the defaults and would drop links added in the studio (the
  * live "Contact" item exists only in the database).
  */
-export const CONTENT_REVISION = 2;
-
-export const APP_DEVELOPMENT_CAPABILITY: CapabilityItem = {
-  id: "cap-app-development",
-  title: "App Development",
-  desc: "iOS, Android and web applications, from design and build through launch and support.",
-  iconName: "Smartphone",
-};
+export const CONTENT_REVISION = 3;
 
 /** /docs no longer exists (next.config.ts redirects it), so nothing may link to it. */
 export function isRetiredHref(href: string | undefined): boolean {
@@ -56,17 +50,46 @@ export function applyContentRevision(cms: SiteCMSData, savedRevision: number | u
     next.dashboardShowcase = { ...cms.dashboardShowcase, searchPlaceholder: "Search projects, commands..." };
   }
 
-  if ((savedRevision ?? 0) < 1 && cms.capabilities) {
-    const items = cms.capabilities.items || [];
-    if (!items.some((i) => /app development/i.test(i.title || ""))) {
-      next.capabilities = { ...cms.capabilities, items: [...items, APP_DEVELOPMENT_CAPABILITY] };
-    }
-  }
-
   // Sample phone cards (invented people and testimonials) become real products.
   if ((savedRevision ?? 0) < 2 && isSampleShowcase(cms.deviceShowcase)) {
     next.deviceShowcase = defaultDeviceShowcase;
   }
 
+  if ((savedRevision ?? 0) < 3) applyServiceCopy(next);
+
+  // A studio-edited service list is kept, but still gains App Development once.
+  const services = next.capabilities?.items;
+  if ((savedRevision ?? 0) < 1 && services && !services.some((s) => /app development/i.test(s.title || ""))) {
+    const appDevelopment = SERVICES.find((s) => s.id === "cap-app-development")!;
+    next.capabilities = { ...next.capabilities, items: [...services, appDevelopment] };
+  }
+
   return next;
+}
+
+/**
+ * Replaces the sample service list and process wording with copy written for
+ * clients. Every check is against the exact text that shipped, so anything edited in the studio is kept.
+ */
+function applyServiceCopy(next: SiteCMSData) {
+  const { capabilities, howWeWork } = next;
+
+  const services = capabilities?.items || [];
+  if (services.length > 0 && services.every((s) => OLD.capabilityTitles.includes(s.title))) {
+    next.capabilities = {
+      ...capabilities,
+      items: SERVICES,
+      sectionTitle: capabilities.sectionTitle === OLD.capabilitiesTitle ? SERVICES_TITLE : capabilities.sectionTitle,
+    };
+  }
+
+  if (howWeWork?.steps) {
+    next.howWeWork = {
+      ...howWeWork,
+      steps: howWeWork.steps.map((step) => {
+        const fresh = PROCESS_STEPS[OLD.stepDescs.indexOf(step.desc)];
+        return fresh ? { ...step, desc: fresh.desc } : step;
+      }),
+    };
+  }
 }

@@ -150,6 +150,8 @@ export interface FeaturedSectionCMS {
 }
 
 export interface CapabilityItem {
+  /** Published project shown as an example of this service. */
+  projectSlug?: string;
   id: string;
   title: string;
   desc: string;

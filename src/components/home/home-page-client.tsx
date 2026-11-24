@@ -29,6 +29,7 @@ import { AIChatbot } from "@/components/home/ai-chatbot";
 import { HowWeWorkCycle } from "@/components/home/how-we-work-cycle";
 import { FeaturePillars } from "@/components/home/feature-pillars";
 import { FeaturedProductsGrid } from "@/components/home/featured-products-grid";
+import { ServicesSection } from "@/components/home/services-section";
 import { FutureVision } from "@/components/home/future-vision";
 import { useProjects } from "@/stores/projects-store";
 import { useSiteCMS } from "@/stores/site-cms-store";
@@ -44,21 +45,10 @@ export function HomePageClient() {
     title: "Explore Kiwik Products",
     subtitle: "Understand what each product does, who it helps, its current status, and request real-time access. Fully synchronised with the Admin CMS panel."
   };
-  const capabilities = cms.capabilities || { sectionTitle: "Our Capabilities", items: [] };
   const trust = cms.trust || { sectionTitle: "Trust & Delivery", items: [] };
 
   // Dynamic Projects loaded from the CMS database store to reflect edits immediately
   const featuredCMS = projects.slice(0, 3);
-
-  const getIcon = (iconName: string) => {
-    const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.Cpu;
-    let colorClass = "text-accent-blue";
-    if (iconName === "Sparkles") colorClass = "text-purple-400";
-    else if (iconName === "Shield") colorClass = "text-rose-400";
-    else if (iconName === "Workflow") colorClass = "text-amber-400";
-    else if (iconName === "Cloud") colorClass = "text-accent-blue";
-    return <IconComponent className={cn("w-4 h-4", colorClass)} />;
-  };
 
   // Visits are recorded by TelemetryProvider in the root layout. A second,
   // body-less POST here used to run on every home load; with no sessionId the
@@ -180,80 +170,45 @@ export function HomePageClient() {
         );
       })()}
 
-      {/* SECTION C: CAPABILITIES & TRUST ASSURANCE */}
-      <section id="capabilities" className="py-16 md:py-24 px-4 sm:px-6 md:px-8 border-t border-divider/60 max-w-[1400px] mx-auto relative z-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Capabilities Grid */}
-          <div className="lg:col-span-7 space-y-6 text-left">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
-                <Cpu className="w-5 h-5" />
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-text-primary tracking-tight">
-                {capabilities.sectionTitle || "Our Capabilities"}
-              </h2>
-            </div>
+      {/* SERVICES */}
+      <ServicesSection />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[...(capabilities.items || [])]
-                .filter(cap => cap.visible !== false)
-                .sort((a, b) => (a.order || 0) - (b.order || 0))
-                .map((cap, i) => (
-                  <div key={cap.id || i} className="p-5 rounded-2xl bg-bg-secondary/40 border border-glass-border hover:border-accent-blue/30 transition-all flex gap-4 select-none backdrop-blur-xl group sm:last:odd:col-span-2">
-                    <div className="p-2.5 rounded-xl bg-bg-primary border border-glass-border text-accent-blue flex-shrink-0 h-fit group-hover:scale-110 transition-transform">
-                      {getIcon(cap.iconName)}
+      {/* TRUST & DELIVERY */}
+      <section className="pb-16 md:pb-24 px-4 sm:px-6 md:px-8 max-w-[1400px] mx-auto relative z-20 text-left">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <Shield className="w-5 h-5" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-text-primary tracking-tight">
+            {trust.sectionTitle || "Trust & Delivery"}
+          </h2>
+        </div>
+
+        <GlassCard className="p-6 border border-glass-border select-none shadow-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[...(trust.items || [])]
+              .filter(item => item.visible !== false)
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map((item, i) => {
+                const TrustIcon = item.iconName ? ((LucideIcons as any)[item.iconName]) : null;
+                return (
+                  <div key={item.id || i} className="flex gap-3 text-left group">
+                    <div className="p-1 h-fit rounded-full bg-emerald-500/10 text-emerald-500 shrink-0 mt-0.5 animate-pulse-slow">
+                      {TrustIcon ? <TrustIcon className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-text-primary tracking-tight leading-tight group-hover:text-accent-blue transition-colors">
-                        {cap.title}
-                      </h3>
-                      <p className="text-[11px] text-text-secondary font-medium leading-relaxed mt-1">
-                        {cap.desc}
+                      <h4 className="text-xs font-bold text-text-primary leading-tight group-hover:text-emerald-400 transition-colors">
+                        {item.title}
+                      </h4>
+                      <p className="text-[11px] text-text-secondary leading-relaxed mt-1 font-medium">
+                        {item.desc}
                       </p>
                     </div>
                   </div>
-                ))}
-            </div>
+                );
+              })}
           </div>
-
-          {/* Trust & Delivery Panel */}
-          <div className="lg:col-span-5 space-y-6 text-left">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                <Shield className="w-5 h-5" />
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-text-primary tracking-tight">
-                {trust.sectionTitle || "Trust & Delivery"}
-              </h2>
-            </div>
-
-            <GlassCard className="p-6 border border-glass-border space-y-5 select-none shadow-xl">
-              {[...(trust.items || [])]
-                .filter(item => item.visible !== false)
-                .sort((a, b) => (a.order || 0) - (b.order || 0))
-                .map((item, i) => {
-                  const TrustIcon = item.iconName ? ((LucideIcons as any)[item.iconName]) : null;
-                  return (
-                    <div key={item.id || i} className="flex gap-3 text-left group">
-                      <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500 shrink-0 mt-0.5 animate-pulse-slow">
-                        {TrustIcon ? <TrustIcon className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-text-primary leading-tight group-hover:text-emerald-400 transition-colors">
-                          {item.title}
-                        </h4>
-                        <p className="text-[11px] text-text-secondary leading-relaxed mt-1 font-medium">
-                          {item.desc}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-            </GlassCard>
-          </div>
-
-        </div>
+        </GlassCard>
       </section>
 
       {/* THE FUTURE WE ARE BUILDING (Cosmic Horizon reference section) */}

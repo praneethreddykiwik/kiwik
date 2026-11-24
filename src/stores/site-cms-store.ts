@@ -3,7 +3,8 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { proxyMediaUrls } from "@/lib/media";
 import { defaultDeviceShowcase } from "@/data/device-showcase";
-import { APP_DEVELOPMENT_CAPABILITY, CONTENT_REVISION, applyContentRevision } from "@/lib/content-revision";
+import { CONTENT_REVISION, applyContentRevision } from "@/lib/content-revision";
+import { PROCESS_STEPS, SERVICES, SERVICES_TITLE } from "@/data/home-content";
 import { useProjectsStore } from "@/stores/projects-store";
 import { subscribeToEndpoint } from "@/lib/shared-poller";
 import type {
@@ -176,16 +177,7 @@ const defaultCMSData: SiteCMSData = {
     title: "Explore Kiwik Products",
     subtitle: "Understand what each product does, who it helps, its current status, and request real-time access. Fully synchronised with the Admin CMS panel."
   },
-  capabilities: {
-    sectionTitle: "Our Capabilities",
-    items: [
-      { id: "cap-1", title: "AI & Knowledge Systems", desc: "Semantic context vector indexing and voice transcription mappings.", iconName: "Sparkles" },
-      { id: "cap-2", title: "Identity & Security Services", desc: "Secure OAuth authorization hooks and granular serverless database access rules.", iconName: "Shield" },
-      { id: "cap-3", title: "Automation & Workflows", desc: "Event-driven edge action pipelines and cron automation routines.", iconName: "Workflow" },
-      { id: "cap-4", title: "Cloud & DevOps Infrastructure", desc: "High-performance CDN setups, edge caching rules, and serverless builds.", iconName: "Cloud" },
-      APP_DEVELOPMENT_CAPABILITY
-    ]
-  },
+  capabilities: { sectionTitle: SERVICES_TITLE, items: SERVICES },
   trust: {
     sectionTitle: "Trust & Delivery",
     items: [
@@ -195,17 +187,7 @@ const defaultCMSData: SiteCMSData = {
       { id: "tr-4", title: "Ongoing support and optimization", desc: "Continuous profiling of latency, edge cache ratios, and framework migrations." }
     ]
   },
-  howWeWork: {
-    badge: "Execution Workflow",
-    sectionTitle: "How We Work",
-    steps: [
-      { id: "sw-1", step: "01", title: "Discover", desc: "We understand your goals, target architecture, and edge constraints." },
-      { id: "sw-2", step: "02", title: "Design", desc: "We design high-fidelity components, micro-interactions, and interface flows." },
-      { id: "sw-3", step: "03", title: "Build", desc: "We build with extreme quality, component reusability, and Next.js static engine speeds." },
-      { id: "sw-4", step: "04", title: "Secure", desc: "We secure telemetry endpoints, Firestore rule configurations, and credentials." },
-      { id: "sw-5", step: "05", title: "Operate", desc: "We monitor production latency, optimize edge hits, and provide continuous support." }
-    ]
-  },
+  howWeWork: { badge: "Execution Workflow", sectionTitle: "How We Work", steps: PROCESS_STEPS },
   footer: {
     columns: [
       {
