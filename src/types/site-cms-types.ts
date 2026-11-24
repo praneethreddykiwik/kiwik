@@ -251,7 +251,9 @@ export interface DeviceShowcaseCard {
   backgroundColor?: string;
   visible?: boolean;
   order?: number;
-  template?: "investor" | "designer" | "pm" | "botanist" | "marketer" | "custom";
+  template?: "investor" | "designer" | "pm" | "botanist" | "marketer" | "product" | "custom";
+  /** "product" cards: project whose screenshot, logo and status are shown live. */
+  projectSlug?: string;
   subitems?: Array<{ title: string; subtitle: string; desc?: string; date?: string }>;
   
   // GENERAL settings:
@@ -493,6 +495,8 @@ export interface SiteCMSData {
   deviceShowcase: DeviceShowcaseCMS;
   earthShowcase: EarthShowcaseCMS;
   architectureNodes: ArchitectureNodeCMS[];
+  /** See lib/content-revision. Absent on rows saved before it existed. */
+  contentRevision?: number;
   whyKiwikPills: WhyKiwikPillCMS[];
   dashboardShowcase: DashboardShowcaseCMS;
   aiKnowledge: AIKnowledgeCMS;

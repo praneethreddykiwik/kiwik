@@ -49,7 +49,6 @@ ${projectLines || "- Project list unavailable at time of generation."}
 - [Home](${SITE_URL}/): what Kiwik is and what it does.
 - [Projects](${SITE_URL}/projects): every project running on Kiwik.
 - [About](${SITE_URL}/about): what Kiwik is, what Kiwik OS does, and the technology behind it.
-- [Documentation](${SITE_URL}/docs): the content model, the studio, and the publishing pipeline.
 - [Digital Market Partner](${SITE_URL}/partners): partner work delivered through Kiwik.
 
 ## Contact

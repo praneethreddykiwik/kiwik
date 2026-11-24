@@ -15,7 +15,6 @@ import {
   Globe,
   Sparkles,
   Shield,
-  Workflow,
   Cloud,
   CheckCircle,
   Code,
@@ -27,7 +26,7 @@ import { Centerpiece } from "@/components/home/centerpiece";
 import { MacosDashboard } from "@/components/home/macos-dashboard";
 import { AiRaycastPanel } from "@/components/home/ai-raycast-panel";
 import { AIChatbot } from "@/components/home/ai-chatbot";
-import { EcosystemPipeline } from "@/components/home/ecosystem-pipeline";
+import { HowWeWorkCycle } from "@/components/home/how-we-work-cycle";
 import { FeaturePillars } from "@/components/home/feature-pillars";
 import { FeaturedProductsGrid } from "@/components/home/featured-products-grid";
 import { FutureVision } from "@/components/home/future-vision";
@@ -47,7 +46,6 @@ export function HomePageClient() {
   };
   const capabilities = cms.capabilities || { sectionTitle: "Our Capabilities", items: [] };
   const trust = cms.trust || { sectionTitle: "Trust & Delivery", items: [] };
-  const howWeWork = cms.howWeWork || { badge: "Execution Workflow", sectionTitle: "How We Work", steps: [] };
 
   // Dynamic Projects loaded from the CMS database store to reflect edits immediately
   const featuredCMS = projects.slice(0, 3);
@@ -71,8 +69,11 @@ export function HomePageClient() {
       {/* Pixel-Perfect Melius Reference Hero Experience */}
       <MeliusHero />
 
-      {/* ECOSYSTEM PIPELINE */}
-      <EcosystemPipeline />
+      {/* FEATURED PRODUCTS */}
+      <FeaturedProductsGrid />
+
+      {/* HOW WE WORK (circular process) */}
+      <HowWeWorkCycle />
 
       {/* FEATURE PILLARS */}
       <FeaturePillars />
@@ -91,9 +92,6 @@ export function HomePageClient() {
           </div>
         </div>
       </section>
-
-      {/* FEATURED PRODUCTS SECTION (Matching Reference Screenshot 2) */}
-      <FeaturedProductsGrid />
 
       {/* EARTH INFRASTRUCTURE SHOWCASE SECTION */}
       {(() => {
@@ -182,57 +180,6 @@ export function HomePageClient() {
         );
       })()}
 
-      {/* SECTION B: HOW WE WORK (5-Step Engineering Pipeline) */}
-      <section id="how-we-work" className="py-16 md:py-24 px-4 sm:px-6 md:px-8 border-t border-divider/60 max-w-[1400px] mx-auto relative z-20 scroll-mt-24 sm:scroll-mt-28">
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono font-bold uppercase tracking-wider">
-            <Workflow className="w-3.5 h-3.5" />
-            <span>{howWeWork.badge || "Execution Workflow"}</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary tracking-tight">
-            {howWeWork.sectionTitle || "How We Work"}
-          </h2>
-        </div>
-
-        {/* Timeline Grid with Glowing Connecting Line */}
-        <div className="relative">
-          <div className="hidden lg:block absolute top-1/2 left-4 right-4 h-0.5 bg-gradient-to-r from-blue-500/20 via-indigo-500/40 to-cyan-500/20 -translate-y-1/2 z-0" />
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-5 relative z-10">
-            {[...(howWeWork.steps || [])]
-              .filter(step => step.visible !== false)
-              .sort((a, b) => (a.order || 0) - (b.order || 0))
-              .map((item, idx) => {
-                const StepIcon = item.iconName ? ((LucideIcons as any)[item.iconName]) : null;
-                return (
-                  <GlassCard key={item.id || idx} className="p-6 border border-glass-border relative hover:border-accent-blue/40 transition-all select-none text-left shadow-lg group">
-                    <div className="flex items-center justify-between mb-4">
-                      <span 
-                        className={cn(
-                          "w-8 h-8 rounded-xl text-xs font-mono font-bold flex items-center justify-center group-hover:scale-110 transition-transform",
-                          item.color || "bg-accent-blue/10 border border-accent-blue/20 text-accent-blue"
-                        )}
-                      >
-                        {StepIcon ? <StepIcon className="w-4 h-4" /> : (item.step || `0${idx + 1}`)}
-                      </span>
-                      <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-text-muted">
-                        Phase {idx + 1}
-                      </span>
-                    </div>
-                    
-                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-text-primary group-hover:text-accent-blue transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-text-secondary leading-relaxed font-medium mt-2">
-                      {item.desc}
-                    </p>
-                  </GlassCard>
-                );
-              })}
-          </div>
-        </div>
-      </section>
-
       {/* SECTION C: CAPABILITIES & TRUST ASSURANCE */}
       <section id="capabilities" className="py-16 md:py-24 px-4 sm:px-6 md:px-8 border-t border-divider/60 max-w-[1400px] mx-auto relative z-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -253,7 +200,7 @@ export function HomePageClient() {
                 .filter(cap => cap.visible !== false)
                 .sort((a, b) => (a.order || 0) - (b.order || 0))
                 .map((cap, i) => (
-                  <div key={cap.id || i} className="p-5 rounded-2xl bg-bg-secondary/40 border border-glass-border hover:border-accent-blue/30 transition-all flex gap-4 select-none backdrop-blur-xl group">
+                  <div key={cap.id || i} className="p-5 rounded-2xl bg-bg-secondary/40 border border-glass-border hover:border-accent-blue/30 transition-all flex gap-4 select-none backdrop-blur-xl group sm:last:odd:col-span-2">
                     <div className="p-2.5 rounded-xl bg-bg-primary border border-glass-border text-accent-blue flex-shrink-0 h-fit group-hover:scale-110 transition-transform">
                       {getIcon(cap.iconName)}
                     </div>

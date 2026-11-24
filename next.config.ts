@@ -50,6 +50,10 @@ const nextConfig: NextConfig = {
         destination: "/:path+",
         permanent: true,
       },
+      // The docs section was retired. Temporary (307) on purpose: browsers cache
+      // a permanent redirect indefinitely, which would make it hard to bring back.
+      { source: "/docs", destination: "/", permanent: false },
+      { source: "/docs/:path*", destination: "/", permanent: false },
       {
         source: "/capabilities",
         destination: "/#capabilities",

@@ -3708,6 +3708,7 @@ export default function AdminPage() {
                                         <option value="investor">Investor Template</option>
                                         <option value="designer">Designer Template</option>
                                         <option value="pm">PM Resume Template</option>
+                                        <option value="product">Kiwik Product</option>
                                         <option value="botanist">Botanist FAQ Template</option>
                                         <option value="marketer">Marketer Form Template</option>
                                       </select>

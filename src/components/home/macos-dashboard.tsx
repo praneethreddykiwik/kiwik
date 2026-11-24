@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Folder, 
-  FileText, 
   Activity, 
   Sparkles, 
   Settings,
@@ -25,7 +24,7 @@ import { useProjects } from "@/stores/projects-store";
 import { ProjectImage } from "@/components/ui/project-image";
 import { useSiteCMS } from "@/stores/site-cms-store";
 
-type SidebarTab = "overview" | "projects" | "docs" | "analytics" | "ai" | "settings";
+type SidebarTab = "overview" | "projects" | "analytics" | "ai" | "settings";
 
 interface DashboardProject {
   name: string;
@@ -47,7 +46,7 @@ export function MacosDashboard() {
   const cms = useSiteCMS();
   const dashboardShowcase = cms.dashboardShowcase || {
     sectionTitle: "KIWIK OS Kernel",
-    searchPlaceholder: "Search projects, docs, commands...",
+    searchPlaceholder: "Search projects, commands...",
     kernelStatusText: "OS Kernel Active",
     systemCoreTechs: ["Next.js", "React", "TS TypeScript", "Tailwind CSS", "Prisma", "PostgreSQL", "Vercel"],
     sectionSubtitle: "Unified Control & Edge Telemetry Console",
@@ -104,27 +103,10 @@ export function MacosDashboard() {
   const sidebarItems = [
     { id: "overview", label: "Overview", icon: <Globe className="w-3.5 h-3.5" /> },
     { id: "projects", label: "Projects", icon: <Folder className="w-3.5 h-3.5" /> },
-    { id: "docs", label: "Documentation", icon: <FileText className="w-3.5 h-3.5" /> },
     { id: "analytics", label: "Analytics", icon: <Activity className="w-3.5 h-3.5" /> },
     { id: "ai", label: "AI Assistant", icon: <Sparkles className="w-3.5 h-3.5" /> },
     { id: "settings", label: "Settings", icon: <Settings className="w-3.5 h-3.5" /> }
   ] as const;
-
-  const getTechIcon = (name: string) => {
-    if (name.toLowerCase().includes("next")) return "▲";
-    if (name.toLowerCase().includes("react")) return "⚛";
-    if (name.toLowerCase().includes("type")) return "TS";
-    if (name.toLowerCase().includes("css") || name.toLowerCase().includes("tailwind")) return "🎨";
-    if (name.toLowerCase().includes("prisma")) return "⏵";
-    if (name.toLowerCase().includes("postgres") || name.toLowerCase().includes("sql")) return "🐘";
-    if (name.toLowerCase().includes("vercel")) return "▲";
-    return "⚡";
-  };
-
-  const stack = (dashboardShowcase.systemCoreTechs || []).map((t: string) => ({
-    name: t,
-    icon: getTechIcon(t)
-  }));
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 mt-12 mb-16 relative z-30 select-none">
@@ -195,7 +177,7 @@ export function MacosDashboard() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary" />
               <input
                 type="text"
-                placeholder={dashboardShowcase.searchPlaceholder || "Search projects, docs, commands..."}
+                placeholder={dashboardShowcase.searchPlaceholder || "Search projects, commands..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 rounded-full bg-neutral-200/40 dark:bg-white/5 border border-glass-border focus:outline-none focus:border-accent-blue text-xs font-semibold transition-all"
@@ -335,24 +317,6 @@ export function MacosDashboard() {
               )}
             </AnimatePresence>
           </div>
-
-          {/* Technology stack footer bar */}
-          <footer className="px-6 py-4 bg-bg-secondary/40 border-t border-divider/60 flex flex-wrap items-center gap-3">
-            <span className="text-[9px] font-mono text-text-secondary uppercase tracking-widest font-bold select-none mr-2">
-              {dashboardShowcase.labels?.[3] || "System Core:"}
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              {stack.map((item) => (
-                <span 
-                  key={item.name} 
-                  className="px-2.5 py-1 rounded-lg bg-glass-bg border border-glass-border text-[9px] font-mono font-semibold text-text-secondary flex items-center gap-1 hover:border-glass-border-hover transition-colors"
-                >
-                  <span className="text-accent-blue font-bold">{item.icon}</span>
-                  <span>{item.name}</span>
-                </span>
-              ))}
-            </div>
-          </footer>
 
         </div>
       </div>

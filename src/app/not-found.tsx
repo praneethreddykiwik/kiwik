@@ -36,12 +36,6 @@ export default function NotFound() {
           Projects
         </Link>
         <Link
-          href="/docs"
-          className="px-5 py-2.5 rounded-full bg-glass-bg border border-glass-border text-text-primary font-bold text-sm hover:bg-bg-secondary transition-colors"
-        >
-          Documentation
-        </Link>
-        <Link
           href="/about"
           className="px-5 py-2.5 rounded-full bg-glass-bg border border-glass-border text-text-primary font-bold text-sm hover:bg-bg-secondary transition-colors"
         >

@@ -229,14 +229,6 @@ export default async function ProjectDetailPage({ params }: Props) {
                 </a>
               </li>
             ))}
-            <li>
-              <a
-                href="/docs"
-                className="inline-flex items-center px-4 py-2 rounded-full bg-glass-bg border border-glass-border text-sm font-medium text-text-primary hover:border-accent-blue/40 transition-colors"
-              >
-                Documentation
-              </a>
-            </li>
           </ul>
         </nav>
       )}

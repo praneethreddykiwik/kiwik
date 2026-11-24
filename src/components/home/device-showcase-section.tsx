@@ -6,6 +6,8 @@ import { motion, useScroll, useTransform, useSpring, useMotionValue, type Motion
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteCMS } from "@/stores/site-cms-store";
+import { useProjects } from "@/stores/projects-store";
+import { DeviceProductScreen } from "./device-product-screen";
 import { InteractiveLogo } from "./interactive-logo";
 
 export function DeviceShowcaseSection() {
@@ -22,16 +24,8 @@ export function DeviceShowcaseSection() {
   // so the first thing on screen was the smallest, least important card cut in
   // half. Centre the featured middle card before paint instead; on wide
   // screens nothing overflows and this is a no-op.
-  React.useLayoutEffect(() => {
-    const el = scrollerRef.current;
-    if (!el || el.scrollWidth <= el.clientWidth) return;
-    const cards = Array.from(el.children) as HTMLElement[];
-    const mid = cards[Math.floor(cards.length / 2)];
-    if (!mid) return;
-    el.scrollLeft = mid.offsetLeft + mid.offsetWidth / 2 - el.clientWidth / 2;
-  }, []);
-
   const cms = useSiteCMS();
+  const projects = useProjects();
   const deviceShowcase = cms.deviceShowcase || {
     topBadgeText: "No Credit Card Required",
     cards: []
@@ -57,9 +51,23 @@ export function DeviceShowcaseSection() {
   };
 
   // Render cards sorted and filtered
+  const projectFor = (slug?: string) =>
+    slug ? projects.find(p => p.slug === slug && (p as { visible?: boolean }).visible !== false) : undefined;
   const activeCards = [...(deviceShowcase.cards || [])]
     .filter(c => c.visible !== false)
+    // A product that is not published has nothing to show and nowhere to link.
+    .filter(c => !c.projectSlug || Boolean(projectFor(c.projectSlug)))
     .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  // Re-centre when the number of cards changes: a product can arrive after mount.
+  React.useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    const cards = Array.from(el.children) as HTMLElement[];
+    const mid = cards[Math.floor(cards.length / 2)];
+    if (!mid) return;
+    el.scrollLeft = mid.offsetLeft + mid.offsetWidth / 2 - el.clientWidth / 2;
+  }, [activeCards.length]);
 
   const getInitials = (name: string) => {
     return name
@@ -87,7 +95,7 @@ export function DeviceShowcaseSection() {
       ref={sectionRef}
       onMouseMove={handleMouseMove}
       id="device-showcase-section"
-      className="py-24 sm:py-32 md:py-36 lg:py-40 px-0 sm:px-4 max-w-[1700px] mx-auto relative z-20 select-none overflow-hidden bg-bg-primary transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28"
+      className="py-24 sm:py-32 md:py-36 lg:py-40 px-0 max-w-[1700px] mx-auto relative z-20 select-none overflow-hidden bg-bg-primary transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28"
     >
       {/* Centered Kiwik Logo */}
       <div className="flex justify-center mb-[50px] relative z-30">
@@ -109,6 +117,15 @@ export function DeviceShowcaseSection() {
         >
           <InteractiveLogo />
         </motion.div>
+      </div>
+
+      <div className="relative z-30 text-center max-w-2xl mx-auto px-6 space-y-3">
+        <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-text-secondary">
+          {deviceShowcase.topBadgeText}
+        </span>
+        <h2 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary tracking-tight">
+          Real products, built by Kiwik
+        </h2>
       </div>
 
       {/* Dynamic Coverflow Device Wrapper */}
@@ -153,15 +170,15 @@ export function DeviceShowcaseSection() {
               }}
               transition={{ type: "spring", stiffness: 240, damping: 26, mass: 0.8 }}
               className={cn(
-                "relative shadow-[25px_35px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer group rounded-[48px] sm:rounded-[54px] transition-shadow duration-300",
+                "relative shadow-[0_24px_48px_-16px_rgba(0,0,0,0.28)] dark:shadow-[0_28px_56px_-16px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer group rounded-[48px] sm:rounded-[54px] transition-shadow duration-300",
                 settings.width,
                 settings.height,
-                isHovered && "shadow-[0_50px_120px_rgba(0,0,0,0.35)] dark:shadow-[0_50px_130px_rgba(0,0,0,0.95)]"
+                isHovered && "shadow-[0_32px_60px_-16px_rgba(0,0,0,0.4)] dark:shadow-[0_36px_64px_-16px_rgba(0,0,0,0.95)]"
               )}
             >
               {/* Screen Container */}
               <div 
-                className="absolute inset-[6px] sm:inset-[8px] rounded-[36px] sm:rounded-[42px] p-4 sm:p-5 flex flex-col justify-between overflow-hidden shadow-inner pt-7 sm:pt-8 text-left"
+                className="absolute inset-[6px] sm:inset-[8px] rounded-[36px] sm:rounded-[42px] p-4 sm:p-5 flex flex-col justify-between overflow-hidden shadow-inner pt-[18%] sm:pt-[18%] text-left"
                 style={{ backgroundColor: bg, color: isDarkBg ? "#ffffff" : "#171717" }}
               >
                 {/* 1. BACKGROUNDS (Image, Gradient, Blur, Noise, Overlay) */}
@@ -206,6 +223,9 @@ export function DeviceShowcaseSection() {
                   <div className="absolute top-0 left-0 right-0 h-44 bg-gradient-to-b from-lime-600/40 via-emerald-800/20 to-transparent pointer-events-none" />
                 )}
 
+                {card.template === "product" ? (
+                  <DeviceProductScreen card={card} project={projectFor(card.projectSlug)} isDark={isDarkBg} />
+                ) : (<>
                 {/* Header Content */}
                 <div className="relative z-10 space-y-2.5">
                   <div className="flex items-center justify-between">
@@ -264,7 +284,7 @@ export function DeviceShowcaseSection() {
                   <div className="space-y-1.5">
                     {card.ctaText && (
                       <Link
-                        href={card.buttonLink || "/#docs"}
+                        href={card.buttonLink || "/contact"}
                         target={card.primaryButtonNewTab ? "_blank" : "_self"}
                         style={{ 
                           backgroundColor: card.primaryButtonColor || (isDarkBg ? "#ffffff" : "#2563eb"),
@@ -531,6 +551,7 @@ export function DeviceShowcaseSection() {
                     )}
                   </>
                 )}
+                </>)}
 
               </div>
 

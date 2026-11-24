@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { PaperBackground } from "./paper-background";
 import { ImageRibbon } from "./ribbon";
-import { PromptCTA } from "./prompt-cta";
 import { useSiteCMS } from "@/stores/site-cms-store";
 import { cn } from "@/lib/utils";
 
@@ -74,11 +73,6 @@ export function MeliusHero() {
             {description}
           </p>
         </motion.div>
-
-        {/* ─────────────────────────────────────────────────────────────
-            INTERACTIVE PROMPT INPUT CTA
-           ───────────────────────────────────────────────────────────── */}
-        <PromptCTA />
 
       </main>
     </PaperBackground>

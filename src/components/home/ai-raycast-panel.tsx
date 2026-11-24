@@ -45,7 +45,6 @@ export function AiRaycastPanel() {
 
   const actions: AIAction[] = [
     { id: "summarize", label: "Summarize Project", sublabel: "Compress README parameters", icon: <LucideIcons.FileText className="w-3.5 h-3.5 text-accent-blue" /> },
-    { id: "find_doc", label: "Find Documentation", sublabel: "Query platform manuals", icon: <LucideIcons.Search className="w-3.5 h-3.5 text-purple-400" /> },
     { id: "health", label: "Check Deployments", sublabel: "Query edge health status", icon: <LucideIcons.Cloud className="w-3.5 h-3.5 text-emerald-400" /> },
     { id: "readme", label: "Generate README", sublabel: "Draft codebase documentation", icon: <LucideIcons.FileCode className="w-3.5 h-3.5 text-amber-400" /> },
     { id: "ask", label: "Ask Anything", sublabel: "Ask about Kiwik systems", icon: <LucideIcons.MessageSquare className="w-3.5 h-3.5 text-cyan-400" /> }
@@ -66,9 +65,6 @@ export function AiRaycastPanel() {
     switch (id) {
       case "summarize":
         welcome = "🤖 Selected: Summarize Project. Ask me about any published Kiwik project to compile a summary.";
-        break;
-      case "find_doc":
-        welcome = "🤖 Selected: Find Documentation. Ask about technical features (e.g. Next.js, Prisma, Tailwind version, or rules) to query manual logs.";
         break;
       case "health":
         welcome = "🤖 Selected: Check Deployments. Current edge health: 100% operational. Ask me about serverless aliases, routing latency, or edge nodes.";
@@ -157,7 +153,7 @@ export function AiRaycastPanel() {
             ? `🤖 **Stack across Kiwik projects**:\n- ${allStack.join("\n- ")}`
             : "🤖 No stack information is published yet.";
         } else {
-          reply = `🤖 Chatbot context active under [${activeActionLabel}]. Ask about project metrics, team credentials, or technical documentation parameters!`;
+          reply = `🤖 Chatbot context active under [${activeActionLabel}]. Ask about project metrics, team credentials, or technical parameters!`;
         }
 
         setMessages(prev => [...prev, { sender: "bot", text: reply }]);
@@ -296,7 +292,7 @@ export function AiRaycastPanel() {
 
         {/* Footer shortcuts */}
         <div className="pt-3 border-t border-divider/60 flex items-center justify-between font-mono text-[9px] text-text-secondary select-none">
-          <span>Search documentation...</span>
+          <span>Search projects...</span>
           <div className="flex items-center gap-0.5 bg-black/5 dark:bg-white/5 border border-glass-border px-1.5 py-0.5 rounded text-[8px] font-bold">
             ⌘K
           </div>

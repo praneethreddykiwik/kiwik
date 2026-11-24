@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { proxyMediaUrls } from "@/lib/media";
+import { defaultDeviceShowcase } from "@/data/device-showcase";
+import { APP_DEVELOPMENT_CAPABILITY, CONTENT_REVISION, applyContentRevision } from "@/lib/content-revision";
 import { useProjectsStore } from "@/stores/projects-store";
 import { subscribeToEndpoint } from "@/lib/shared-poller";
 import type {
@@ -43,6 +45,7 @@ import type {
 const NAV_SCHEMA_VERSION = 4;
 
 const defaultCMSData: SiteCMSData = {
+  contentRevision: CONTENT_REVISION,
   settings: {
     siteName: "Kiwik",
     tagline: "The Operating System for Digital Products",
@@ -163,8 +166,7 @@ const defaultCMSData: SiteCMSData = {
       { id: "nav-1", label: "Projects", href: "/projects", iconName: "Folder", order: 1, visible: true },
       { id: "nav-partner", label: "Digital Market Partner", href: "/partners", iconName: "Sparkles", order: 2, visible: true },
       { id: "nav-2", label: "Capabilities", href: "#capabilities", iconName: "Cpu", order: 3, visible: true },
-      { id: "nav-3", label: "How We Work", href: "#how-we-work", iconName: "Workflow", order: 4, visible: true },
-      { id: "nav-4", label: "Docs", href: "/docs", iconName: "FileText", order: 5, visible: true }
+      { id: "nav-3", label: "How We Work", href: "#how-we-work", iconName: "Workflow", order: 4, visible: true }
     ],
     ctaButtonText: "Ask Kiwik AI",
     ctaButtonHref: "#ai",
@@ -180,7 +182,8 @@ const defaultCMSData: SiteCMSData = {
       { id: "cap-1", title: "AI & Knowledge Systems", desc: "Semantic context vector indexing and voice transcription mappings.", iconName: "Sparkles" },
       { id: "cap-2", title: "Identity & Security Services", desc: "Secure OAuth authorization hooks and granular serverless database access rules.", iconName: "Shield" },
       { id: "cap-3", title: "Automation & Workflows", desc: "Event-driven edge action pipelines and cron automation routines.", iconName: "Workflow" },
-      { id: "cap-4", title: "Cloud & DevOps Infrastructure", desc: "High-performance CDN setups, edge caching rules, and serverless builds.", iconName: "Cloud" }
+      { id: "cap-4", title: "Cloud & DevOps Infrastructure", desc: "High-performance CDN setups, edge caching rules, and serverless builds.", iconName: "Cloud" },
+      APP_DEVELOPMENT_CAPABILITY
     ]
   },
   trust: {
@@ -216,21 +219,10 @@ const defaultCMSData: SiteCMSData = {
         ]
       },
       {
-        id: "col-2",
-        title: "Documentation",
-        links: [
-          { id: "fl-5", label: "Getting Started", href: "/docs" },
-          { id: "fl-6", label: "Architecture Spec", href: "/docs" },
-          { id: "fl-7", label: "Kiwik CLI v2.0", href: "/docs" },
-          { id: "fl-8", label: "API Reference", href: "/docs" }
-        ]
-      },
-      {
         id: "col-3",
         title: "Company & Legal",
         links: [
           { id: "fl-9", label: "About Kiwik", href: "/#how-we-work" },
-          { id: "fl-10", label: "Documentation", href: "/docs" },
           { id: "fl-11", label: "Digital Market Partner", href: "/partners" },
           { id: "fl-12", label: "Capabilities", href: "/#capabilities" }
         ]
@@ -254,8 +246,7 @@ const defaultCMSData: SiteCMSData = {
     contactPhone: "+1 (800) 555-KIWIK",
     address: "Internet, Everywhere",
     bottomLinks: [
-      { label: "Projects", href: "/projects" },
-      { label: "Docs", href: "/docs" }
+      { label: "Projects", href: "/projects" }
     ],
     newsletterPlaceholder: "Enter your email",
     newsletterApiEndpoint: "/api/subscribe",
@@ -338,174 +329,7 @@ const defaultCMSData: SiteCMSData = {
       applicationCategory: "DeveloperApplication"
     })
   },
-  deviceShowcase: {
-    topBadgeText: "One Platform. Every Layer.",
-    cards: [
-      {
-        id: "dev-1",
-        name: "AI & Knowledge",
-        role: "Intelligence Layer",
-        quote: "Agents that read, reason and act on your data.",
-        tag: "AI",
-        avatarUrl: "/logo.png",
-        frameOverlayUrl: "",
-        accentColor: "#8b5cf6",
-        description:
-          "Vision, pricing and matching agents running in sequence — the same pipeline that powers Clean AI, scoring a job from a photo and matching it to the right vendor.",
-        backgroundColor: "#0B0A14",
-        visible: true,
-        order: 1,
-        template: "investor",
-        subitems: [
-          { title: "Clean AI", subtitle: "Five-agent pipeline: vision, pricing, matching." },
-          { title: "Kiwik AI", subtitle: "Semantic search across projects and documentation." }
-        ],
-        blocks: [
-          {
-            id: "blk-1",
-            type: "projects",
-            title: "Running in production",
-            visible: true,
-            items: [
-              { title: "Clean AI", subtitle: "Five-agent pipeline: vision, pricing, matching." },
-              { title: "Kiwik AI", subtitle: "Semantic search across projects and documentation." }
-            ]
-          }
-        ]
-      },
-      {
-        id: "dev-2",
-        name: "Design Systems",
-        role: "Interface Layer",
-        quote: "Interfaces engineered to age well.",
-        tag: "Design",
-        avatarUrl: "/logo.png",
-        frameOverlayUrl: "",
-        accentColor: "#2563eb",
-        description:
-          "A glassmorphism design system with tokenised colour, motion and depth — themeable end to end, so one palette change re-dyes the entire product.",
-        backgroundColor: "#EBF2FE",
-        visible: true,
-        order: 2,
-        template: "designer",
-        subitems: [
-          { title: "SowCha", subtitle: "\"Three palettes, applied before first paint — no flash of the wrong theme.\"" },
-          { title: "HELM Events", subtitle: "\"One command centre replacing scattered spreadsheets and disconnected tools.\"" }
-        ],
-        blocks: [
-          {
-            id: "blk-2",
-            type: "testimonial",
-            title: "Shipped with it",
-            visible: true,
-            items: [
-              { title: "SowCha", subtitle: "\"Three palettes, applied before first paint — no flash of the wrong theme.\"" },
-              { title: "HELM Events", subtitle: "\"One command centre replacing scattered spreadsheets and disconnected tools.\"" }
-            ]
-          }
-        ]
-      },
-      {
-        id: "dev-3",
-        name: "Engineering",
-        role: "Build Layer",
-        quote: "Typed end to end, from schema to pixel.",
-        tag: "Engineering",
-        avatarUrl: "/logo.png",
-        frameOverlayUrl: "",
-        accentColor: "#3b82f6",
-        description:
-          "Next.js and React on the edge, Postgres and Prisma underneath, with a CMS that writes straight to the database so content changes never need a redeploy.",
-        backgroundColor: "#0C0D12",
-        visible: true,
-        order: 3,
-        template: "pm",
-        subitems: [
-          { title: "Next.js · React · TypeScript", subtitle: "Frontend", date: "Edge rendered" },
-          { title: "Postgres · Prisma · Redis", subtitle: "Data", date: "Pooled + cached" }
-        ],
-        blocks: [
-          {
-            id: "blk-3",
-            type: "experience",
-            title: "The stack",
-            visible: true,
-            items: [
-              { title: "Next.js · React · TypeScript", subtitle: "Frontend", date: "Edge rendered" },
-              { title: "Postgres · Prisma · Redis", subtitle: "Data", date: "Pooled + cached" }
-            ]
-          }
-        ]
-      },
-      {
-        id: "dev-4",
-        name: "Security",
-        role: "Trust Layer",
-        quote: "Secrets in the environment, never in the repo.",
-        tag: "Security",
-        avatarUrl: "/logo.png",
-        frameOverlayUrl: "",
-        accentColor: "#047857",
-        description:
-          "Signed sessions, role-based access and fail-closed auth. Every write is authenticated, and a failed write reports failure rather than pretending to succeed.",
-        backgroundColor: "#0E1F18",
-        visible: true,
-        order: 4,
-        template: "botanist",
-        subitems: [
-          { title: "How is content kept in sync?", subtitle: "The database is the single source of truth; every surface reads from it and reflects edits within seconds." }
-        ],
-        blocks: [
-          {
-            id: "blk-4-socials",
-            type: "socials",
-            visible: true,
-            items: [
-              { title: "Globe", iconName: "Globe", link: "/projects" },
-              { title: "MessageSquare", iconName: "MessageSquare", link: "#ai" },
-              { title: "Share2", iconName: "Share2", link: "/partners" },
-              { title: "Send", iconName: "Send", link: "/docs" },
-              { title: "Lock", iconName: "Lock", link: "#capabilities" }
-            ]
-          },
-          {
-            id: "blk-4-faq",
-            type: "faq",
-            title: "FAQ",
-            visible: true,
-            items: [
-              { title: "How is content kept in sync?", subtitle: "The database is the single source of truth; every surface reads from it and reflects edits within seconds." }
-            ]
-          }
-        ]
-      },
-      {
-        id: "dev-5",
-        name: "Partnerships",
-        role: "Growth Layer",
-        quote: "We take on a small number of partners at a time.",
-        tag: "Growth",
-        avatarUrl: "/logo.png",
-        frameOverlayUrl: "",
-        accentColor: "#65a30d",
-        description:
-          "Kiwik operates as an embedded partner — part studio, part signal engine — turning scattered attention into durable momentum for the ventures we back.",
-        backgroundColor: "#0D150B",
-        visible: true,
-        order: 5,
-        template: "marketer",
-        subitems: [],
-        blocks: [
-          {
-            id: "blk-5",
-            type: "form",
-            title: "Start a conversation",
-            visible: true
-          }
-        ]
-      }
-    ]
-  },
+  deviceShowcase: defaultDeviceShowcase,
   earthShowcase: {
     headline: "Access the largest enterprise telemetry network.",
     description: "Kiwik connects the edge telemetry, managed node clusters, and database replication pipelines on every cloud stack you operate.",
@@ -538,7 +362,7 @@ const defaultCMSData: SiteCMSData = {
   ],
   dashboardShowcase: {
     sectionTitle: "KIWIK OS Kernel",
-    searchPlaceholder: "Search projects, docs, commands...",
+    searchPlaceholder: "Search projects, commands...",
     kernelStatusText: "OS Kernel Active",
     systemCoreTechs: ["Next.js", "React", "TS TypeScript", "Tailwind CSS", "Prisma", "PostgreSQL", "Vercel"],
     sectionSubtitle: "Unified Control & Edge Telemetry Console",
@@ -821,7 +645,7 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
 
       setCMS: (newCMS) => {
         set((state) => ({
-          cms: {
+          cms: applyContentRevision({
             // Each section is defaulted individually rather than top-level
             // spread. A `site_cms` row that predates a section — or has it as
             // null — would otherwise land in state as `undefined`, and every
@@ -874,7 +698,7 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
                 defaultCMSData.footer.contactEmail!
               ),
             }
-          } as SiteCMSData
+          } as SiteCMSData, newCMS?.contentRevision)
         }));
       },
 
@@ -1533,7 +1357,7 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
       storage: createJSONStorage(() => gatedCmsStorage),
       merge: (persistedState: any, currentState) => ({
         ...currentState,
-        cms: {
+        cms: applyContentRevision({
           ...defaultCMSData,
           ...(persistedState?.cms || {}),
           settings: {
@@ -1572,7 +1396,7 @@ export const useSiteCMSStore = create<SiteCMSStoreState>()(
           media: persistedState?.cms?.media || defaultCMSData.media,
           auditLogs: persistedState?.cms?.auditLogs || defaultCMSData.auditLogs,
           snapshots: persistedState?.cms?.snapshots || defaultCMSData.snapshots
-        }
+        }, persistedState?.cms ? persistedState.cms.contentRevision : CONTENT_REVISION)
       })
     }
   )

@@ -104,9 +104,6 @@ export default async function AboutPage() {
           <li>
             <Link href="/partners">Digital Market Partner</Link> — brands built with Kiwik.
           </li>
-          <li>
-            <Link href="/docs">Documentation</Link> — architecture and platform reference.
-          </li>
         </ul>
       </article>
     </div>
