@@ -1,23 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import * as LucideIcons from "lucide-react";
-import { 
-  Mail, 
-  MapPin, 
-  MessageSquare, 
-  Activity, 
-  Cpu, 
-  ShieldCheck, 
-  Terminal,
-  ArrowRight,
-  Sparkles
-} from "lucide-react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BrandGradient } from "@/components/gl/brand-gradient";
+import { GLBoundary } from "@/components/gl/gl-boundary";
+import { LiquidGlass } from "@/components/gl/liquid-glass";
+import { useGL } from "@/components/gl/use-gl";
+import { officeTimeZone, splitOffices, useLocalTime } from "@/lib/offices";
 import { validateEmail } from "@/lib/validation";
 import { cn } from "@/lib/utils";
+import { useProjects } from "@/stores/projects-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
+import { BAR, LEFT_BOTTOM, LEFT_TOP, VIEW, W_LEFT, W_RIGHT } from "./intro-splash";
+import { KiwikWordmark } from "./kiwik-wordmark";
+
+const LiquidLogo = dynamic(() => import("@/components/gl/liquid-logo"), { ssr: false });
+
+const PANEL_COLORS: [string, string, string] = ["#232b62", "#007a78", "#131738"];
+
+/** False for placeholders such as "https://twitter.com", which lead nowhere useful. */
+function isProfileUrl(url: string): boolean {
+  try {
+    return new URL(url).pathname.replace(/\/+$/, "") !== "";
+  } catch {
+    return false;
+  }
+}
 
 function GithubIcon({ className }: { className?: string }) {
   return (
@@ -59,8 +72,6 @@ function DiscordIcon({ className }: { className?: string }) {
   );
 }
 
-import { useSiteCMS } from "@/stores/site-cms-store";
-
 export function Footer() {
   const cms = useSiteCMS();
   const footerCMS = cms.footer || {
@@ -80,6 +91,7 @@ export function Footer() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const pathname = usePathname();
+  const panel = useRef<HTMLDivElement>(null);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,276 +159,268 @@ export function Footer() {
     return <LucideIcon className="w-4 h-4" />;
   };
 
+  const services = (cms.capabilities?.items || []).filter((c) => c.visible !== false);
+  const projects = useProjects().filter((p) => (p as { visible?: boolean }).visible !== false);
+  const offices = splitOffices(footerCMS.address);
+  const socials = (footerCMS.socialLinks || []).filter((l) => isProfileUrl(l.url));
+  // "Projects" already heads the list of work above.
+  const bottomLinks = (footerCMS.bottomLinks || []).filter((l) => (l as { visible?: boolean }).visible !== false && l.href !== "/projects");
+
   // The admin CMS studio is a full-height app — no marketing footer there.
   if (pathname?.startsWith("/admin")) return null;
 
   return (
-    <motion.footer
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-      className="w-full mt-20 pt-16 pb-8 px-4 sm:px-6 md:px-8 border-t border-neutral-200/80 dark:border-white/10 bg-white dark:bg-[#070708] text-neutral-700 dark:text-neutral-300 relative z-20 transition-colors"
-    >
-      <div className="max-w-[1400px] mx-auto">
-        
-        {/* Newsletter Banner */}
-        <div className="p-6 md:p-8 rounded-2xl bg-slate-50 dark:bg-neutral-900/60 border border-neutral-200/80 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 mb-16 shadow-sm relative overflow-hidden">
-          <div className="flex items-center gap-4 text-left mr-auto">
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-white/5 border border-neutral-200/80 dark:border-white/10 text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs">
-              <Mail className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-base font-bold text-neutral-900 dark:text-white tracking-wide">
-                {footerCMS.newsletterHeadline || "Stay in the Loop"}
-              </h4>
-              <p className="text-neutral-600 dark:text-neutral-400 text-xs mt-1 max-w-md font-medium leading-relaxed">
-                {footerCMS.newsletterDescription || "Get product updates, launch notes, and insights directly in your inbox."}
-              </p>
+    <footer className="relative z-20 mt-20 w-full overflow-hidden text-text-secondary">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
+        {/* Start a project */}
+        <section className="relative overflow-hidden rounded-[28px] md:rounded-[40px] text-white bg-[linear-gradient(112deg,#151a40_0%,#232b62_42%,#0a4f55_78%,#007a78_100%)]">
+          <div ref={panel} className="absolute inset-0">
+            <BrandGradient colors={PANEL_COLORS} brightness={1.15} strength={1.3} density={1} distance={2.1} />
+          </div>
+          {/* Keeps the text side dark whatever the gradient is doing. */}
+          <div aria-hidden="true" className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#10142e]/75 via-[#10142e]/35 to-transparent" />
+          <FooterMark />
+          <div className="relative px-6 pt-8 pb-12 sm:px-10 sm:pb-16 lg:px-16 lg:py-24 max-w-3xl lg:max-w-[54%]">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold tracking-tight leading-[1.08] text-balance">
+              Have an idea? Let&rsquo;s build it.
+            </h2>
+            <p className="mt-5 max-w-lg text-base sm:text-lg text-white/80">
+              A website, an app, an AI system or an online store. Tell us what you need and we will come back with a plan.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-base font-bold text-[#151a40] transition-transform duration-200 hover:scale-[1.03]"
+              >
+                Start a project <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </Link>
+              {footerCMS.contactEmail && (
+                <LiquidGlass behind={panel} base="#1d2557" className="rounded-full max-w-full">
+                  <a href={`mailto:${footerCMS.contactEmail}`} className="rounded-full px-7 py-3.5 text-base font-semibold text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.5)] break-all focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white">
+                    {footerCMS.contactEmail}
+                  </a>
+                </LiquidGlass>
+              )}
             </div>
           </div>
+        </section>
 
-          <form onSubmit={handleSubscribe} className="flex items-center gap-3 w-full md:w-auto relative min-w-full sm:min-w-[360px] md:min-w-[400px]">
-            <div className="relative flex-1">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-neutral-500" />
-              <input
-                type="email"
-                required
-                aria-label="Email address for newsletter"
-                aria-invalid={Boolean(error)}
-                aria-describedby={error ? "newsletter-error" : undefined}
-                placeholder={footerCMS.newsletterPlaceholder || "Enter your email"}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (error) setError("");
-                }}
-                className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white dark:bg-black/60 border border-neutral-300 dark:border-white/15 focus:outline-none focus:border-indigo-500 text-xs font-semibold text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 shadow-xs"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/20 shrink-0 cursor-pointer"
-            >
-              {submitting ? "Subscribing…" : subscribed ? "Subscribed!" : (footerCMS.newsletterButtonText || "Subscribe")}
-            </button>
-          </form>
-          {error && (
-            <p
-              id="newsletter-error"
-              role="alert"
-              className="mt-2 text-[11px] font-semibold text-rose-500 dark:text-rose-400"
-            >
-              {error}
-            </p>
+        {/* Links */}
+        <div className="pt-16 md:pt-20 pb-14 grid grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-12">
+          {services.length > 0 && (
+            <nav aria-label="Services" className="col-span-2 lg:col-span-4">
+              <FooterHeading>What we build</FooterHeading>
+              <ul className="mt-5 sm:columns-2 gap-x-6 space-y-3 [&>li]:break-inside-avoid">
+                {services.map((s, i) => <FooterItem key={s.id || i} href="/#capabilities">{s.title}</FooterItem>)}
+              </ul>
+            </nav>
           )}
-          {statusMessage && (
-            <div className="absolute bottom-2 right-6 text-[10px] font-mono text-emerald-500 animate-fade-in">
-              {statusMessage}
-            </div>
+          {projects.length > 0 && (
+            <nav aria-label="Our work" className="lg:col-span-2">
+              <FooterHeading>Our work</FooterHeading>
+              <ul className="mt-5 space-y-3">
+                {projects.slice(0, 5).map((p) => <FooterItem key={p.slug} href={`/projects/${p.slug}`}>{p.name}</FooterItem>)}
+                <FooterItem href="/projects">All projects</FooterItem>
+              </ul>
+            </nav>
           )}
-        </div>
-
-        {/* Main Sitemap Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-12 gap-8 lg:gap-6 pb-14 border-b border-neutral-200/80 dark:border-white/10 overflow-hidden">
-          
-          {/* Brand block */}
-          <div className="sm:col-span-2 md:col-span-6 lg:col-span-3 space-y-4 text-left pr-0 lg:pr-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-serif font-bold text-neutral-900 dark:text-white tracking-wide">
-                {footerCMS.logoText || "Kiwik"}
-              </span>
-            </div>
-            <p className="text-neutral-600 dark:text-neutral-400 text-xs leading-relaxed max-w-sm font-medium">
-              The operating system for digital products. Build, ship, document, and scale your ideas with engineering excellence.
-            </p>
-            {footerCMS.statusBadgeVisible !== false && (
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold tracking-tight">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>{footerCMS.statusBadgeText || "All Systems Operational"}</span>
-              </div>
-            )}
-
-            {/* Social Icons row */}
-            <div className="flex items-center gap-2.5 pt-2 flex-wrap">
-              {(footerCMS.socialLinks || []).map((link, idx) => (
-                <Link 
-                  key={link.id || idx}
-                  href={link.url} 
-                  target="_blank" 
-                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 flex items-center justify-center text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                >
-                  {renderSocialIcon(link.platform, link.iconName)}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Dynamic Sitemap columns */}
           {(footerCMS.columns || []).map((col, idx) => (
-            <div 
-              key={col.id || idx} 
-              className="col-span-1 sm:col-span-1 md:col-span-3 lg:col-span-2 text-left space-y-3"
-            >
-              <h5 className="text-xs font-mono tracking-wider text-neutral-900 dark:text-white uppercase font-bold">
-                {col.title}
-              </h5>
-              <ul className="space-y-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">
-                {(col.links || []).map((link, lIdx) => (
-                  <li key={link.id || lIdx}>
-                    <Link 
-                      href={link.href} 
-                      target={link.target || "_self"}
-                      className="hover:text-neutral-900 dark:hover:text-white transition-colors"
-                    >
-                      {link.label}
-                      {link.badge && (
-                        <span className="ml-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded-sm bg-indigo-500/10 text-indigo-500 uppercase tracking-tight">
-                          {link.badge}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
+            <nav key={col.id || idx} aria-label={col.title} className="lg:col-span-2">
+              <FooterHeading>{col.title}</FooterHeading>
+              <ul className="mt-5 space-y-3">
+                {(col.links || []).map((link, i) => (
+                  <FooterItem key={link.id || i} href={link.href} target={link.target}>
+                    {link.label}
+                    {link.badge && <span className="ml-2 px-1.5 py-0.5 text-[11px] font-bold rounded bg-[#008080]/10 text-[#008080] dark:text-[#4fc3bd]">{link.badge}</span>}
+                  </FooterItem>
                 ))}
               </ul>
-            </div>
+            </nav>
           ))}
-
-          {/* Get in Touch Card */}
-          <div className="col-span-1 sm:col-span-2 md:col-span-6 lg:col-span-3 p-5 rounded-2xl bg-slate-50 dark:bg-neutral-900/60 border border-neutral-200/80 dark:border-white/10 flex flex-col gap-4 text-left shadow-sm w-full max-w-full">
-            <h5 className="text-xs font-mono tracking-wider text-neutral-900 dark:text-white uppercase font-bold">Get in Touch</h5>
-            
-            <div className="space-y-3.5">
-              {footerCMS.contactEmail && (
-                <div className="flex gap-2.5 items-start">
-                  <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
-                  <div>
-                    <a href={`mailto:${footerCMS.contactEmail}`} className="text-xs font-bold text-neutral-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors break-all">
-                      {footerCMS.contactEmail}
-                    </a>
-                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">We usually reply within 24 hours</p>
-                  </div>
-                </div>
-              )}
-
-              {footerCMS.address && (
-                <div className="flex gap-2.5 items-start border-t border-neutral-200/80 dark:border-white/10 pt-3">
-                  <MapPin className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
-                  <div>
-                    <span className="text-xs font-bold text-neutral-900 dark:text-slate-100">Kiwik HQ</span>
-                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">{footerCMS.address}</p>
-                  </div>
-                </div>
-              )}
-
-              {footerCMS.contactPhone && (
-                <div className="flex gap-2.5 items-start border-t border-neutral-200/80 dark:border-white/10 pt-3">
-                  <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
-                  <div>
-                    <span className="text-xs font-bold text-neutral-900 dark:text-slate-100">Live Support</span>
-                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">{footerCMS.contactPhone}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-        </div>
-
-        {/* Lower Row Copyright & Telemetry Metrics */}
-        <div className="pt-10 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-10">
-          
-          {/* Copyright block */}
-          <div className="text-left space-y-1 select-none">
-            <div className="text-xs font-bold text-neutral-900 dark:text-white">
-              {footerCMS.copyrightText || `© ${new Date().getFullYear()} Kiwik. All rights reserved.`}
-            </div>
-            <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed">
-              Kiwik.1 is a registered trademark of Kiwik Inc. <br />
-              Built with ❤️ by the Kiwik Engineering Team.
-            </p>
-
-            {/* The CMS has carried `bottomLinks` all along but nothing rendered
-                them, so the privacy notice had nowhere to be linked from — and a
-                notice nobody can reach does not discharge the obligation to give
-                one. */}
-            {(footerCMS.bottomLinks || []).length > 0 && (
-              <nav aria-label="Legal and secondary links" className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
-                {(footerCMS.bottomLinks || [])
-                  .filter((l: { visible?: boolean }) => l?.visible !== false)
-                  .map((l: { href?: string; label?: string }, i: number) => (
-                    <Link
-                      key={l.href || i}
-                      href={l.href || "/"}
-                      className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                    >
-                      {l.label}
-                    </Link>
-                  ))}
-              </nav>
+          <div className="col-span-2 lg:col-span-4 lg:pl-6">
+            {offices.length > 0 && (
+              <>
+                <FooterHeading>Where we are</FooterHeading>
+                <ul className="mt-5 space-y-3">
+                  {offices.map((office) => <Office key={office} name={office} />)}
+                </ul>
+              </>
             )}
-          </div>
-
-          {/* Metrics grids */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 select-none flex-1 max-w-4xl w-full xl:w-auto">
-            
-            {/* Status metric */}
-            <div className="text-left space-y-1">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-neutral-600 dark:text-neutral-400">
-                <Activity className="w-3.5 h-3.5 text-emerald-500" />
-                <span>System Status</span>
+            {footerCMS.contactPhone && (
+              <a href={`tel:${footerCMS.contactPhone.replace(/[^+\d]/g, "")}`} className="mt-3 inline-block text-base text-text-primary hover:underline">{footerCMS.contactPhone}</a>
+            )}
+            <form onSubmit={handleSubscribe} noValidate className={offices.length > 0 ? "mt-9" : ""}>
+              <label htmlFor="footer-email" className="block text-sm font-bold text-text-primary">
+                {footerCMS.newsletterHeadline || "News from Kiwik"}
+              </label>
+              <div className="mt-3 flex items-center rounded-full border border-text-primary/15 bg-text-primary/[0.03] pl-5 pr-1.5 py-1.5 focus-within:border-[#008080] transition-colors">
+                <input
+                  id="footer-email"
+                  type="email"
+                  autoComplete="email"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby="footer-email-status"
+                  placeholder={footerCMS.newsletterPlaceholder || "Enter your email"}
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError("");
+                  }}
+                  className="min-w-0 flex-1 bg-transparent py-2 text-base text-text-primary placeholder:text-text-secondary focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="shrink-0 rounded-full bg-[#232b62] hover:bg-[#008080] text-white px-5 py-2.5 text-sm font-bold disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  {submitting ? "Subscribing…" : subscribed ? "Subscribed" : footerCMS.newsletterButtonText || "Subscribe"}
+                </button>
               </div>
-              <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">All services running smoothly</p>
-              <Link href="#macos-dashboard-widget" className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline inline-flex items-center gap-0.5">
-                <span>View status page</span>
-                <ArrowRight className="w-2.5 h-2.5" />
-              </Link>
-            </div>
-
-            {/* Performance metric */}
-            <div className="text-left space-y-1">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-neutral-700 dark:text-neutral-300">
-                <Cpu className="w-3.5 h-3.5 text-amber-500" />
-                <span>Performance</span>
-              </div>
-              <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">99.9% uptime this month</p>
-              <Link href="#macos-dashboard-widget" className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline inline-flex items-center gap-0.5">
-                <span>View metrics</span>
-                <ArrowRight className="w-2.5 h-2.5" />
-              </Link>
-            </div>
-
-            {/* Security metric */}
-            <div className="text-left space-y-1">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-neutral-700 dark:text-neutral-300">
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Security</span>
-              </div>
-              <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">SOC 2 Type II Compliant</p>
-              <Link href="#macos-dashboard-widget" className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline inline-flex items-center gap-0.5">
-                <span>View security</span>
-                <ArrowRight className="w-2.5 h-2.5" />
-              </Link>
-            </div>
-
-            {/* Made for developers */}
-            <div className="text-left space-y-1">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-neutral-700 dark:text-neutral-300">
-                <Terminal className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-                <span>Made for developers</span>
-              </div>
-              <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed">
-                Designed with precision. <br />
-                Engineered for scale.
+              <p id="footer-email-status" role={error ? "alert" : "status"} className={cn("mt-2 text-sm", error ? "font-medium text-rose-600 dark:text-rose-400" : statusMessage ? "font-medium text-[#008080] dark:text-[#4fc3bd]" : "")}>
+                {error || statusMessage || footerCMS.newsletterDescription}
               </p>
-            </div>
-
+            </form>
           </div>
-
         </div>
-
       </div>
-    </motion.footer>
+
+      {/* The name, full width */}
+      <div className="px-4 sm:px-6 md:px-8 pb-4 md:pb-6 max-w-[1400px] mx-auto">
+        <KiwikWordmark text={footerCMS.logoText || "Kiwik"} />
+      </div>
+
+      <div className="border-t border-divider">
+        {/* Room on the right for the floating "Ask Kiwik AI" button. */}
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-6 pb-24 sm:pb-6 sm:pr-48 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
+          <p>{footerCMS.copyrightText || `© ${new Date().getFullYear()} Kiwik. All rights reserved.`}</p>
+          {bottomLinks.map((l, i) => (
+            <Link key={l.href || i} href={l.href || "/"} className="hover:text-text-primary transition-colors">{l.label}</Link>
+          ))}
+          {socials.map((link, idx) => (
+            <a key={link.id || idx} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-text-primary transition-colors">
+              {renderSocialIcon(link.platform, link.iconName)} {link.platform}
+            </a>
+          ))}
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/** The logo, coming together as the panel scrolls into view and then turning to liquid metal. Lighter than the original, to read on the dark panel. */
+function FooterMark() {
+  const reduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const gl = useGL(ref, "0px");
+  const inView = useInView(ref, { amount: 0.4 });
+  const [melted, setMelted] = useState(false);
+
+  // Only once the pieces have met.
+  useEffect(() => {
+    if (gl !== "on" || !inView) {
+      if (gl !== "on") setMelted(false);
+      return;
+    }
+    const t = setTimeout(() => setMelted(true), 2300);
+    return () => clearTimeout(t);
+  }, [gl, inView]);
+
+  const piece = (from: { x?: number; y?: number }, delay: number) => ({
+    initial: { opacity: 0, ...from },
+    whileInView: { opacity: 1, x: 0, y: 0 },
+    viewport: { once: true, amount: 0.4 },
+    transition: reduced ? { duration: 0 } : { duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] as const },
+  });
+  return (
+    <div ref={ref} aria-hidden="true" className="relative mx-6 mt-10 sm:mx-10 w-56 sm:w-72 lg:m-0 lg:absolute lg:top-1/2 lg:right-[5%] lg:w-[40%] aspect-[960/530] lg:-translate-y-1/2">
+      <svg viewBox={VIEW} className="absolute inset-0 h-full w-full overflow-visible">
+      <defs>
+        <linearGradient id="kf-navy" gradientUnits="userSpaceOnUse" x1="205" y1="425" x2="312" y2="560">
+          <stop stopColor="#4a5aae" /><stop offset=".6" stopColor="#7c90d0" /><stop offset="1" stopColor="#c3d6f6" />
+        </linearGradient>
+        <linearGradient id="kf-teal" gradientUnits="userSpaceOnUse" x1="252" y1="530" x2="130" y2="690">
+          <stop stopColor="#05534d" /><stop offset="1" stopColor="#1cbdb6" />
+        </linearGradient>
+        <linearGradient id="kf-bar" gradientUnits="userSpaceOnUse" x1="370" y1="560" x2="400" y2="730">
+          <stop stopColor="#1cbdb6" /><stop offset="1" stopColor="#05534d" />
+        </linearGradient>
+        <linearGradient id="kf-w1" gradientUnits="userSpaceOnUse" x1="375" y1="770" x2="560" y2="545">
+          <stop stopColor="#c3d6f6" /><stop offset=".35" stopColor="#4a5aae" /><stop offset=".8" stopColor="#4a5aae" /><stop offset="1" stopColor="#a9bff0" />
+        </linearGradient>
+        <linearGradient id="kf-w2" gradientUnits="userSpaceOnUse" x1="550" y1="610" x2="650" y2="765">
+          <stop stopColor="#262f6e" /><stop offset=".5" stopColor="#4a5aae" /><stop offset="1" stopColor="#c3d6f6" />
+        </linearGradient>
+        <radialGradient id="kf-dot" cx=".66" cy=".27" r=".8">
+          <stop stopColor="#ffffff" /><stop offset=".45" stopColor="#b9c2d4" /><stop offset="1" stopColor="#6c7690" />
+        </radialGradient>
+        <symbol id="kf-mark" viewBox={VIEW}>
+          <path d={LEFT_BOTTOM} fill="url(#kf-teal)" /><path d={LEFT_TOP} fill="url(#kf-navy)" />
+          <g transform="rotate(180 511.5 511.8)"><path d={LEFT_BOTTOM} fill="url(#kf-teal)" /><path d={LEFT_TOP} fill="url(#kf-navy)" /></g>
+          <path d={BAR} fill="url(#kf-bar)" /><path d={BAR} fill="url(#kf-bar)" transform="matrix(-1 0 0 1 1024 0)" />
+          <path d={W_RIGHT} fill="url(#kf-w2)" /><path d={W_LEFT} fill="url(#kf-w1)" />
+        </symbol>
+      </defs>
+      <motion.g {...piece({ x: -220 }, 0.1)}>
+        <path d={LEFT_BOTTOM} fill="url(#kf-teal)" />
+        <path d={LEFT_TOP} fill="url(#kf-navy)" />
+      </motion.g>
+      <motion.g {...piece({ x: 220 }, 0.1)}>
+        <g transform="rotate(180 511.5 511.8)">
+          <path d={LEFT_BOTTOM} fill="url(#kf-teal)" />
+          <path d={LEFT_TOP} fill="url(#kf-navy)" />
+        </g>
+      </motion.g>
+      <motion.g {...piece({ y: 160 }, 0.3)}>
+        <path d={BAR} fill="url(#kf-bar)" />
+        <path d={BAR} fill="url(#kf-bar)" transform="matrix(-1 0 0 1 1024 0)" />
+        <path d={W_RIGHT} fill="url(#kf-w2)" />
+        <path d={W_LEFT} fill="url(#kf-w1)" />
+      </motion.g>
+      <motion.g {...piece({ y: -120 }, 0.6)}>
+        <circle cx="438" cy="295" r="41.5" fill="url(#kf-dot)" />
+        <circle cx="585" cy="295" r="41.5" fill="url(#kf-dot)" />
+      </motion.g>
+      </svg>
+      {gl === "on" && inView && (
+        <div className={cn("absolute inset-0 transition-opacity duration-[1400ms]", melted ? "opacity-100" : "opacity-0")}>
+          <GLBoundary>
+            <LiquidLogo />
+            {/* The logo's own colours over the metal's light and shade. */}
+            <svg viewBox={VIEW} className="absolute inset-0 h-full w-full mix-blend-color opacity-80"><use href="#kf-mark" x="32" y="246" width="960" height="530" /></svg>
+          </GLBoundary>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FooterHeading({ children }: { children: React.ReactNode }) {
+  return <h3 className="text-sm font-bold text-text-primary">{children}</h3>;
+}
+
+function FooterItem({ href, target, children }: { href: string; target?: string; children: React.ReactNode }) {
+  return (
+    <li>
+      <Link
+        href={href}
+        target={target || "_self"}
+        rel={target === "_blank" ? "noopener noreferrer" : undefined}
+        className="inline-block text-base bg-[linear-gradient(currentColor,currentColor)] bg-no-repeat bg-[length:0%_1px] bg-[position:0_100%] hover:bg-[length:100%_1px] hover:text-text-primary transition-[background-size,color] duration-300"
+      >
+        {children}
+      </Link>
+    </li>
+  );
+}
+
+/** A location, with its local time when the city is one we know. */
+function Office({ name }: { name: string }) {
+  const time = useLocalTime(officeTimeZone(name));
+
+  return (
+    <li className="flex items-baseline justify-between gap-4 text-base">
+      <span className="text-text-primary">{name}</span>
+      {time && <time className="tabular-nums whitespace-nowrap">{time}</time>}
+    </li>
   );
 }

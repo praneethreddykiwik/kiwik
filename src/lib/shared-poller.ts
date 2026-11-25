@@ -1,5 +1,7 @@
 "use client";
 
+import { proxyMediaUrls } from "@/lib/media";
+
 /**
  * One poller per endpoint, shared by every component that needs it.
  *
@@ -86,7 +88,9 @@ async function fetchOnce(url: string, channel: Channel) {
 
       const res = await fetch(requestUrl);
       if (res.status === 304) return;
-      const raw = await res.text();
+      // Versioned responses stay in the CDN for a year, so a copy cached before a
+      // URL was replaced has to be rewritten here as well as on the server.
+      const raw = proxyMediaUrls(await res.text());
       // Unchanged payload: don't touch the stores at all. This is what stops
       // the whole tree re-rendering several times a second while idle.
       if (raw === channel.lastRaw) return;

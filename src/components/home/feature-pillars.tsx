@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
+import { PRINCIPLES } from "@/data/home-content";
 import { useSiteCMSStore } from "@/stores/site-cms-store";
 
 export function FeaturePillars() {
@@ -29,11 +30,11 @@ export function FeaturePillars() {
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
   const activePillars = pillars.length > 0 ? pillars : [
-    { id: "w-1", text: "AI-Powered Intelligence", iconName: "Cpu", order: 1, visible: true },
-    { id: "w-2", text: "Security First", iconName: "Shield", order: 2, visible: true },
-    { id: "w-3", text: "Enterprise Ready", iconName: "Layers", order: 3, visible: true },
-    { id: "w-4", text: "Cloud Native", iconName: "Cloud", order: 4, visible: true },
-    { id: "w-5", text: "Scalable by Design", iconName: "Sparkles", order: 5, visible: true }
+    { id: "w-1", text: PRINCIPLES[0], iconName: "Cpu", order: 1, visible: true },
+    { id: "w-2", text: PRINCIPLES[1], iconName: "Shield", order: 2, visible: true },
+    { id: "w-3", text: PRINCIPLES[2], iconName: "Layers", order: 3, visible: true },
+    { id: "w-4", text: PRINCIPLES[3], iconName: "Cloud", order: 4, visible: true },
+    { id: "w-5", text: PRINCIPLES[4], iconName: "Sparkles", order: 5, visible: true }
   ];
 
   return (

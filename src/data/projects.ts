@@ -2,6 +2,7 @@
 // Kiwik.1 — Mock Project Data
 // ─────────────────────────────────────────────────────────────
 
+import { HELM_LOGO_URL } from "../lib/media";
 import type { Project } from "@/types";
 
 // Project imagery is served from Supabase Storage rather than the repository,
@@ -72,7 +73,7 @@ export const projects: Project[] = [
     version: "1.0.0",
     completionPercent: 100,
     liveUrl: "https://helm.events/",
-    logo: "https://helm.events/assets/Helm_logo-B3YNq1lB.svg",
+    logo: HELM_LOGO_URL,
     coverImage: `${MEDIA_ROOT}/helm/helm-home.jpg`,
     images: [
       { src: `${MEDIA_ROOT}/helm/helm-home.jpg`, alt: "HELM landing", caption: "The complete event management platform" },

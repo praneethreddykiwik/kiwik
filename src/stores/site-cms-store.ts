@@ -4,7 +4,11 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { proxyMediaUrls } from "@/lib/media";
 import { defaultDeviceShowcase } from "@/data/device-showcase";
 import { CONTENT_REVISION, applyContentRevision } from "@/lib/content-revision";
-import { PROCESS_STEPS, SERVICES, SERVICES_TITLE } from "@/data/home-content";
+import {
+  DASHBOARD_COPY, EARTH_COPY, FEATURED_COPY, FOOTER_COLUMNS, FOOTER_COPY, HERO_COPY, PRINCIPLES, PROCESS_BADGE, PROCESS_STEPS,
+  SERVICES, SERVICES_TITLE, TRUST_ITEMS, galleryTitle,
+} from "@/data/home-content";
+import { SITE_DESCRIPTION, SITE_TAGLINE, SITE_TITLE } from "@/lib/site";
 import { useProjectsStore } from "@/stores/projects-store";
 import { subscribeToEndpoint } from "@/lib/shared-poller";
 import type {
@@ -49,23 +53,23 @@ const defaultCMSData: SiteCMSData = {
   contentRevision: CONTENT_REVISION,
   settings: {
     siteName: "Kiwik",
-    tagline: "The Operating System for Digital Products",
+    tagline: SITE_TAGLINE,
     logoUrl: "/logo.png",
     faviconUrl: "/logo-dark.png",
     copyrightText: "© 2026 Kiwik Inc. All rights reserved.",
     contactEmail: "praneeth@kiwik.one",
-    contactPhone: "+1 (800) 555-KIWIK",
-    address: "San Francisco, CA & Remote Global",
+    contactPhone: FOOTER_COPY.contactPhone,
+    address: FOOTER_COPY.address,
     version: "1.0.0-beta",
     defaultLanguage: "en",
     availableLanguages: ["en", "es", "fr", "de", "ja"]
   },
   hero: {
-    versionBadge: "Kiwik.1 v1.0.0-beta",
+    versionBadge: HERO_COPY.versionBadge,
     badgeVisible: true,
     badgeLink: "/projects",
-    headlinePrefix: "The Operating System",
-    headlineHighlightWord: "for",
+    headlinePrefix: HERO_COPY.headlinePrefix,
+    headlineHighlightWord: HERO_COPY.headlineHighlightWord,
     rotatingWords: [
       "Digital Products.",
       "AI Platforms.",
@@ -77,7 +81,7 @@ const defaultCMSData: SiteCMSData = {
       "Cloud Infrastructure."
     ],
     description:
-      "Build. Ship. Document. Scale. Everything. Unified workspace for projects, documentation, deployments, analytics, and AI assistant layers.",
+      HERO_COPY.description,
     primaryButton: {
       id: "btn-primary",
       text: "Explore Projects",
@@ -105,30 +109,30 @@ const defaultCMSData: SiteCMSData = {
     backgroundIntensity: "medium",
     animationSpeedSeconds: 2.5,
     galleryImages: [
-      { id: "g1", url: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop", title: "Neon AI Synapses", linkUrl: "/projects" },
-      { id: "g2", url: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=600&auto=format&fit=crop", title: "Cryptographic Web3 Node", linkUrl: "/projects" },
-      { id: "g3", url: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=600&auto=format&fit=crop", title: "Cyber Shield Matrix", linkUrl: "/projects" },
-      { id: "g4", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", title: "Quantum Prism Wave", linkUrl: "/projects" },
-      { id: "g5", url: "https://images.unsplash.com/photo-1677442136019-21780efad99a?q=80&w=600&auto=format&fit=crop", title: "AI Neural Core", linkUrl: "/projects" },
-      { id: "g6", url: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop", title: "Holographic Data Laser", linkUrl: "/projects" },
-      { id: "g7", url: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=600&auto=format&fit=crop", title: "Rainbow Fiber Telemetry", linkUrl: "/projects" },
-      { id: "g8", url: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?q=80&w=600&auto=format&fit=crop", title: "Cybernetic Microchip", linkUrl: "/projects" },
-      { id: "g9", url: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=600&auto=format&fit=crop", title: "Decentralized Cluster", linkUrl: "/projects" },
-      { id: "g10", url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop", title: "Global Satellite Mesh", linkUrl: "/projects" },
-      { id: "g11", url: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=600&auto=format&fit=crop", title: "Cryptographic Vault", linkUrl: "/projects" },
-      { id: "g12", url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=600&auto=format&fit=crop", title: "Autonomous Robotics Engine", linkUrl: "/projects" },
-      { id: "g13", url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", title: "Matrix Code Waterfall", linkUrl: "/projects" },
-      { id: "g14", url: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", title: "Server Rack Network", linkUrl: "/projects" },
-      { id: "g15", url: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600&auto=format&fit=crop", title: "Laser Prism Spectrum", linkUrl: "/projects" },
-      { id: "g16", url: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop", title: "Fluid Energy Waves", linkUrl: "/projects" },
-      { id: "g17", url: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?q=80&w=600&auto=format&fit=crop", title: "Digital Neural Interface", linkUrl: "/projects" },
-      { id: "g18", url: "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=600&auto=format&fit=crop", title: "Cyberpunk Digital City", linkUrl: "/projects" },
-      { id: "g19", url: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=600&auto=format&fit=crop", title: "Neon 3D Geometric Prism", linkUrl: "/projects" },
-      { id: "g20", url: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", title: "Quantum Particle Collider", linkUrl: "/projects" },
-      { id: "g21", url: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", title: "Cybernetic AI Core", linkUrl: "/projects" },
-      { id: "g22", url: "https://images.unsplash.com/photo-1618172193763-c511deb635ca?q=80&w=600&auto=format&fit=crop", title: "Vibrant Liquid Waves", linkUrl: "/projects" },
-      { id: "g23", url: "https://images.unsplash.com/photo-1633167606207-d840b5070fc2?q=80&w=600&auto=format&fit=crop", title: "Web3 Crypto Asset Token", linkUrl: "/projects" },
-      { id: "g24", url: "https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?q=80&w=600&auto=format&fit=crop", title: "Developer Coding IDE", linkUrl: "/projects" }
+      { id: "g1", url: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Neon AI Synapses"), linkUrl: "/projects" },
+      { id: "g2", url: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Cryptographic Web3 Node"), linkUrl: "/projects" },
+      { id: "g3", url: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Cyber Shield Matrix"), linkUrl: "/projects" },
+      { id: "g4", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Quantum Prism Wave"), linkUrl: "/projects" },
+      { id: "g5", url: "https://images.unsplash.com/photo-1674027444485-cec3da58eef4?q=80&w=600&auto=format&fit=crop", title: galleryTitle("AI Neural Core"), linkUrl: "/projects" },
+      { id: "g6", url: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Holographic Data Laser"), linkUrl: "/projects" },
+      { id: "g7", url: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Rainbow Fiber Telemetry"), linkUrl: "/projects" },
+      { id: "g8", url: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Cybernetic Microchip"), linkUrl: "/projects" },
+      { id: "g9", url: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Decentralized Cluster"), linkUrl: "/projects" },
+      { id: "g10", url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Global Satellite Mesh"), linkUrl: "/projects" },
+      { id: "g11", url: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Cryptographic Vault"), linkUrl: "/projects" },
+      { id: "g12", url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Autonomous Robotics Engine"), linkUrl: "/projects" },
+      { id: "g13", url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Matrix Code Waterfall"), linkUrl: "/projects" },
+      { id: "g14", url: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Server Rack Network"), linkUrl: "/projects" },
+      { id: "g15", url: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Laser Prism Spectrum"), linkUrl: "/projects" },
+      { id: "g16", url: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Fluid Energy Waves"), linkUrl: "/projects" },
+      { id: "g17", url: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Digital Neural Interface"), linkUrl: "/projects" },
+      { id: "g18", url: "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Cyberpunk Digital City"), linkUrl: "/projects" },
+      { id: "g19", url: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Neon 3D Geometric Prism"), linkUrl: "/projects" },
+      { id: "g20", url: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Quantum Particle Collider"), linkUrl: "/projects" },
+      { id: "g21", url: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Cybernetic AI Core"), linkUrl: "/projects" },
+      { id: "g22", url: "https://images.unsplash.com/photo-1618172193763-c511deb635ca?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Vibrant Liquid Waves"), linkUrl: "/projects" },
+      { id: "g23", url: "https://images.unsplash.com/photo-1633167606207-d840b5070fc2?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Web3 Crypto Asset Token"), linkUrl: "/projects" },
+      { id: "g24", url: "https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?q=80&w=600&auto=format&fit=crop", title: galleryTitle("Developer Coding IDE"), linkUrl: "/projects" }
     ],
     gallerySpeed: 0.075,
     gallerySpacing: 7,
@@ -166,7 +170,7 @@ const defaultCMSData: SiteCMSData = {
     items: [
       { id: "nav-1", label: "Projects", href: "/projects", iconName: "Folder", order: 1, visible: true },
       { id: "nav-partner", label: "Digital Market Partner", href: "/partners", iconName: "Sparkles", order: 2, visible: true },
-      { id: "nav-2", label: "Capabilities", href: "#capabilities", iconName: "Cpu", order: 3, visible: true },
+      { id: "nav-2", label: "Services", href: "#capabilities", iconName: "Cpu", order: 3, visible: true },
       { id: "nav-3", label: "How We Work", href: "#how-we-work", iconName: "Workflow", order: 4, visible: true }
     ],
     ctaButtonText: "Ask Kiwik AI",
@@ -174,59 +178,26 @@ const defaultCMSData: SiteCMSData = {
     ctaButtonVisible: true
   },
   featuredSection: {
-    title: "Explore Kiwik Products",
-    subtitle: "Understand what each product does, who it helps, its current status, and request real-time access. Fully synchronised with the Admin CMS panel."
+    title: FEATURED_COPY.title,
+    subtitle: FEATURED_COPY.description
   },
   capabilities: { sectionTitle: SERVICES_TITLE, items: SERVICES },
-  trust: {
-    sectionTitle: "Trust & Delivery",
-    items: [
-      { id: "tr-1", title: "Real products, real deployments", desc: "No vaporware. Complete and functional static components linked live." },
-      { id: "tr-2", title: "Security first architecture", desc: "Built-in sanitization, credentials protection, and secure data routing." },
-      { id: "tr-3", title: "Scalable systems designed for growth", desc: "Edge functions and database structures designed to handle production spikes." },
-      { id: "tr-4", title: "Ongoing support and optimization", desc: "Continuous profiling of latency, edge cache ratios, and framework migrations." }
-    ]
-  },
-  howWeWork: { badge: "Execution Workflow", sectionTitle: "How We Work", steps: PROCESS_STEPS },
+  trust: { sectionTitle: "Trust & Delivery", items: TRUST_ITEMS },
+  howWeWork: { badge: PROCESS_BADGE, sectionTitle: "How We Work", steps: PROCESS_STEPS },
   footer: {
-    columns: [
-      {
-        id: "col-1",
-        title: "Product",
-        links: [
-          { id: "fl-1", label: "Projects Ecosystem", href: "/projects" },
-          { id: "fl-2", label: "Desktop Dashboard", href: "/#macos-dashboard-widget" },
-          { id: "fl-3", label: "AI Assistant Panel", href: "/#ai" },
-          { id: "fl-4", label: "Partner Showcase", href: "/partners" }
-        ]
-      },
-      {
-        id: "col-3",
-        title: "Company & Legal",
-        links: [
-          { id: "fl-9", label: "About Kiwik", href: "/#how-we-work" },
-          { id: "fl-11", label: "Digital Market Partner", href: "/partners" },
-          { id: "fl-12", label: "Capabilities", href: "/#capabilities" }
-        ]
-      }
-    ],
+    columns: FOOTER_COLUMNS,
     socialLinks: [
       { id: "soc-1", platform: "GitHub", url: "https://github.com/praneethreddykiwik", iconName: "Github" },
       { id: "soc-2", platform: "Twitter / X", url: "https://twitter.com", iconName: "Twitter" },
       { id: "soc-3", platform: "LinkedIn", url: "https://linkedin.com", iconName: "Linkedin" }
     ],
-    copyrightText: "© 2026 Kiwik Inc. All rights reserved.",
-    newsletterHeadline: "Stay Updated with Kiwik Releases",
-    newsletterDescription: "Subscribe for new project updates, AI telemetry enhancements, and OS features.",
+    ...FOOTER_COPY,
     newsletterButtonText: "Subscribe",
-    policyBadges: ["SOC 2 TYPE II CERTIFIED", "256-BIT ENCRYPTION", "EDGE ACCELERATED"],
+    policyBadges: [],
     logoText: "Kiwik",
     logoUrl: "/logo.png",
-    statusBadgeText: "All Systems Operational",
     statusBadgeVisible: true,
     contactEmail: "praneeth@kiwik.one",
-    contactPhone: "+1 (800) 555-KIWIK",
-    address: "Internet, Everywhere",
     bottomLinks: [
       { label: "Projects", href: "/projects" }
     ],
@@ -239,20 +210,20 @@ const defaultCMSData: SiteCMSData = {
     {
       id: "page-home",
       slug: "/",
-      title: "Kiwik.1 - The Operating System for Digital Products",
-      description: "Unified workspace for projects, documentation, deployments, analytics, and AI assistant layers.",
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
       sections: [
         {
           id: "sec-hero",
           type: "hero",
-          title: "The Operating System for Digital Products",
-          content: "Build. Ship. Document. Scale. Everything.",
+          title: SITE_TAGLINE,
+          content: HERO_COPY.description,
           visible: true,
           order: 1
         }
       ],
-      metaTitle: "Kiwik.1 | Operating System for Digital Products",
-      metaDescription: "Unified workspace for projects, documentation, deployments, analytics, and AI assistant layers.",
+      metaTitle: SITE_TITLE,
+      metaDescription: SITE_DESCRIPTION,
       ogImage: "/images/og-kiwik.jpg",
       published: true,
       lastUpdated: new Date().toISOString()
@@ -295,37 +266,24 @@ const defaultCMSData: SiteCMSData = {
     glowIntensity: "vibrant"
   },
   seo: {
-    defaultTitle: "Kiwik.1 | Operating System for Digital Products",
-    titleTemplate: "%s | Kiwik.1",
-    defaultDescription: "Unified workspace for projects, documentation, deployments, analytics, and AI assistant layers.",
-    defaultKeywords: ["Kiwik", "Operating System", "Developer Tools", "AI", "Projects"],
+    defaultTitle: SITE_TITLE,
+    titleTemplate: "%s | Kiwik",
+    defaultDescription: SITE_DESCRIPTION,
+    defaultKeywords: ["Kiwik", "Software development", "App development", "AI development", "Web development"],
     openGraphImage: "/images/og-kiwik.jpg",
     twitterHandle: "@kiwik",
-    canonicalDomain: "https://kiwik-xi.vercel.app",
+    canonicalDomain: "https://kiwik.one",
     robotsTxt: "User-agent: *\nAllow: /",
     jsonLdSchema: JSON.stringify({
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name: "Kiwik.1 OS",
-      operatingSystem: "Web",
-      applicationCategory: "DeveloperApplication"
+      "@type": "Organization",
+      name: "Kiwik"
     })
   },
   deviceShowcase: defaultDeviceShowcase,
   earthShowcase: {
-    headline: "Access the largest enterprise telemetry network.",
-    description: "Kiwik connects the edge telemetry, managed node clusters, and database replication pipelines on every cloud stack you operate.",
+    ...EARTH_COPY,
     earthImageUrl: "https://cdn.prod.website-files.com/68513e75563291f5d48ada9b/696df7aeb646a7a2198327de_36fa0c4d18a844367e1911df246f6613_earth.webp",
-    stats: [
-      { id: "st-1", value: "99.9%", label: "System Uptime", description: "Automated multi-region deployments." },
-      { id: "st-2", value: "14ms", label: "Edge Latency", description: "Average edge request roundtrip latency." },
-      { id: "st-3", value: "24/7", label: "Monitoring", description: "Operational intelligence and telemetry monitoring." },
-      { id: "st-4", value: "3M+", label: "Daily Events", description: "Daily edge events processed and synced." }
-    ],
-    cta1Text: "Book a demo",
-    cta1Href: "mailto:praneeth@kiwik.one?subject=Book%20a%20Demo%20-%20Kiwik%20Platform&body=Hi%20Praneeth%2C%0A%0AI%20would%20like%20to%20book%20a%20demo%20for%20the%20Kiwik%20platform.%0A%0ACompany%2FTeam%3A%20%0APreferred%20Time%3A%20%0A%0AThanks!",
-    cta2Text: "Telemetry integration",
-    cta2Href: "/projects",
     overlayOpacity: 0.7,
     blurPx: 0
   },
@@ -336,23 +294,20 @@ const defaultCMSData: SiteCMSData = {
     { id: "security-identity", title: "Security & Identity", subtitle: "Secure Access & Governance", iconName: "Shield", color: "from-emerald-500/20 to-teal-600/5", border: "border-emerald-500/30 hover:border-emerald-500/60", glow: "shadow-emerald-500/10", badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30", badgeText: "Active Node", order: 4, visible: true }
   ],
   whyKiwikPills: [
-    { id: "w-1", text: "AI-Powered Intelligence", iconName: "Cpu", order: 1, visible: true, color: "text-purple-400" },
-    { id: "w-2", text: "Security First", iconName: "Shield", order: 2, visible: true, color: "text-emerald-400" },
-    { id: "w-3", text: "Enterprise Ready", iconName: "Layers", order: 3, visible: true, color: "text-amber-400" },
-    { id: "w-4", text: "Cloud Native", iconName: "Cloud", order: 4, visible: true, color: "text-accent-blue" },
-    { id: "w-5", text: "Scalable by Design", iconName: "Sparkles", order: 5, visible: true, color: "text-pink-400" }
+    { id: "w-1", text: PRINCIPLES[0], iconName: "Cpu", order: 1, visible: true, color: "text-purple-400" },
+    { id: "w-2", text: PRINCIPLES[1], iconName: "Shield", order: 2, visible: true, color: "text-emerald-400" },
+    { id: "w-3", text: PRINCIPLES[2], iconName: "Layers", order: 3, visible: true, color: "text-amber-400" },
+    { id: "w-4", text: PRINCIPLES[3], iconName: "Cloud", order: 4, visible: true, color: "text-accent-blue" },
+    { id: "w-5", text: PRINCIPLES[4], iconName: "Sparkles", order: 5, visible: true, color: "text-pink-400" }
   ],
   dashboardShowcase: {
-    sectionTitle: "KIWIK OS Kernel",
-    searchPlaceholder: "Search projects, commands...",
-    kernelStatusText: "OS Kernel Active",
+    ...DASHBOARD_COPY,
+    searchPlaceholder: "Search projects...",
     systemCoreTechs: ["Next.js", "React", "TS TypeScript", "Tailwind CSS", "Prisma", "PostgreSQL", "Vercel"],
-    sectionSubtitle: "Unified Control & Edge Telemetry Console",
     avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
     rightPanelImageUrl: "/logo.png",
     dashboardImageUrl: "/logo.png",
     backgroundImageUrl: "",
-    labels: ["Kiwik OS", "Telemetry Status", "OS Kernel Active", "System Core:"],
     badges: ["Ready", "Thinking...", "Choose Another Action"],
     cards: []
   },
@@ -395,67 +350,8 @@ const defaultCMSData: SiteCMSData = {
   ],
   snapshots: [],
   projectsPage: {
-    badgeText: "FEATURED PRODUCTS",
-    title: "Next-Generation Enterprise Stack",
-    description: "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik.",
-    sliderCards: [
-      {
-        id: "heygen",
-        name: "HeyGen",
-        tag: "Avatar & Video Synthesis",
-        image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop",
-        domain: "heygen.ai",
-        gradient: "from-amber-600/30 to-rose-600/30",
-      },
-      {
-        id: "vidu",
-        name: "Vidu",
-        tag: "High-Fidelity Motion",
-        image: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600&auto=format&fit=crop",
-        domain: "vidu.ai",
-        gradient: "from-emerald-600/30 to-teal-600/30",
-      },
-      {
-        id: "meta",
-        name: "Meta",
-        tag: "Movie Gen 3D",
-        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
-        domain: "meta.ai",
-        gradient: "from-blue-600/30 to-indigo-600/30",
-      },
-      {
-        id: "x1",
-        name: "x1",
-        tag: "Grok Vision Engine",
-        image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
-        domain: "x1.ai",
-        gradient: "from-orange-600/30 to-amber-600/30",
-      },
-      {
-        id: "lightricks",
-        name: "Lightricks",
-        tag: "LTX Video Generator",
-        image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=600&auto=format&fit=crop",
-        domain: "lightricks.ai",
-        gradient: "from-sky-600/30 to-blue-600/30",
-      },
-      {
-        id: "runway",
-        name: "Runway Gen-3",
-        tag: "Cinematic World Models",
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
-        domain: "runway.ai",
-        gradient: "from-purple-600/30 to-indigo-600/30",
-      },
-      {
-        id: "midjourney",
-        name: "Midjourney v6",
-        tag: "Photorealistic AI Art",
-        image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop",
-        domain: "midjourney.ai",
-        gradient: "from-pink-600/30 to-purple-600/30",
-      }
-    ]
+    ...FEATURED_COPY,
+    sliderCards: []
   }
 };
 

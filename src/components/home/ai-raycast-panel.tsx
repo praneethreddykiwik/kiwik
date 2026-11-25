@@ -44,10 +44,10 @@ export function AiRaycastPanel() {
   const dashboardShowcase = useSiteCMSStore((state) => state.cms.dashboardShowcase);
 
   const actions: AIAction[] = [
-    { id: "summarize", label: "Summarize Project", sublabel: "Compress README parameters", icon: <LucideIcons.FileText className="w-3.5 h-3.5 text-accent-blue" /> },
-    { id: "health", label: "Check Deployments", sublabel: "Query edge health status", icon: <LucideIcons.Cloud className="w-3.5 h-3.5 text-emerald-400" /> },
-    { id: "readme", label: "Generate README", sublabel: "Draft codebase documentation", icon: <LucideIcons.FileCode className="w-3.5 h-3.5 text-amber-400" /> },
-    { id: "ask", label: "Ask Anything", sublabel: "Ask about Kiwik systems", icon: <LucideIcons.MessageSquare className="w-3.5 h-3.5 text-cyan-400" /> }
+    { id: "summarize", label: "About a project", sublabel: "What it does and who it is for", icon: <LucideIcons.FileText className="w-3.5 h-3.5 text-accent-blue" /> },
+    { id: "health", label: "What is live", sublabel: "Products you can visit today", icon: <LucideIcons.Cloud className="w-3.5 h-3.5 text-emerald-400" /> },
+    { id: "idea", label: "Describe your idea", sublabel: "Get a first outline of the work", icon: <LucideIcons.Lightbulb className="w-3.5 h-3.5 text-amber-400" /> },
+    { id: "ask", label: "Ask anything", sublabel: "Services, process or contact", icon: <LucideIcons.MessageSquare className="w-3.5 h-3.5 text-cyan-400" /> }
   ];
 
   // Auto-scroll chat history
@@ -64,17 +64,17 @@ export function AiRaycastPanel() {
     let welcome = "";
     switch (id) {
       case "summarize":
-        welcome = "🤖 Selected: Summarize Project. Ask me about any published Kiwik project to compile a summary.";
+        welcome = "Which project would you like to know about?";
         break;
       case "health":
-        welcome = "🤖 Selected: Check Deployments. Current edge health: 100% operational. Ask me about serverless aliases, routing latency, or edge nodes.";
+        welcome = "Ask me which products are live and where to find them.";
         break;
-      case "readme":
-        welcome = "🤖 Selected: Generate README. Describe your project concept and I'll structure a custom README markdown template.";
+      case "idea":
+        welcome = "Tell me what you want to build, and I will outline it.";
         break;
       case "ask":
       default:
-        welcome = "🤖 Selected: Ask Anything. Ask me about Kiwik developers, project statuses, tech stacks, or latency values!";
+        welcome = "What would you like to know about Kiwik?";
         break;
     }
 
@@ -129,31 +129,29 @@ export function AiRaycastPanel() {
           if (match) {
             const stack = (match.techStack || []).map((t: any) => t?.name).filter(Boolean).slice(0, 6);
             reply =
-              `🤖 **${match.name} Summary**:\n` +
+              `**${match.name}**\n` +
               `- **Status**: ${(match.status || "unknown").replace("-", " ")} (${match.completionPercent ?? 0}% complete)\n` +
               (match.version ? `- **Version**: ${match.version}\n` : "") +
               (stack.length ? `- **Stack**: ${stack.join(", ")}\n` : "") +
               (match.tagline ? `- **Use**: ${match.tagline}` : "");
           } else if (names.length) {
-            reply = `🤖 I can compile summaries for ${names.join(", ")}. Which one would you like to explore?`;
+            reply = `I can tell you about ${names.join(", ")}. Which one?`;
           } else {
-            reply = "🤖 No projects are published yet.";
+            reply = "No projects are published yet.";
           }
-        } else if (activeAction === "health" || lower.includes("deploy") || lower.includes("health") || lower.includes("latency")) {
+        } else if (activeAction === "health" || lower.includes("deploy") || lower.includes("health") || lower.includes("live")) {
           const live = projects.filter((p) => p.deploymentStatus === "live").length;
           reply =
-            `🤖 **Deployment status**:\n- **Projects tracked**: ${projects.length}\n` +
-            `- **Live deployments**: ${live}\n` +
-            `- **Detail**: open any project for its live and source links.`;
+            `**Live now**: ${live} of ${projects.length} projects.\nOpen any project to visit it.`;
         } else if (lower.includes("tech") || lower.includes("stack") || lower.includes("database")) {
           const allStack = Array.from(
             new Set(projects.flatMap((p) => (p.techStack || []).map((t: any) => t?.name)).filter(Boolean))
           ).slice(0, 12);
           reply = allStack.length
-            ? `🤖 **Stack across Kiwik projects**:\n- ${allStack.join("\n- ")}`
-            : "🤖 No stack information is published yet.";
+            ? `**Technology we use**:\n- ${allStack.join("\n- ")}`
+            : "No technology information is published yet.";
         } else {
-          reply = `🤖 Chatbot context active under [${activeActionLabel}]. Ask about project metrics, team credentials, or technical parameters!`;
+          reply = "I can tell you about our projects and services. To talk about your own idea, write to us on the contact page.";
         }
 
         setMessages(prev => [...prev, { sender: "bot", text: reply }]);
@@ -162,7 +160,7 @@ export function AiRaycastPanel() {
 
     } catch (err) {
       console.error("Chat panel error:", err);
-      setMessages(prev => [...prev, { sender: "bot", text: "🤖 Telemetry endpoint disconnected. Please verify connection configurations." }]);
+      setMessages(prev => [...prev, { sender: "bot", text: "Something went wrong. Please try again." }]);
       setLoading(false);
     }
   };
@@ -283,7 +281,7 @@ export function AiRaycastPanel() {
                   className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-divider hover:bg-bg-secondary text-[9px] font-mono text-text-secondary font-semibold"
                 >
                   <LucideIcons.RefreshCw className="w-2.5 h-2.5" />
-                  <span>{dashboardShowcase?.badges?.[2] || "Choose Another Action"}</span>
+                  <span>{dashboardShowcase?.badges?.[2] || "Ask about something else"}</span>
                 </button>
               </motion.div>
             )}

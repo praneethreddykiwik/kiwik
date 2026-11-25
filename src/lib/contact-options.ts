@@ -9,11 +9,14 @@
 
 /** Drawn from the capabilities the site actually advertises. */
 export const SERVICE_OPTIONS = [
-  "AI & Knowledge Systems",
-  "Identity & Security Services",
+  "Website Development",
+  "App Development",
+  "AI Development",
+  "E-commerce",
+  "Software & Product Development",
+  "Cloud & DevOps",
   "Automation & Workflows",
-  "Cloud & DevOps Infrastructure",
-  "Product Engineering",
+  "Security & Identity",
   "Digital Market Partnership",
   "Something else",
 ] as const;

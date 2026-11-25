@@ -1,0 +1,4 @@
+earth-day.webp, earth-night.webp
+Earth textures by Solar System Scope (https://www.solarsystemscope.com/textures/),
+from NASA imagery, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+Resized and converted to WebP.

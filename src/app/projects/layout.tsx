@@ -7,9 +7,9 @@ import { absoluteUrl } from "@/lib/site";
  * verbatim — three indexable pages describing themselves identically, which
  * gives Google nothing to rank any of them on individually.
  */
-const TITLE = "Projects — Digital Products Built on Kiwik";
+const TITLE = "Projects — Products Built by Kiwik";
 const DESCRIPTION =
-  "Every project running on Kiwik, with its status, stack, screenshots and links — each page generated from a single record in the Kiwik CMS.";
+  "The online stores, mobile apps, AI and business platforms designed and built by Kiwik, with screenshots, technology and live links.";
 
 export const metadata: Metadata = {
   title: TITLE,

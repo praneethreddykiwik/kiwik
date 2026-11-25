@@ -1,0 +1,73 @@
+/* Letters carry the logo's ribbon: navy folding into teal, with a dark crease. */
+.word {
+  --navy: #232b62;
+  --mid: #5a6cae;
+  --sky: #8fabd9;
+  --teal: #008080;
+  --crease: #033a35;
+  --ball-hi: #8a8a8e;
+  --ball: #39393c;
+  --ball-lo: #18181a;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  container-type: inline-size;
+  user-select: none;
+}
+:global([data-theme="dark"]) .word {
+  --navy: #3d4b9c;
+  --mid: #6d81c4;
+  --sky: #a9c4ef;
+  --teal: #0a9d99;
+  --crease: #06504a;
+  --ball-hi: #f4f6fa;
+  --ball: #8b909a;
+  --ball-lo: #33363c;
+}
+.letters {
+  display: flex;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: min(33cqw, 29rem);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  /* Playfair's descent is empty under these letters. */
+  margin: -0.06em 0 -0.06em;
+}
+.letter { position: relative; display: block; }
+.ink {
+  display: block;
+  padding: 0 0.02em;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+.ink0 { background-image: linear-gradient(140deg, var(--navy) 22%, var(--mid) 44%, var(--sky) 53%, var(--crease) 54%, var(--teal) 74%); }
+.ink1 { background-image: linear-gradient(180deg, var(--teal) 45%, var(--crease) 92%); }
+.ink2 { background-image: linear-gradient(105deg, var(--navy) 12%, var(--mid) 34%, var(--sky) 46%, var(--navy) 50%, var(--mid) 76%, var(--sky) 92%); }
+.ink3 { background-image: linear-gradient(180deg, var(--teal) 45%, var(--crease) 92%); }
+.ink4 { background-image: linear-gradient(140deg, var(--teal) 30%, var(--crease) 53%, var(--sky) 54%, var(--mid) 64%, var(--navy) 82%); }
+
+/* The i's dots are the logo's two spheres: they blink, and watch the pointer. */
+.ball {
+  position: absolute;
+  left: 50%;
+  top: 0.215em;
+  width: 0.165em;
+  height: 0.165em;
+  margin-left: -0.085em;
+}
+.sphere {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at calc(62% + var(--ex, 0) * 22%) calc(28% + var(--ey, 0) * 22%), var(--ball-hi), var(--ball) 38%, var(--ball-lo) 100%);
+  animation: blink 5.5s infinite;
+}
+@keyframes blink {
+  0%, 95%, 100% { transform: scaleY(1); }
+  97.5% { transform: scaleY(0.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sphere { animation: none; }
+}

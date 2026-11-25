@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Grid3X3, List, Clock, Filter, Search, Sparkles } from "lucide-react";
 import { useProjects } from "@/stores/projects-store";
+import { FEATURED_COPY } from "@/data/home-content";
 import { useSiteCMS } from "@/stores/site-cms-store";
 import { PremiumShowcaseCard } from "@/components/projects/premium-showcase-card";
 import { ProjectCard } from "@/components/projects/project-card";
@@ -68,11 +69,7 @@ export default function ProjectsPage() {
     return result;
   }, [safeProjects, search, statusFilter, categoryFilter, sortMode]);
 
-  const projectsPageCMS = cms.projectsPage || {
-    badgeText: "FEATURED PRODUCTS",
-    title: "Next-Generation Enterprise Stack",
-    description: "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik."
-  };
+  const projectsPageCMS = cms.projectsPage || FEATURED_COPY;
 
   return (
     <div className="min-h-screen pt-24 pb-20 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto select-none">
@@ -87,13 +84,13 @@ export default function ProjectsPage() {
         className="text-center max-w-3xl mx-auto mb-6 space-y-3"
       >
         <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-[#52525B] dark:text-[#A1A1AA]">
-          {projectsPageCMS.badgeText || "FEATURED PRODUCTS"}
+          {projectsPageCMS.badgeText || FEATURED_COPY.badgeText}
         </span>
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-semibold tracking-tight text-[#18181B] dark:text-white leading-[1.05]">
-          {projectsPageCMS.title || "Next-Generation Enterprise Stack"}
+          {projectsPageCMS.title || FEATURED_COPY.title}
         </h1>
         <p className="text-xs sm:text-sm text-[#71717A] dark:text-[#A1A1AA] font-sans font-medium max-w-xl mx-auto">
-          {projectsPageCMS.description || "Explore world-class autonomous systems, managed cloud platforms, payment engines, and developer infrastructure powered by Kiwik."}
+          {projectsPageCMS.description || FEATURED_COPY.description}
         </p>
       </motion.div>
 
@@ -112,7 +109,7 @@ export default function ProjectsPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
           <input 
             type="text" 
-            placeholder="Search products by name or capability..." 
+            placeholder="Search projects by name..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-white/80 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm text-[#18181B] dark:text-white placeholder:text-black/40 dark:placeholder:text-white/40 shadow-sm transition-all"

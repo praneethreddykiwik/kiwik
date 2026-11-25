@@ -35,10 +35,10 @@ export default function GlobalErrorPage({
 
         <div className="space-y-2">
           <h1 className="text-2xl font-serif font-bold text-text-primary tracking-tight">
-            System Diagnostics Notice
+            Something went wrong
           </h1>
           <p className="text-xs text-text-secondary leading-relaxed font-sans">
-            A temporary client rendering variance occurred. The system telemetry engine is fully operational.
+            This page did not load properly. Reload it, or go back to the home page.
           </p>
         </div>
 
@@ -48,7 +48,7 @@ export default function GlobalErrorPage({
             className="w-full py-3 px-5 rounded-2xl bg-accent-blue hover:bg-accent-blue/90 text-white font-bold text-xs flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] shadow-lg shadow-accent-blue/20"
           >
             <RefreshCw className="w-4 h-4 animate-spin-slow" />
-            <span>Reload & Refresh State</span>
+            <span>Reload</span>
           </button>
           
           <Link
@@ -56,7 +56,7 @@ export default function GlobalErrorPage({
             className="w-full py-3 px-5 rounded-2xl bg-bg-tertiary hover:bg-white/10 text-text-primary font-bold text-xs border border-white/10 flex items-center justify-center gap-2 transition-colors"
           >
             <Home className="w-4 h-4" />
-            <span>Return Home</span>
+            <span>Home</span>
           </Link>
         </div>
       </div>

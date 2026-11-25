@@ -5,6 +5,7 @@ import { AnimatePresence, animate, motion, useInView, useMotionValue, useReduced
 import * as LucideIcons from "lucide-react";
 import { Workflow } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PROCESS_BADGE } from "@/data/home-content";
 import { useSiteCMS } from "@/stores/site-cms-store";
 import type { WorkflowStep } from "@/types/site-cms-types";
 
@@ -131,7 +132,7 @@ export function HowWeWorkCycle() {
       <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono font-bold uppercase tracking-wider">
           <Workflow className="w-3.5 h-3.5" />
-          <span>{howWeWork.badge || "Execution Workflow"}</span>
+          <span>{howWeWork.badge || PROCESS_BADGE}</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary tracking-tight">
           {howWeWork.sectionTitle || "How We Work"}

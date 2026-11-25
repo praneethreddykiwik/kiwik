@@ -11,38 +11,38 @@ import { useSiteCMS } from "@/stores/site-cms-store";
 
 // Distinctive, non-generic defaults. Overridable via the admin (cms.partnersPage).
 const DEFAULTS = {
-  eyebrow: "THE ALLIANCE",
-  headline: "We don't chase reach.",
-  headlineAccent: "We compound it.",
+  eyebrow: "DIGITAL MARKET PARTNER",
+  headline: "We grow the brands",
+  headlineAccent: "we build with.",
   subhead:
-    "Kiwik operates as your embedded growth partner — part studio, part signal engine — turning scattered attention into durable momentum for the ventures we back.",
+    "Kiwik works as part of your team: we design the campaign, build the website or app it needs, and keep improving it with you.",
   servicesTitle: "How the partnership works",
-  servicesSub: "Four disciplines, one compounding loop.",
+  servicesSub: "Four things we do for every partner.",
   showcaseEyebrow: "BRAND PARTNERS",
   showcaseTitle: "Brands we build with",
-  showcaseSub: "The partners we back — and the momentum we build with them.",
+  showcaseSub: "Partners we work with today.",
 };
 
 const SERVICES = [
   {
     icon: Radar,
-    name: "Signal Architecture",
-    body: "We map where your audience already leans, then build the shortest path from curiosity to conviction.",
+    name: "Audience research",
+    body: "We find where your customers already are and what brings them to a decision.",
   },
   {
     icon: Layers,
-    name: "Compounding Creative",
-    body: "Assets engineered to age well — each one earns attention and quietly feeds the next.",
+    name: "Creative and content",
+    body: "Campaigns, pages and content designed to keep working after launch.",
   },
   {
     icon: Handshake,
-    name: "Partner Economics",
-    body: "Revenue-aligned affiliate structures where our upside is your growth, never your ad spend.",
+    name: "Shared upside",
+    body: "Affiliate arrangements tied to revenue, so we earn when you grow.",
   },
   {
     icon: Activity,
-    name: "Momentum Ops",
-    body: "Always-on measurement and iteration, so nothing plateaus quietly on our watch.",
+    name: "Measurement",
+    body: "We keep measuring the results and change what is not working.",
   },
 ];
 
@@ -172,10 +172,10 @@ export default function PartnersPage() {
       <section className="px-4 sm:px-6 md:px-10 pb-24 max-w-4xl mx-auto">
         <GlassCard className="p-8 sm:p-12 text-center space-y-4" tilt={false}>
           <h2 className="text-2xl sm:text-3xl font-serif font-bold text-text-primary">
-            Think there's momentum to unlock?
+            Tell us about your brand.
           </h2>
           <p className="text-sm sm:text-base text-text-secondary max-w-xl mx-auto">
-            We take on a small number of partners at a time — enough to stay obsessive about each one.
+            We take on a small number of partners at a time, so each one gets our full attention.
           </p>
           <div className="pt-2">
             {/* The contact page exists now and stores enquiries in the studio

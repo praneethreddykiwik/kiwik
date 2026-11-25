@@ -6,7 +6,7 @@ import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 const TITLE = "Contact Kiwik — Talk to the team";
 const DESCRIPTION =
-  "Get in touch with Kiwik about a project, a partnership, or the platform. Send a message and we'll reply to you directly.";
+  "Tell Kiwik about the website, app, AI system or online store you want to build. Send a message and we'll reply to you directly.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -67,9 +67,8 @@ export default async function ContactPage({
           {/* Server-rendered prose, so this page says something to a crawler
               even before any JavaScript runs. */}
           <p className="mt-5 text-lg leading-relaxed text-text-secondary">
-            Kiwik is the operating system for digital products. Whether you have a project to
-            build, a partnership in mind, or a question about the platform, send it here and it
-            reaches us directly.
+            Tell us about the website, app, AI system or online store you want to build, or ask us
+            about working together. Your message reaches the team directly.
           </p>
         </header>
 
@@ -113,7 +112,7 @@ export default async function ContactPage({
                 <a href="/partners" className="text-accent-blue hover:underline">
                   partner
                 </a>{" "}
-                pages cover what Kiwik runs today.
+                pages show what we have built so far.
               </p>
             </div>
           </aside>

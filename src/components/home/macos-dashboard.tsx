@@ -4,27 +4,22 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Folder, 
-  Activity, 
-  Sparkles, 
-  Settings,
-  LayoutGrid,
+  ArrowRight,
+  Folder,
+  Layers,
+  Workflow,
   Search,
-  Bell,
   ChevronRight,
-  ExternalLink,
-  Monitor,
   Heart,
-  Globe,
-  Database,
-  Code2
+  Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProjects } from "@/stores/projects-store";
 import { ProjectImage } from "@/components/ui/project-image";
+import { DASHBOARD_COPY, PROCESS_STEPS, SERVICES } from "@/data/home-content";
 import { useSiteCMS } from "@/stores/site-cms-store";
 
-type SidebarTab = "overview" | "projects" | "analytics" | "ai" | "settings";
+type SidebarTab = "overview" | "projects" | "services" | "process";
 
 interface DashboardProject {
   name: string;
@@ -41,18 +36,15 @@ interface DashboardProject {
 export function MacosDashboard() {
   const [activeTab, setActiveTab] = useState<SidebarTab>("projects");
   const [searchQuery, setSearchQuery] = useState("");
-  const [favorites, setFavorites] = useState<string[]>(["Kiwik.1"]);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   const cms = useSiteCMS();
   const dashboardShowcase = cms.dashboardShowcase || {
-    sectionTitle: "KIWIK OS Kernel",
-    searchPlaceholder: "Search projects, commands...",
-    kernelStatusText: "OS Kernel Active",
-    systemCoreTechs: ["Next.js", "React", "TS TypeScript", "Tailwind CSS", "Prisma", "PostgreSQL", "Vercel"],
-    sectionSubtitle: "Unified Control & Edge Telemetry Console",
-    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
-    labels: ["Kiwik OS", "Telemetry Status", "OS Kernel Active", "System Core:"]
+    ...DASHBOARD_COPY,
+    searchPlaceholder: "Search projects...",
   };
+  const services = (cms.capabilities?.items || SERVICES).filter((item) => item.visible !== false);
+  const steps = cms.howWeWork?.steps?.length ? cms.howWeWork.steps : PROCESS_STEPS;
 
   React.useEffect(() => {
     const handleSwitchTab = (e: Event) => {
@@ -79,7 +71,7 @@ export function MacosDashboard() {
     slug: p.slug,
     name: p.name,
     tagline: p.tagline || p.description,
-    status: (p.status === "completed" ? "live" : "beta") as "live" | "beta" | "in-progress",
+    status: (p.status === "completed" ? "live" : "in-progress") as "live" | "beta" | "in-progress",
     percent: p.completionPercent || 100,
     category: p.category,
     image: p.coverImage || getProjectImage(p.slug),
@@ -103,9 +95,8 @@ export function MacosDashboard() {
   const sidebarItems = [
     { id: "overview", label: "Overview", icon: <Globe className="w-3.5 h-3.5" /> },
     { id: "projects", label: "Projects", icon: <Folder className="w-3.5 h-3.5" /> },
-    { id: "analytics", label: "Analytics", icon: <Activity className="w-3.5 h-3.5" /> },
-    { id: "ai", label: "AI Assistant", icon: <Sparkles className="w-3.5 h-3.5" /> },
-    { id: "settings", label: "Settings", icon: <Settings className="w-3.5 h-3.5" /> }
+    { id: "services", label: "Services", icon: <Layers className="w-3.5 h-3.5" /> },
+    { id: "process", label: "How we work", icon: <Workflow className="w-3.5 h-3.5" /> }
   ] as const;
 
   return (
@@ -122,7 +113,7 @@ export function MacosDashboard() {
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 cursor-pointer hover:opacity-80" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 cursor-pointer hover:opacity-80" />
               <span className="ml-3 text-[10px] font-mono text-text-secondary select-none font-bold uppercase tracking-wider">
-                {dashboardShowcase.labels?.[0] || "Kiwik OS"}
+                {dashboardShowcase.labels?.[0] || DASHBOARD_COPY.labels[0]}
               </span>
             </div>
 
@@ -159,11 +150,11 @@ export function MacosDashboard() {
 
           <div className="p-3.5 rounded-xl bg-bg-primary/40 border border-glass-border select-none">
             <span className="text-[9px] font-mono text-text-secondary uppercase tracking-widest font-bold block mb-1">
-              {dashboardShowcase.labels?.[1] || "Telemetry Status"}
+              {dashboardShowcase.labels?.[1] || DASHBOARD_COPY.labels[1]}
             </span>
             <div className="flex items-center gap-1.5 text-xs text-text-primary font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>{dashboardShowcase.kernelStatusText || "OS Kernel Active"}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>{dashboardShowcase.kernelStatusText || `${projects.filter((p) => p.status === "live").length} live, ${projects.filter((p) => p.status !== "live").length} in progress`}</span>
             </div>
           </div>
         </aside>
@@ -177,27 +168,16 @@ export function MacosDashboard() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary" />
               <input
                 type="text"
-                placeholder={dashboardShowcase.searchPlaceholder || "Search projects, commands..."}
+                placeholder={dashboardShowcase.searchPlaceholder || "Search projects..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 rounded-full bg-neutral-200/40 dark:bg-white/5 border border-glass-border focus:outline-none focus:border-accent-blue text-xs font-semibold transition-all"
               />
             </div>
 
-            <div className="flex items-center gap-3">
-              <button className="p-2 rounded-xl bg-glass-bg border border-glass-border hover:bg-glass-bg-hover text-text-secondary hover:text-text-primary transition-colors">
-                <LayoutGrid className="w-3.5 h-3.5" />
-              </button>
-              <button className="p-2 rounded-xl bg-glass-bg border border-glass-border hover:bg-glass-bg-hover text-text-secondary hover:text-text-primary transition-colors relative">
-                <Bell className="w-3.5 h-3.5" />
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-rose-500" />
-              </button>
-              <img 
-                src={dashboardShowcase.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"} 
-                alt="Profile Avatar" 
-                className="w-7 h-7 rounded-full border border-glass-border object-cover" 
-              />
-            </div>
+            <Link href="/contact" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-text-primary text-bg-primary text-xs font-bold hover:opacity-85 transition-opacity">
+              Start a project <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           {/* Main content body view tabs switch */}
@@ -240,7 +220,7 @@ export function MacosDashboard() {
                                 "w-1.5 h-1.5 rounded-full",
                                 p.status === "live" ? "bg-emerald-500" : "bg-amber-500"
                               )} />
-                              <span className="text-[8px] font-mono font-bold capitalize text-text-primary">{p.status}</span>
+                              <span className="text-[8px] font-mono font-bold capitalize text-text-primary">{p.status.replace("-", " ")}</span>
                             </div>
 
                             {/* Favorite Button */}
@@ -264,8 +244,8 @@ export function MacosDashboard() {
                             </div>
 
                             <div className="pt-2 border-t border-divider flex items-center justify-between text-[9px] font-mono font-bold text-text-secondary select-none">
-                              <span>COMPLETION</span>
-                              <span className="text-accent-blue">{p.percent}%</span>
+                              <span>TYPE</span>
+                              <span className="text-accent-blue uppercase">{p.category}</span>
                             </div>
                           </div>
                         </Link>
@@ -283,37 +263,41 @@ export function MacosDashboard() {
                   className="space-y-4 text-left p-4 rounded-2xl bg-bg-secondary/20 border border-glass-border max-w-xl animate-fade-in"
                 >
                   <h3 className="text-sm font-bold text-text-primary">
-                    {dashboardShowcase.sectionTitle || "Kiwik OS Control Console"}
+                    {dashboardShowcase.sectionTitle || DASHBOARD_COPY.sectionTitle}
                   </h3>
                   <p className="text-xs text-text-secondary leading-relaxed">
-                    {dashboardShowcase.sectionSubtitle || "This operating cockpit connects all platforms. Use the left menu tab switcher to explore documentation libraries, deployment logs, and system settings files."}
+                    {dashboardShowcase.sectionSubtitle || DASHBOARD_COPY.sectionSubtitle}
                   </p>
                   <div className="grid grid-cols-3 gap-3 pt-2">
-                    <div className="p-3 rounded-xl bg-glass-bg border border-glass-border text-center">
-                      <div className="text-lg font-bold text-accent-blue">{projects.length}</div>
-                      <div className="text-[9px] text-text-secondary uppercase">Projects</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-glass-bg border border-glass-border text-center">
-                      <div className="text-lg font-bold text-emerald-500">99.9%</div>
-                      <div className="text-[9px] text-text-secondary uppercase">Uptime</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-glass-bg border border-glass-border text-center">
-                      <div className="text-lg font-bold text-purple-500">14ms</div>
-                      <div className="text-[9px] text-text-secondary uppercase">Latency</div>
-                    </div>
+                    {[
+                      { value: projects.length, label: "Projects", color: "text-accent-blue" },
+                      { value: projects.filter((p) => p.status === "live").length, label: "Live", color: "text-emerald-500" },
+                      { value: services.length, label: "Services", color: "text-purple-500" },
+                    ].map((fact) => (
+                      <div key={fact.label} className="p-3 rounded-xl bg-glass-bg border border-glass-border text-center">
+                        <div className={cn("text-lg font-bold", fact.color)}>{fact.value}</div>
+                        <div className="text-[11px] text-text-secondary">{fact.label}</div>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
 
-              {activeTab !== "projects" && activeTab !== "overview" && (
-                <motion.div
+              {(activeTab === "services" || activeTab === "process") && (
+                <motion.ul
+                  key={activeTab}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="text-center p-12 text-xs text-text-secondary font-mono"
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                 >
-                  📡 Section active inside central Kiwik.1 kernel.
-                </motion.div>
+                  {(activeTab === "services" ? services : steps).map((item) => (
+                    <li key={item.id} className="p-4 rounded-2xl bg-bg-secondary/20 border border-glass-border text-left">
+                      <h3 className="text-sm font-bold text-text-primary">{item.title}</h3>
+                      <p className="mt-1 text-xs text-text-secondary leading-relaxed">{item.desc}</p>
+                    </li>
+                  ))}
+                </motion.ul>
               )}
             </AnimatePresence>
           </div>

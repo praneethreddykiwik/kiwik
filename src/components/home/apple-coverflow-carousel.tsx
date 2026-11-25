@@ -180,80 +180,10 @@ export function AppleCoverflowCarousel() {
                   </div>
                 )}
 
-                {/* Visual Variant per Category */}
-                {!project.coverImage && (project.category || "").toLowerCase() === "ai" && (
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    <div className="w-44 h-44 sm:w-60 sm:h-60 rounded-full bg-gradient-to-tr from-purple-600 via-rose-600 to-amber-500 opacity-80 blur-xl" />
-                    <div className="absolute w-36 h-36 sm:w-48 sm:h-48 rounded-full bg-gradient-to-br from-purple-500 via-rose-500 to-amber-400 shadow-[0_0_80px_rgba(168,85,247,0.6)] flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-                      <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center">
-                        <Cpu className="w-10 h-10 text-purple-300" />
-                      </div>
-                    </div>
-                    {/* Audio Bar Overlay */}
-                    <div className="absolute bottom-6 left-6 right-6 px-4 py-3 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/20 flex items-center justify-between shadow-2xl">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-mono text-white/90 font-semibold">02:04 Neural Operations Assistant</span>
-                      </div>
-                      <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-[10px] font-mono text-purple-300 font-bold">● Active Agent</span>
-                    </div>
-                  </div>
-                )}
-
-                {!project.coverImage && (project.category || "").toLowerCase() === "cloud" && (
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-950 via-slate-900 to-slate-950 opacity-90" />
-                    <div className="w-52 h-52 rounded-3xl bg-gradient-to-br from-blue-600/30 to-indigo-900/40 border border-blue-500/20 rotate-12" />
-                    <div className="relative z-10 w-[88%] p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/20 shadow-2xl space-y-3">
-                      <div className="flex items-center justify-between text-xs font-mono">
-                        <span className="text-white/60">Cluster Telemetry</span>
-                        <span className="text-emerald-400 font-bold">99.98% UPTIME</span>
-                      </div>
-                      <div className="text-3xl font-bold font-mono text-white tracking-tight">47 Active Nodes</div>
-                      <div className="h-16 w-full pt-2">
-                        <svg className="w-full h-full overflow-visible" viewBox="0 0 200 40">
-                          <path d="M 0 30 Q 30 10, 60 25 T 120 15 T 180 5 L 200 2" fill="none" stroke="#3B82F6" strokeWidth="3" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {!project.coverImage && (project.category || "").toLowerCase() === "payments" && (
-                  <div className="relative w-full h-full flex items-center justify-center p-4">
-                    <div className="w-full h-full p-5 rounded-2xl bg-[#090A0F] border border-white/15 flex flex-col justify-between">
-                      <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                        </div>
-                        <span className="text-xs font-mono text-white/50">kiwik-settlement.enc</span>
-                        <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                      </div>
-                      <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-                        <div>
-                          <span className="text-xs font-mono text-white/50 uppercase">Total Settled Volume</span>
-                          <h4 className="text-2xl font-bold font-mono text-white">$1,420,890.00</h4>
-                        </div>
-                        <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold">● Active Ledger</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {!project.coverImage && (project.category || "").toLowerCase() !== "ai" && (project.category || "").toLowerCase() !== "cloud" && (project.category || "").toLowerCase() !== "payments" && (
-                  <div className="relative w-full h-full flex items-center justify-center p-4">
-                    <div className="w-full h-full p-5 rounded-2xl bg-[#0B0C10] border border-white/15 font-mono text-xs text-white/80 flex flex-col justify-between">
-                      <div className="flex items-center gap-2 pb-2 border-b border-white/10 text-white/40">
-                        <Terminal className="w-4 h-4 text-sky-400" />
-                        <span>kiwik-command-hub</span>
-                      </div>
-                      <div className="space-y-2 my-auto">
-                        <p className="text-emerald-400">✓ All pipelines operational</p>
-                        <p className="text-sky-300">⚡ Real-time edge latency: 14ms</p>
-                        <p className="text-white/60">→ Synchronized with Admin CMS</p>
-                      </div>
-                    </div>
+                {/* No cover art yet: the project's own name, never an invented screen. */}
+                {!project.coverImage && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#232b62] to-[#033a35] p-8">
+                    <span className="text-4xl sm:text-6xl font-serif font-bold text-white text-center text-balance">{project.name}</span>
                   </div>
                 )}
 
@@ -301,7 +231,7 @@ export function AppleCoverflowCarousel() {
                     href={`/projects/${project.slug}`}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black font-sans font-bold text-xs hover:bg-white/90 transition-all shadow-md group-hover:scale-105"
                   >
-                    <span>Explore Platform</span>
+                    <span>See the project</span>
                     <ArrowUpRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>

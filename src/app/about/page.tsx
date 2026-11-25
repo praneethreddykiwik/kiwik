@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
+import { PROCESS_STEPS, SERVICES } from "@/data/home-content";
 import { getPublicProjects } from "@/lib/seo-data";
 
 export const dynamic = "force-dynamic";
 
-const TITLE = "About Kiwik — The Operating System for Digital Products";
+const TITLE = "About Kiwik — Software, App and AI Development";
 const DESCRIPTION =
-  "Kiwik is the operating system for digital products. Learn what Kiwik is, what Kiwik OS does, the projects it runs, and the technology behind it.";
+  "Kiwik designs, builds and supports websites, mobile apps, AI systems and online stores. What we do, how we work and the products we have built.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -36,38 +37,29 @@ export default async function AboutPage() {
         </h1>
 
         <p className="text-lg text-text-secondary leading-relaxed">
-          Kiwik is the operating system for digital products. It brings projects,
-          documentation, AI assistance, cloud infrastructure, automation, deployments and
-          engineering workflows into one unified workspace, so the work and the record of
-          the work live in the same place.
+          Kiwik designs, builds and supports software for businesses: websites, mobile apps, AI
+          systems, online stores and custom platforms.
         </p>
 
-        <h2>What Kiwik is</h2>
-        <p>
-          Most teams keep their products in one system, their documentation in another and
-          their operational knowledge in a third. Kiwik exists to collapse that. Every
-          project has a single page that carries its description, status, stack,
-          screenshots and links — and that page is generated from one record, edited once,
-          in the Kiwik CMS.
-        </p>
+        <h2>What we build</h2>
+        <ul>
+          {SERVICES.map((s) => (
+            <li key={s.id}>
+              <strong>{s.title}.</strong> {s.desc}
+            </li>
+          ))}
+        </ul>
 
-        <h2>Kiwik OS and Kiwik.1</h2>
-        <p>
-          <strong>Kiwik OS</strong> is the platform layer: the content model, the admin
-          studio, the search, the AI assistant and the publishing pipeline.{" "}
-          <strong>Kiwik.1</strong> is the current generation of that platform — the version
-          running this site.
-        </p>
+        <h2>How we work</h2>
+        <ol>
+          {PROCESS_STEPS.map((s) => (
+            <li key={s.id}>
+              <strong>{s.title}.</strong> {s.desc}
+            </li>
+          ))}
+        </ol>
 
-        <h2>Who Kiwik is for</h2>
-        <p>
-          Kiwik is built for teams who ship digital products and are tired of their work
-          living in one tool and the record of it in another. Work delivered for partners
-          is published through the same system, so what you see on this site is the
-          platform describing itself.
-        </p>
-
-        <h2>Projects in the ecosystem</h2>
+        <h2>Products we have built</h2>
         {projects.length > 0 ? (
           <ul>
             {projects.map((p) => (
@@ -78,31 +70,19 @@ export default async function AboutPage() {
             ))}
           </ul>
         ) : (
-          <p>Projects are published from the Kiwik CMS and appear here automatically.</p>
+          <p>Our projects will appear here soon.</p>
         )}
-
-        <h2>Technology</h2>
-        <p>
-          Kiwik is built on Next.js, React and TypeScript with Tailwind CSS, backed by
-          PostgreSQL, and deployed on Vercel. The assistant runs on a hosted language model
-          constrained to the site&apos;s own project data, so it answers from what is
-          actually published rather than from guesswork.
-        </p>
-
-        <h2>Who it&apos;s for</h2>
-        <p>
-          Teams that ship digital products and want one authoritative place for what
-          exists, what state it is in, and how it works — without maintaining that record
-          by hand in three different tools.
-        </p>
 
         <h2>Where to go next</h2>
         <ul>
           <li>
-            <Link href="/projects">Projects</Link> — everything currently published.
+            <Link href="/projects">Projects</Link>: see what we have built.
           </li>
           <li>
-            <Link href="/partners">Digital Market Partner</Link> — brands built with Kiwik.
+            <Link href="/partners">Digital Market Partner</Link>: brands we work with.
+          </li>
+          <li>
+            <Link href="/contact">Contact</Link>: tell us about your project.
           </li>
         </ul>
       </article>

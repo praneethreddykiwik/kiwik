@@ -185,7 +185,7 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
                 {project.liveUrl && (
                   <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-xl bg-accent-blue hover:bg-accent-blue/90 text-white text-xs font-bold transition-all shadow-lg shadow-accent-blue/20 flex items-center gap-2">
                     {renderIcon(project.heroCta1Icon, "w-4 h-4")}
-                    <span>{project.heroCta1Text || "Launch Live Application"}</span>
+                    <span>{project.heroCta1Text || "Visit the live product"}</span>
                   </a>
                 )}
 
@@ -235,30 +235,12 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
                 )}
                 <div>
                   <h3 className="font-bold text-text-primary">{project.name}</h3>
-                  <span className="text-xs text-text-secondary font-mono">{project.owner || "Kiwik Core Team"}</span>
+                  <span className="text-xs text-text-secondary font-mono">{project.owner || "Kiwik"}</span>
                 </div>
               </div>
 
-              {/* Only real figures. Stars/forks/views used to fall back to 142,
-                  28 and 4820 — invented numbers shown even for a project with no
-                  repository at all. A metric with no value is now simply absent. */}
+              {/* Only what a client can use: no star or fork counts. */}
               <div className="grid grid-cols-2 gap-4 py-2">
-                {typeof project.stars === "number" && (
-                  <div>
-                    <span className="text-[10px] font-mono text-text-secondary uppercase block">Stars</span>
-                    <span className="text-sm font-bold font-mono text-text-primary flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> {project.stars}
-                    </span>
-                  </div>
-                )}
-                {typeof project.forks === "number" && (
-                  <div>
-                    <span className="text-[10px] font-mono text-text-secondary uppercase block">Forks</span>
-                    <span className="text-sm font-bold font-mono text-text-primary flex items-center gap-1">
-                      <GitFork className="w-3.5 h-3.5 text-accent-blue" /> {project.forks}
-                    </span>
-                  </div>
-                )}
                 {typeof project.completionPercent === "number" && (
                   <div>
                     <span className="text-[10px] font-mono text-text-secondary uppercase block">Completion</span>
@@ -275,7 +257,7 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
 
               {project.quickActions && project.quickActions.length > 0 && (
                 <div className="pt-3 border-t border-white/10 space-y-2">
-                  <span className="text-[10px] font-mono font-bold text-text-secondary uppercase block">Quick Actions</span>
+                  <span className="text-[10px] font-mono font-bold text-text-secondary uppercase block">Links</span>
                   <div className="flex flex-wrap gap-2">
                     {project.quickActions.filter(a => a.visible !== false).map(act => (
                       <a key={act.label} href={act.externalUrl || act.route || "#"} target={act.newTab ? "_blank" : "_self"} rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg bg-bg-tertiary hover:bg-white/10 text-xs font-medium text-text-primary border border-white/10 flex items-center gap-1.5 transition-colors">
@@ -301,7 +283,7 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
             { id: "timeline", label: `Timeline (${project.timeline?.length || 0})`, icon: <Clock className="w-4 h-4" /> },
             { id: "contributors", label: `Team (${project.contributors?.length || 0})`, icon: <Users className="w-4 h-4" /> },
             { id: "readme", label: "Documentation", icon: <Code className="w-4 h-4" /> }
-          ].map(tab => (
+          ].filter(tab => !tab.label.endsWith("(0)") && (tab.id !== "readme" || project.readme || project.architecture)).map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -323,7 +305,7 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
             <div className="space-y-8">
               <div className="p-8 rounded-3xl bg-bg-secondary/60 border border-white/10 backdrop-blur-xl space-y-4">
                 <h3 className="text-2xl font-bold font-serif text-text-primary">
-                  {project.overviewHeading || "System Specification Overview"}
+                  {project.overviewHeading || "Overview"}
                 </h3>
                 <p className="text-text-secondary leading-relaxed font-sans text-base">
                   {project.overviewParagraph || project.longDescription || project.description}
@@ -425,7 +407,7 @@ export function ProjectDetailContent({ projectOverride }: { projectOverride?: Pr
           {activeTab === "readme" && (
             <div className="p-8 rounded-3xl bg-bg-secondary/60 border border-white/10 backdrop-blur-xl prose prose-invert max-w-none">
               <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
-                {project.readme || project.architecture || "# Documentation\n\nNo detailed Markdown documentation provided for this project entity yet."}
+                {project.readme || project.architecture || "# Documentation\n\nNothing has been added yet."}
               </ReactMarkdown>
             </div>
           )}

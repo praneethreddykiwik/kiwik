@@ -1,7 +1,7 @@
 {
-  "name": "Kiwik — The Operating System for Digital Products",
+  "name": "Kiwik — Software, App and AI Development",
   "short_name": "Kiwik",
-  "description": "Kiwik is the operating system for digital products — projects, documentation, AI, cloud infrastructure, automation and deployments in one workspace.",
+  "description": "Kiwik designs, builds and supports websites, mobile apps, AI systems, online stores and custom software for businesses.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

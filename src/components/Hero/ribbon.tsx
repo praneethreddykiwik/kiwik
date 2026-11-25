@@ -2,14 +2,15 @@
 
 import React, { useEffect, useRef } from "react";
 import { useSiteCMS } from "@/stores/site-cms-store";
+import { galleryTitle } from "@/data/home-content";
 
-// 24 Curated Unique High-Resolution Art-Directed Tech Gallery Pool (AI, Blockchain, Cyber Security, Quantum)
+// Shown when the studio has no gallery of its own.
 const MASTER_GALLERY_POOL = [
   { url: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop", title: "Neon AI Synapses", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=600&auto=format&fit=crop", title: "Cryptographic Web3 Node", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=600&auto=format&fit=crop", title: "Cyber Shield Matrix", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop", title: "Quantum Prism Wave", linkUrl: "/projects" },
-  { url: "https://images.unsplash.com/photo-1677442136019-21780efad99a?q=80&w=600&auto=format&fit=crop", title: "AI Neural Core", linkUrl: "/projects" },
+  { url: "https://images.unsplash.com/photo-1674027444485-cec3da58eef4?q=80&w=600&auto=format&fit=crop", title: "AI Neural Core", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop", title: "Holographic Data Laser", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=600&auto=format&fit=crop", title: "Rainbow Fiber Telemetry", linkUrl: "/projects" },
   { url: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?q=80&w=600&auto=format&fit=crop", title: "Cybernetic Microchip", linkUrl: "/projects" },
@@ -124,7 +125,7 @@ export function ImageRibbon() {
         lane: "left",
         progress,
         imageUrl: img.url,
-        title: img.title || "Technology Showcase",
+        title: galleryTitle(img.title) || "Software by Kiwik",
         linkUrl: img.linkUrl || "/projects",
         rotation: 0,
       });
@@ -138,7 +139,7 @@ export function ImageRibbon() {
         lane: "right",
         progress,
         imageUrl: img.url,
-        title: img.title || "Technology Showcase",
+        title: galleryTitle(img.title) || "Software by Kiwik",
         linkUrl: img.linkUrl || "/projects",
         rotation: 0,
       });
@@ -187,7 +188,7 @@ export function ImageRibbon() {
           const newImg = getNextUniqueImage();
           card.progress = p - 1.0;
           card.imageUrl = newImg.url;
-          card.title = newImg.title || "Technology Showcase";
+          card.title = galleryTitle(newImg.title) || "Software by Kiwik";
           card.linkUrl = newImg.linkUrl || "/projects";
 
           const imgEl = imageElementRefs.current[i];
@@ -315,7 +316,7 @@ export function ImageRibbon() {
                 }}
                 className="text-[10px] sm:text-xs font-bold font-sans truncate"
               >
-                {MASTER_GALLERY_POOL[idx % MASTER_GALLERY_POOL.length]?.title || "Technology Showcase"}
+                {galleryTitle(MASTER_GALLERY_POOL[idx % MASTER_GALLERY_POOL.length]?.title)}
               </span>
               <span className="text-[9px] sm:text-[10px] font-mono text-accent-blue underline">Open ↗</span>
             </div>

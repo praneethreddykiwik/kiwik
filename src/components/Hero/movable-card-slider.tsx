@@ -5,69 +5,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useProjects } from "@/stores/projects-store";
 import { useSiteCMS } from "@/stores/site-cms-store";
 import { MovableSliderCard } from "@/types/site-cms-types";
 
-// Curated Brand AI Models matching the reference screenshot
-const AI_MODELS: MovableSliderCard[] = [
-  {
-    id: "heygen",
-    name: "HeyGen",
-    tag: "Avatar & Video Synthesis",
-    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop",
-    gradient: "from-amber-600/30 to-rose-600/30",
-  },
-  {
-    id: "vidu",
-    name: "Vidu",
-    tag: "High-Fidelity Motion",
-    image: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600&auto=format&fit=crop",
-    gradient: "from-emerald-600/30 to-teal-600/30",
-  },
-  {
-    id: "meta",
-    name: "Meta",
-    tag: "Movie Gen 3D",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
-    gradient: "from-blue-600/30 to-indigo-600/30",
-  },
-  {
-    id: "x1",
-    name: "x1",
-    tag: "Grok Vision Engine",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
-    gradient: "from-orange-600/30 to-amber-600/30",
-  },
-  {
-    id: "lightricks",
-    name: "Lightricks",
-    tag: "LTX Video Generator",
-    image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=600&auto=format&fit=crop",
-    gradient: "from-sky-600/30 to-blue-600/30",
-  },
-  {
-    id: "runway",
-    name: "Runway Gen-3",
-    tag: "Cinematic World Models",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
-    gradient: "from-purple-600/30 to-indigo-600/30",
-  },
-  {
-    id: "midjourney",
-    name: "Midjourney v6",
-    tag: "Photorealistic AI Art",
-    image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&auto=format&fit=crop",
-    gradient: "from-pink-600/30 to-purple-600/30",
-  }
-];
-
 export function MovableCardSlider() {
   const cms = useSiteCMS();
-  const displayCards = (cms.projectsPage?.sliderCards && cms.projectsPage.sliderCards.length > 0)
+  const projects = useProjects();
+  // Kiwik's own projects, unless the studio has its own cards.
+  const displayCards: MovableSliderCard[] = cms.projectsPage?.sliderCards?.length
     ? cms.projectsPage.sliderCards
-    : AI_MODELS;
+    : projects.filter((p) => p.coverImage).map((p) => ({
+        id: p.slug,
+        name: p.name,
+        tag: p.tagline || "",
+        image: p.coverImage as string,
+        domain: p.liveUrl ? p.liveUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/.*$/, "") : `kiwik.one/projects/${p.slug}`,
+        gradient: "",
+      }));
 
-  const [activeIndex, setActiveIndex] = useState(2); // Center card index
+  const [activeIndex, setActiveIndex] = useState(1);
   const [dragStartX, setDragStartX] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -189,7 +146,7 @@ export function MovableCardSlider() {
               <div className="px-3.5 py-2.5 bg-[#181924] border-b border-white/10 flex items-center justify-between">
                 <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
                 <span className="text-[9px] font-mono text-white/30 tracking-wider">
-                  {(model.domain || `${model.name.toLowerCase()}.ai`)}
+                  {model.domain || ""}
                 </span>
                 <div className="w-2" />
               </div>
@@ -206,12 +163,12 @@ export function MovableCardSlider() {
                 {/* Dark Gradient Overlay */}
                 <div className={cn("absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent")} />
 
-                {/* Center Brand Text Overlay (e.g. HeyGen, Vidu, Meta, x1, Lightricks) */}
+                {/* Name */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10">
                   <h3 className="text-2xl sm:text-3xl font-bold font-sans tracking-tight text-white drop-shadow-md group-hover:scale-105 transition-transform">
                     {model.name}
                   </h3>
-                  <span className="text-[10px] font-mono font-medium text-white/70 mt-1 bg-black/40 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10">
+                  <span className="text-[10px] font-mono font-medium text-white/70 mt-1 bg-black/40 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 max-w-full line-clamp-2">
                     {model.tag}
                   </span>
                 </div>

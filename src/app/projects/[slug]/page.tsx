@@ -49,11 +49,18 @@ export async function generateStaticParams() {
 // A slug added after the build still renders on demand, then is cached.
 export const dynamicParams = true;
 
+/** The studio's sample description, for projects where nobody has replaced it. */
+function withoutPlaceholder<T extends { description?: string; tagline?: string }>(project: T | null): T | null {
+  return project?.description && /will be updated here/i.test(project.description)
+    ? { ...project, description: undefined }
+    : project;
+}
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const project = await getProjectBySlug(slug);
+  const project = withoutPlaceholder(await getProjectBySlug(slug));
 
   if (!project) {
     return {
@@ -70,7 +77,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     seo.description ||
     project.description ||
     project.tagline ||
-    `${project.name} — a project built and run on Kiwik.`;
+    `${project.name} — a project built by Kiwik.`;
   const image = seo.ogImage || project.coverImage;
 
   return {
@@ -101,7 +108,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProjectDetailPage({ params }: Props) {
   const { slug } = await params;
-  const project = await getProjectBySlug(slug);
+  const project = withoutPlaceholder(await getProjectBySlug(slug));
   // An unknown slug must be a real 404. Previously the client view rendered a
   // soft "not found" panel at HTTP 200, which lets search engines index dead
   // URLs and hides broken links from monitoring.

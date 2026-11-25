@@ -26,7 +26,7 @@ export function AIChatbot() {
     {
       id: "welcome",
       sender: "bot",
-      text: "Hello! I am Kiwik.1 AI assistant. Ask me anything about Kiwik's projects, tech stack, or team members. You can also use the microphone to talk to me!",
+      text: "Hello! I'm the Kiwik assistant. Ask me about our projects and the services we offer. You can also use the microphone to talk to me.",
       timestamp: new Date(),
     },
   ]);
@@ -228,9 +228,9 @@ export function AIChatbot() {
     // 3. Handle list queries ("list all the projects", etc.)
     const isListQuery = query.includes("list") || query.includes("all projects") || query.includes("all the projects") || query.includes("what are the projects") || query.includes("projects mentioned") || query.includes("show all");
     if (isListQuery) {
-      text = `Here is a complete list of the **${projects.length} Kiwik projects** currently active:\n\n` +
+      text = `These are the **${projects.length} projects** built by Kiwik:\n\n` +
         projects.map((p, i) => `${i + 1}. **${p.name}** (${p.category}) — *${p.tagline}*`).join("\n") +
-        `\n\nAsk me about any specific project or their tech stack to get live telemetry!`;
+        `\n\nAsk me about any of them to learn more.`;
       return { text, matchedProjects: projects };
     }
 
@@ -249,10 +249,10 @@ export function AIChatbot() {
 
       const uniqueContributors = Array.from(allContributorsMap.values());
       if (uniqueContributors.length > 0) {
-        text = `Here is our team and contributors who engineered the projects:\n\n` + 
+        text = `These people worked on the projects:\n\n` + 
           uniqueContributors.map(c => `* **${c.name}** (${c.role}) — Worked on: *${c.projects.join(", ")}*`).join("\n");
       } else {
-        text = "Our systems indicate the projects are engineered and maintained by **Kiwik Core Team**.";
+        text = "The projects are designed, built and supported by the **Kiwik team**.";
       }
       return { text, matchedProjects };
     }
@@ -274,7 +274,7 @@ export function AIChatbot() {
 
     if (directMatch) {
       matchedProjects = [directMatch];
-      text = `Here are details on **${directMatch.name}** (${directMatch.category} project, v${directMatch.version || "1.0.0"}): \n\n* **Status**: ${(directMatch.status || "").replace("-", " ")} (${directMatch.completionPercent}% complete)\n* **Tagline**: ${directMatch.tagline}\n* **Stack**: ${(directMatch.techStack || []).map(t => t.name).join(", ")}\n\nYou can click below to explore its live edge monitor or full documentation.`;
+      text = `Here are details on **${directMatch.name}** (${directMatch.category} project, v${directMatch.version || "1.0.0"}): \n\n* **Status**: ${(directMatch.status || "").replace("-", " ")} (${directMatch.completionPercent}% complete)\n* **Tagline**: ${directMatch.tagline}\n* **Stack**: ${(directMatch.techStack || []).map(t => t.name).join(", ")}\n\nOpen the project below to see more.`;
       return { text, matchedProjects };
     }
 
@@ -290,10 +290,10 @@ export function AIChatbot() {
     if (query.includes("readme") || query.includes("documentation") || query.includes("doc")) {
       const matched = results.length > 0 ? results[0].item : null;
       if (matched) {
-        text = `Here is a summary of the **README.md** documentation for **${matched.name}**:\n\n* **Description**: ${matched.description}\n* **Key Stack**: ${(matched.techStack || []).slice(0, 5).map((t: any) => t.name).join(", ")}\n* **Details**: Check out the full markdown tab on its detail page below!`;
+        text = `Here is a summary of **${matched.name}**:\n\n* **Description**: ${matched.description}\n* **Key Stack**: ${(matched.techStack || []).slice(0, 5).map((t: any) => t.name).join(", ")}`;
         return { text, matchedProjects: [matched] };
       } else {
-        text = `Which project's README would you like to explore?${projects.length ? ` (e.g. ${projects.slice(0, 3).map(p => p.name).join(", ")})` : ""}`;
+        text = `Which project would you like to read about?${projects.length ? ` (e.g. ${projects.slice(0, 3).map(p => p.name).join(", ")})` : ""}`;
         return { text, matchedProjects };
       }
     }
@@ -303,9 +303,9 @@ export function AIChatbot() {
     if (isTechQuery) {
       const targets = results.length > 0 ? results.map(r => r.item) : projects;
       matchedProjects = targets.slice(0, 4);
-      text = `Here is the tech stack used in our key projects:\n\n` +
+      text = `This is the technology behind our projects:\n\n` +
         matchedProjects.map(p => `* **${p.name}**: uses *${(p.techStack || []).map((t: any) => t.name).slice(0, 6).join(", ")}*`).join("\n") +
-        `\n\nExplore any of these projects below for detailed telemetry!`;
+        `\n\nOpen any project below to see more.`;
       return { text, matchedProjects };
     }
 
@@ -313,15 +313,15 @@ export function AIChatbot() {
     if (results.length > 0) {
       const match = results[0].item;
       matchedProjects = [match];
-      text = `Here are details on **${match.name}** (${match.category} project, v${match.version || "1.0.0"}): \n\n* **Status**: ${(match.status || "").replace("-", " ")} (${match.completionPercent}% complete)\n* **Tagline**: ${match.tagline}\n* **Stack**: ${(match.techStack || []).map(t => t.name).join(", ")}\n\nYou can click below to explore its live edge monitor or full documentation.`;
+      text = `Here are details on **${match.name}** (${match.category} project, v${match.version || "1.0.0"}): \n\n* **Status**: ${(match.status || "").replace("-", " ")} (${match.completionPercent}% complete)\n* **Tagline**: ${match.tagline}\n* **Stack**: ${(match.techStack || []).map(t => t.name).join(", ")}\n\nOpen the project below to see more.`;
       return { text, matchedProjects };
     }
 
     // Fallbacks
     if (query.includes("hello") || query.includes("hi ") || query.includes("hey")) {
-      text = `Hi there! Welcome to Kiwik.1. Ask me about our projects${projects.length ? ` (like ${projects.slice(0, 2).map(p => p.name).join(", ")})` : ""}, their tech stack, or the partner showcase at /partners.`;
+      text = `Hi there! Welcome to Kiwik. Ask me about our projects${projects.length ? ` (like ${projects.slice(0, 2).map(p => p.name).join(", ")})` : ""}, our services, or our partners at /partners.`;
     } else {
-      text = `I'm here to help you navigate our ecosystems! I'm indexing **${projects.length} Kiwik projects**: ${projects.map(p => p.name).join(", ")}. Ask me about their tech stacks, README files, or team members!`;
+      text = `Kiwik builds websites, mobile apps, AI systems, online stores and custom software. Ask me about our projects: ${projects.map(p => p.name).join(", ")}. To talk about your own idea, write to us at /contact.`;
     }
 
     return { text, matchedProjects };
@@ -383,7 +383,7 @@ export function AIChatbot() {
                     Kiwik Assistant
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   </h3>
-                  <p className="text-[10px] text-text-secondary">On-board Project Telemetry</p>
+                  <p className="text-[10px] text-text-secondary">Ask about our work and services</p>
                 </div>
               </div>
 

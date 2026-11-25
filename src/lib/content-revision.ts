@@ -1,5 +1,9 @@
 import { defaultDeviceShowcase, isSampleShowcase } from "@/data/device-showcase";
-import { OLD, PROCESS_STEPS, SERVICES, SERVICES_TITLE } from "@/data/home-content";
+import {
+  DASHBOARD_COPY, EARTH_COPY, FEATURED_COPY, FOOTER_COLUMNS, FOOTER_COPY, HERO_COPY, OLD, PRINCIPLES, PROCESS_BADGE, PROCESS_STEPS,
+  SERVICES, SERVICES_TITLE, TRUST_ITEMS, galleryTitle,
+} from "@/data/home-content";
+import { SITE_TAGLINE } from "@/lib/site";
 import type { SiteCMSData } from "@/types/site-cms-types";
 
 /**
@@ -10,7 +14,7 @@ import type { SiteCMSData } from "@/types/site-cms-types";
  * saved navbar for the defaults and would drop links added in the studio (the
  * live "Contact" item exists only in the database).
  */
-export const CONTENT_REVISION = 3;
+export const CONTENT_REVISION = 6;
 
 /** /docs no longer exists (next.config.ts redirects it), so nothing may link to it. */
 export function isRetiredHref(href: string | undefined): boolean {
@@ -47,7 +51,7 @@ export function applyContentRevision(cms: SiteCMSData, savedRevision: number | u
   }
 
   if (cms.dashboardShowcase?.searchPlaceholder === OLD_SEARCH_PLACEHOLDER) {
-    next.dashboardShowcase = { ...cms.dashboardShowcase, searchPlaceholder: "Search projects, commands..." };
+    next.dashboardShowcase = { ...cms.dashboardShowcase, searchPlaceholder: "Search projects..." };
   }
 
   // Sample phone cards (invented people and testimonials) become real products.
@@ -56,6 +60,8 @@ export function applyContentRevision(cms: SiteCMSData, savedRevision: number | u
   }
 
   if ((savedRevision ?? 0) < 3) applyServiceCopy(next);
+  if ((savedRevision ?? 0) < 4) applyEarthAndFooterCopy(next);
+  if ((savedRevision ?? 0) < 6) applySiteCopy(next);
 
   // A studio-edited service list is kept, but still gains App Development once.
   const services = next.capabilities?.items;
@@ -90,6 +96,78 @@ function applyServiceCopy(next: SiteCMSData) {
         const fresh = PROCESS_STEPS[OLD.stepDescs.indexOf(step.desc)];
         return fresh ? { ...step, desc: fresh.desc } : step;
       }),
+    };
+  }
+}
+
+/** Sample text only, matched exactly. The sample figures and phone number were not real. */
+function applyEarthAndFooterCopy(next: SiteCMSData) {
+  const { earthShowcase, footer } = next;
+
+  if (earthShowcase?.headline === OLD.earthHeadline) {
+    const stats = earthShowcase.stats || [];
+    next.earthShowcase = {
+      ...earthShowcase,
+      ...EARTH_COPY,
+      stats: stats.every((st) => OLD.earthStats.includes(st.value)) ? EARTH_COPY.stats : stats,
+    };
+  }
+
+  if (footer) {
+    const fresh = { ...footer };
+    for (const key of Object.keys(OLD.footer) as (keyof typeof OLD.footer)[]) {
+      if (footer[key] === OLD.footer[key]) fresh[key] = FOOTER_COPY[key];
+    }
+    const links = (footer.columns || []).flatMap((c) => c.links || []);
+    if (links.length > 0 && links.every((l) => OLD.footerLinks.includes(l.label))) fresh.columns = FOOTER_COLUMNS;
+    next.footer = fresh;
+  }
+}
+
+/** The rest of the sample wording, which described an operating system rather than the services. */
+function applySiteCopy(next: SiteCMSData) {
+  const { settings, hero, projectsPage, trust, whyKiwikPills, howWeWork, dashboardShowcase, navigation } = next;
+
+  if (settings?.tagline === OLD.tagline) next.settings = { ...settings, tagline: SITE_TAGLINE };
+
+  if (hero) {
+    const fresh = { ...hero };
+    if (hero.versionBadge === OLD.hero.versionBadge) fresh.versionBadge = HERO_COPY.versionBadge;
+    if (OLD.hero.headlines.includes(`${hero.headlinePrefix}|${hero.headlineHighlightWord}`)) {
+      fresh.headlinePrefix = HERO_COPY.headlinePrefix;
+      fresh.headlineHighlightWord = HERO_COPY.headlineHighlightWord;
+    }
+    if (OLD.hero.descriptionStart.some((d) => hero.description?.startsWith(d))) fresh.description = HERO_COPY.description;
+    if (hero.galleryImages) fresh.galleryImages = hero.galleryImages.map((g) => ({ ...g, title: galleryTitle(g.title) }));
+    next.hero = fresh;
+  }
+
+  if (projectsPage) {
+    const fresh = { ...projectsPage };
+    if (OLD.featuredTitles.includes(projectsPage.title)) Object.assign(fresh, FEATURED_COPY);
+    // Other companies' products. Without cards of its own, the slider shows Kiwik's projects.
+    fresh.sliderCards = (projectsPage.sliderCards || []).filter((c) => !OLD.sliderNames.includes(c.name));
+    next.projectsPage = fresh;
+  }
+
+  if (trust?.items?.length && trust.items.every((t) => OLD.trustTitles.includes(t.title))) {
+    next.trust = { ...trust, items: TRUST_ITEMS };
+  }
+
+  if (whyKiwikPills?.length && whyKiwikPills.every((p) => OLD.pillTexts.includes(p.text))) {
+    next.whyKiwikPills = whyKiwikPills.map((p) => ({ ...p, text: PRINCIPLES[OLD.pillTexts.indexOf(p.text)] }));
+  }
+
+  if (howWeWork?.badge === OLD.processBadge) next.howWeWork = { ...howWeWork, badge: PROCESS_BADGE };
+
+  if (dashboardShowcase && OLD.dashboardTitles.includes(dashboardShowcase.sectionTitle)) {
+    next.dashboardShowcase = { ...dashboardShowcase, ...DASHBOARD_COPY };
+  }
+
+  if (navigation?.items) {
+    next.navigation = {
+      ...navigation,
+      items: navigation.items.map((i) => (i.id === "nav-2" && i.label === "Capabilities" ? { ...i, label: "Services" } : i)),
     };
   }
 }

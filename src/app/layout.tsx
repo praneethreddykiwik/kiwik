@@ -54,11 +54,12 @@ export const metadata: Metadata = {
   publisher: SITE_NAME,
   keywords: [
     "Kiwik",
-    "Kiwik OS",
-    "operating system for digital products",
-    "engineering workflow platform",
-    "project documentation platform",
-    "digital product workspace",
+    "software development company",
+    "app development",
+    "AI development",
+    "website development",
+    "e-commerce development",
+    "product development",
   ],
   openGraph: {
     title: SITE_TITLE,
@@ -71,7 +72,7 @@ export const metadata: Metadata = {
     // is really a transparent 1024x1024 square — wrong dimensions, wrong shape
     // for a link preview, and transparency renders as black on most platforms.
     images: [
-      { url: "/og-image.png", width: 1200, height: 630, alt: "Kiwik — the operating system for digital products" },
+      { url: "/og-image.png", width: 1200, height: 630, alt: SITE_TITLE },
     ],
   },
   twitter: {
@@ -153,7 +154,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
 
-        {/* WebSite + Organization + SoftwareApplication + FAQPage structured data */}
+        {/* WebSite + Organization + Service + FAQPage structured data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -163,7 +164,7 @@ export default function RootLayout({
                 "@type": "WebSite",
                 "@id": SITE_URL + "/#website",
                 name: SITE_NAME,
-                alternateName: ["Kiwik OS", "Kiwik.one", "Kiwik One"],
+                alternateName: ["Kiwik.one", "Kiwik One"],
                 url: SITE_URL + "/",
                 description: SITE_DESCRIPTION,
                 inLanguage: "en",
@@ -174,7 +175,7 @@ export default function RootLayout({
                 "@type": "Organization",
                 "@id": SITE_URL + "/#organization",
                 name: SITE_NAME,
-                alternateName: ["Kiwik OS", "Kiwik One", "Kiwik Inc."],
+                alternateName: ["Kiwik.one", "Kiwik One"],
                 url: SITE_URL + "/",
                 logo: {
                   "@type": "ImageObject",
@@ -187,14 +188,13 @@ export default function RootLayout({
               },
               {
                 "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                "@id": SITE_URL + "/#software",
-                name: SITE_NAME,
-                applicationCategory: "DeveloperApplication",
-                operatingSystem: "Web",
+                "@type": "Service",
+                "@id": SITE_URL + "/#service",
+                name: "Software, app and AI development",
+                serviceType: "Software development",
                 url: SITE_URL + "/",
                 description: SITE_DESCRIPTION,
-                publisher: { "@id": SITE_URL + "/#organization" },
+                provider: { "@id": SITE_URL + "/#organization" },
               },
               {
                 "@context": "https://schema.org",
@@ -206,15 +206,15 @@ export default function RootLayout({
                     name: "What is Kiwik?",
                     acceptedAnswer: {
                       "@type": "Answer",
-                      text: "Kiwik (kiwik.one) is the operating system for digital products — uniting projects, documentation, AI platforms, cloud infrastructure, automation, and engineering workflows into a single workspace.",
+                      text: "Kiwik (kiwik.one) is a software company. It designs, builds and supports websites, mobile apps, AI systems, online stores and custom software for businesses.",
                     },
                   },
                   {
                     "@type": "Question",
-                    name: "Is Kiwik free?",
+                    name: "What does Kiwik build?",
                     acceptedAnswer: {
                       "@type": "Answer",
-                      text: "Kiwik provides accessible workspaces and developer tools for building and managing digital products, projects, and AI systems.",
+                      text: "Websites, iOS and Android apps, AI agents and assistants, online stores, SaaS platforms, cloud setups and workflow automation. Products built by Kiwik include Sowcha, Fooducia, HELM Events and Clean AI.",
                     },
                   },
                   {
@@ -222,7 +222,7 @@ export default function RootLayout({
                     name: "Is Kiwik the same as Kiwix?",
                     acceptedAnswer: {
                       "@type": "Answer",
-                      text: "No. Kiwik (available at https://kiwik.one) is an operating system and engineering platform for digital products and software teams. Kiwix is an unrelated offline software reader.",
+                      text: "No. Kiwik (available at https://kiwik.one) is a software, app and AI development company. Kiwix is an unrelated offline software reader.",
                     },
                   },
                 ],

@@ -82,7 +82,7 @@ export async function POST(req: Request) {
 
     const catalogue = trimProjectsContext(projectsContext);
 
-    const systemPrompt = `You are the Kiwik.1 AI Assistant for the Kiwik website.
+    const systemPrompt = `You are the assistant on the website of Kiwik, a company that designs, builds and supports software: websites, mobile apps, AI systems, online stores, SaaS and custom software, cloud setups, automation, and security and identity. For prices, timelines or a new project, point the visitor to /contact.
 
 This JSON array is the COMPLETE and ONLY list of Kiwik projects:
 ${JSON.stringify(catalogue, null, 2)}

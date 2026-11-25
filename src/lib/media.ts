@@ -16,11 +16,22 @@ export const SUPABASE_PUBLIC_STORAGE =
 
 export const MEDIA_PROXY_PREFIX = "/media/";
 
-/** Rewrite every Supabase public-storage URL inside a string (plain text or serialized JSON). */
+/**
+ * HELM's current icon. helm.events refuses to let other sites embed its files,
+ * so it goes through our image service (the host is allowed in next.config.ts).
+ */
+export const HELM_LOGO_URL = "/_next/image?url=https%3A%2F%2Fhelm.events%2Fapple-touch-icon.png&w=128&q=75";
+
+/** Bucket prefix → proxy, then links whose file is gone at its source → a working one. */
+const REPLACED_URLS: [from: string, to: string][] = [
+  [SUPABASE_PUBLIC_STORAGE, MEDIA_PROXY_PREFIX],
+  ["https://helm.events/assets/Helm_logo-B3YNq1lB.svg", HELM_LOGO_URL],
+  ["https://images.unsplash.com/photo-1677442136019-21780efad99a", "https://images.unsplash.com/photo-1674027444485-cec3da58eef4"],
+];
+
+/** Rewrite stored media URLs inside a string (plain text or serialized JSON). */
 export function proxyMediaUrls(text: string): string {
-  return text.includes(SUPABASE_PUBLIC_STORAGE)
-    ? text.split(SUPABASE_PUBLIC_STORAGE).join(MEDIA_PROXY_PREFIX)
-    : text;
+  return REPLACED_URLS.reduce((out, [from, to]) => (out.includes(from) ? out.split(from).join(to) : out), text);
 }
 
 /**
@@ -52,3 +63,13 @@ export const mediaRewritingLocalStorage = {
     }
   },
 };
+
+/**
+ * A resized copy of one of our own images, via Next's image service: uploaded
+ * screenshots run to about 1MB, the copy is a few KB. Anything else is unchanged.
+ */
+export function optimizedImage(url: string, width: 640 | 828 | 1200): string {
+  const own = url.startsWith("/") && !url.startsWith("//") && !url.startsWith("/_next/");
+  if (!own || /\.(svg|gif)(?:$|\?)/i.test(url)) return url;
+  return `/_next/image?url=${encodeURIComponent(url)}&w=${width}&q=75`;
+}

@@ -1,4 +1,5 @@
 import { SITE_URL, SITE_DESCRIPTION } from "@/lib/site";
+import { SERVICES } from "@/data/home-content";
 import { getPublicProjects } from "@/lib/seo-data";
 
 /**
@@ -32,24 +33,20 @@ export async function GET() {
 
 > ${SITE_DESCRIPTION}
 
-Kiwik is a web platform and operating system for digital products, reachable at ${SITE_URL}.
-It is not a physical product, a wearable, or a piece of jewellery, and is distinct from Kiwix. Kiwik brings projects, documentation, AI
-assistance, cloud infrastructure, automation, deployments and engineering
-workflows into a single workspace, so that the work and the record of the work
-live in the same place.
+Kiwik is a software, app and AI development company, reachable at ${SITE_URL}.
+It is not a physical product, a wearable, or a piece of jewellery, and is distinct from Kiwix.
 
-Every project page on this site is generated from one record in the Kiwik CMS:
-edit it once and the project list, the detail page, the sitemap and the search
-index all follow.
+## Services
+${SERVICES.map((s) => `- ${s.title}: ${s.desc}`).join("\n")}
 
 ## Projects
 ${projectLines || "- Project list unavailable at time of generation."}
 
 ## Pages
-- [Home](${SITE_URL}/): what Kiwik is and what it does.
-- [Projects](${SITE_URL}/projects): every project running on Kiwik.
-- [About](${SITE_URL}/about): what Kiwik is, what Kiwik OS does, and the technology behind it.
-- [Digital Market Partner](${SITE_URL}/partners): partner work delivered through Kiwik.
+- [Home](${SITE_URL}/): services, work and process.
+- [Projects](${SITE_URL}/projects): products built by Kiwik.
+- [About](${SITE_URL}/about): what Kiwik does, how it works and what it has built.
+- [Digital Market Partner](${SITE_URL}/partners): brands that work with Kiwik.
 
 ## Contact
 - praneeth@kiwik.one
