@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { absoluteUrl } from "@/lib/site";
 
-const TITLE = "Digital Market Partner — Brands We Work With";
+const TITLE = "Digital Marketing — Bring Customers to Your Brand";
 const DESCRIPTION =
-  "Brands that work with Kiwik on their websites, campaigns and digital marketing, and how to become a partner.";
+  "Kiwik plans the campaign, builds the website or app it needs and keeps improving it. What we do for a brand, and who we work with.";
 
 export const metadata: Metadata = {
   title: TITLE,

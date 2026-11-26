@@ -90,12 +90,6 @@ export function EarthSection() {
           </dl>
         )}
 
-        {!ownImage && (
-          <p className="mt-10 text-xs text-neutral-400">
-            Earth imagery:{" "}
-            <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white">Solar System Scope</a>, CC BY 4.0
-          </p>
-        )}
       </div>
     </section>
   );

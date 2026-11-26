@@ -1,243 +1,127 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Grid3X3, List, Clock, Filter, Search, Sparkles } from "lucide-react";
-import { useProjects } from "@/stores/projects-store";
+import React, { useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowRight, ArrowUpRight, Search } from "lucide-react";
+import { PageIntro, primaryButton, textLink } from "@/components/layout/page-intro";
+import { CASE_NOTES, hostOf, projectState, realText } from "@/data/case-notes";
 import { FEATURED_COPY } from "@/data/home-content";
-import { useSiteCMS } from "@/stores/site-cms-store";
-import { PremiumShowcaseCard } from "@/components/projects/premium-showcase-card";
-import { ProjectCard } from "@/components/projects/project-card";
-import { ProjectStatus, ProjectCategory, SortMode } from "@/types";
+import { optimizedImage } from "@/lib/media";
 import { cn } from "@/lib/utils";
-import { MovableCardSlider } from "@/components/Hero/movable-card-slider";
+import { useProjects } from "@/stores/projects-store";
+import { useSiteCMS } from "@/stores/site-cms-store";
+import type { Project } from "@/types";
 
-type LayoutMode = "grid" | "rows" | "timeline";
+/** Below this, a search box is more to read than the list itself. */
+const SEARCH_FROM = 9;
 
 export default function ProjectsPage() {
   const projects = useProjects();
   const cms = useSiteCMS();
-  const [layout, setLayout] = useState<LayoutMode>("grid");
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">("all");
-  const [categoryFilter, setCategoryFilter] = useState<ProjectCategory | "all">("all");
-  const [sortMode, setSortMode] = useState<SortMode>("newest");
-  
-  // Every field below is treated as optional. Projects are authored in the admin
-  // studio and stored as free-form JSON, so a row can legitimately arrive
-  // without a tagline, category or date — and calling .toLowerCase() on one of
-  // those threw during render, which the page error boundary turned into a
-  // full-page "System Diagnostics Notice" instead of one imperfect card.
-  const safeProjects = useMemo(
-    () => (Array.isArray(projects) ? projects.filter(Boolean) : []),
+
+  // Projects are authored in the studio and stored as free-form JSON, so every
+  // field is treated as optional.
+  const all = useMemo(
+    () =>
+      (Array.isArray(projects) ? projects.filter(Boolean) : [])
+        .filter((p) => (p as { visible?: boolean }).visible !== false)
+        .sort((a, b) => Number(b.status === "completed") - Number(a.status === "completed")),
     [projects]
   );
-
-  const categories = useMemo(() => {
-    const cats = new Set<string>();
-    safeProjects.forEach(p => { if (p.category) cats.add(p.category); });
-    return ["all", ...Array.from(cats)] as (ProjectCategory | "all")[];
-  }, [safeProjects]);
-
-  const filteredAndSorted = useMemo(() => {
-    const q = search.toLowerCase();
-    let result = safeProjects.filter(p => {
-      const haystack = `${p.name || ""} ${p.tagline || ""}`.toLowerCase();
-      const matchSearch = haystack.includes(q);
-      const matchStatus = statusFilter === "all" || p.status === statusFilter;
-      const matchCategory = categoryFilter === "all" || p.category === categoryFilter;
-      return matchSearch && matchStatus && matchCategory;
-    });
-
-    const time = (v?: string) => {
-      const t = v ? new Date(v).getTime() : 0;
-      return Number.isFinite(t) ? t : 0;
-    };
-
-    result.sort((a, b) => {
-      switch (sortMode) {
-        case "newest": return time(b.createdAt) - time(a.createdAt);
-        case "oldest": return time(a.createdAt) - time(b.createdAt);
-        case "recently-updated": return time(b.lastUpdated) - time(a.lastUpdated);
-        case "alphabetical": return (a.name || "").localeCompare(b.name || "");
-        case "most-viewed": return (b.views || 0) - (a.views || 0);
-        case "popularity": return (b.stars || 0) - (a.stars || 0);
-        default: return 0;
-      }
-    });
-
-    return result;
-  }, [safeProjects, search, statusFilter, categoryFilter, sortMode]);
-
-  const projectsPageCMS = cms.projectsPage || FEATURED_COPY;
+  const q = search.trim().toLowerCase();
+  const shown = q ? all.filter((p) => `${p.name || ""} ${p.tagline || ""}`.toLowerCase().includes(q)) : all;
+  const live = all.filter((p) => projectState(p) === "Live").length;
+  const copy = cms.projectsPage || FEATURED_COPY;
 
   return (
-    <div className="min-h-screen pt-24 pb-20 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto select-none">
-      
-      {/* ─────────────────────────────────────────────────────────────
-          FEATURED PRODUCTS SHOWCASE HEADER
-         ───────────────────────────────────────────────────────────── */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center max-w-3xl mx-auto mb-6 space-y-3"
-      >
-        <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-[#52525B] dark:text-[#A1A1AA]">
-          {projectsPageCMS.badgeText || FEATURED_COPY.badgeText}
-        </span>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-semibold tracking-tight text-[#18181B] dark:text-white leading-[1.05]">
-          {projectsPageCMS.title || FEATURED_COPY.title}
-        </h1>
-        <p className="text-xs sm:text-sm text-[#71717A] dark:text-[#A1A1AA] font-sans font-medium max-w-xl mx-auto">
-          {projectsPageCMS.description || FEATURED_COPY.description}
-        </p>
-      </motion.div>
+    <div className="pb-16">
+      <PageIntro
+        title={copy.title || FEATURED_COPY.title}
+        lead={copy.description || FEATURED_COPY.description}
+        points={live > 0 ? [`${live} live, with links to visit`, `${all.length - live} in progress`].filter((t) => !t.startsWith("0 ")) : undefined}
+      />
 
-      {/* ─────────────────────────────────────────────────────────────
-          MOVABLE 3D MODEL STREAM CAROUSEL SLIDER
-         ───────────────────────────────────────────────────────────── */}
-      <div className="mb-12 rounded-3xl bg-[#0A0A0B] p-4 sm:p-6 border border-white/10 shadow-2xl">
-        <MovableCardSlider />
-      </div>
-      
-      {/* ─────────────────────────────────────────────────────────────
-          FLOATING CONTROLS & SEARCH BAR
-         ───────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
-          <input 
-            type="text" 
-            placeholder="Search projects by name..." 
+      {all.length >= SEARCH_FROM && (
+        <div className="relative mx-auto mb-10 max-w-[1400px] px-4 sm:px-6 md:px-8">
+          <Search className="absolute left-9 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary md:left-12" aria-hidden="true" />
+          <input
+            type="search"
+            aria-label="Search projects by name"
+            placeholder="Search projects by name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white/80 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm text-[#18181B] dark:text-white placeholder:text-black/40 dark:placeholder:text-white/40 shadow-sm transition-all"
+            className="w-full max-w-md rounded-full border border-text-primary/15 bg-transparent py-3 pl-11 pr-5 text-base text-text-primary placeholder:text-text-secondary focus:border-[#008080] focus:outline-none"
           />
         </div>
-        
-        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-          <div className="flex bg-white/80 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-1 shrink-0 shadow-sm">
-            <button onClick={() => setLayout("grid")} className={cn("p-2 rounded-xl transition-colors", layout === "grid" ? "bg-black/10 dark:bg-white/15 text-[#18181B] dark:text-white" : "text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white")} aria-label="Grid layout"><Grid3X3 className="w-4 h-4" /></button>
-            <button onClick={() => setLayout("rows")} className={cn("p-2 rounded-xl transition-colors", layout === "rows" ? "bg-black/10 dark:bg-white/15 text-[#18181B] dark:text-white" : "text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white")} aria-label="Rows layout"><List className="w-4 h-4" /></button>
-            <button onClick={() => setLayout("timeline")} className={cn("p-2 rounded-xl transition-colors", layout === "timeline" ? "bg-black/10 dark:bg-white/15 text-[#18181B] dark:text-white" : "text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white")} aria-label="Timeline layout"><Clock className="w-4 h-4" /></button>
-          </div>
-          
-          <select 
-            value={sortMode} 
-            onChange={(e) => setSortMode(e.target.value as SortMode)}
-            className="bg-white/80 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-4 py-2 text-xs font-mono font-semibold text-[#18181B] dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer shrink-0 shadow-sm"
-          >
-            <option value="newest" className="bg-[#18181B] text-white">Newest Release</option>
-            <option value="oldest" className="bg-[#18181B] text-white">Oldest Release</option>
-            <option value="recently-updated" className="bg-[#18181B] text-white">Recently Updated</option>
-            <option value="alphabetical" className="bg-[#18181B] text-white">Alphabetical</option>
-            <option value="most-viewed" className="bg-[#18181B] text-white">Most Viewed</option>
-            <option value="popularity" className="bg-[#18181B] text-white">Popularity</option>
-          </select>
-        </div>
-      </div>
-      
-      {/* ─────────────────────────────────────────────────────────────
-          FLOATING CATEGORY & STATUS FILTER PILLS
-         ───────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-3 mb-10">
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-black/50 dark:text-white/50 whitespace-nowrap">Status:</span>
-          <div className="flex gap-2">
-            {(["all", "completed", "in-progress", "archived"] as const).map(status => (
-              <button 
-                key={status}
-                onClick={() => setStatusFilter(status as any)}
-                className={cn(
-                  "px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border",
-                  statusFilter === status 
-                    ? "bg-[#18181B] text-white dark:bg-white dark:text-black border-transparent shadow-md" 
-                    : "bg-white/60 dark:bg-white/5 border-black/10 dark:border-white/10 text-black/70 dark:text-white/70 hover:bg-white dark:hover:bg-white/10"
-                )}
-              >
-                {status.replace("-", " ")}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-black/50 dark:text-white/50 whitespace-nowrap">Category:</span>
-          <div className="flex gap-2">
-            {categories.map(cat => (
-              <button 
-                key={cat}
-                onClick={() => setCategoryFilter(cat)}
-                className={cn(
-                  "px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border capitalize",
-                  categoryFilter === cat 
-                    ? "bg-[#18181B] text-white dark:bg-white dark:text-black border-transparent shadow-md" 
-                    : "bg-white/60 dark:bg-white/5 border-black/10 dark:border-white/10 text-black/70 dark:text-white/70 hover:bg-white dark:hover:bg-white/10"
-                )}
-              >
-                {cat.replace("-", " ")}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-      
-      {/* ─────────────────────────────────────────────────────────────
-          2-COLUMN LARGE PREMIUM PRODUCT SHOWCASE GRID
-         ───────────────────────────────────────────────────────────── */}
-      {filteredAndSorted.length === 0 ? (
-        <div className="text-center py-24 bg-white/60 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-3xl">
-          <Filter className="w-12 h-12 text-black/30 dark:text-white/30 mx-auto mb-4" />
-          <h3 className="text-xl font-serif font-semibold mb-2 text-[#18181B] dark:text-white">No products found</h3>
-          <p className="text-xs sm:text-sm text-black/50 dark:text-white/50">Try adjusting your filters or search query.</p>
-        </div>
-      ) : (
-        <motion.div 
-          layout
-          variants={{
-            hidden: {},
-            show: { transition: { staggerChildren: 0.1 } }
-          }}
-          initial="hidden"
-          animate="show"
-          className={cn(
-            "grid gap-8 sm:gap-10",
-            layout === "grid" ? "grid-cols-1 lg:grid-cols-2" : "",
-            layout === "rows" ? "grid-cols-1" : "",
-            layout === "timeline" ? "grid-cols-1 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-black/10 dark:before:via-white/10 before:to-transparent" : ""
-          )}
-        >
-          <AnimatePresence mode="popLayout">
-            {filteredAndSorted.map((project, index) => (
-              <motion.div
-                key={project.id}
-                layout
-                initial={{ opacity: 0, y: 30, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className={cn(
-                  "h-full",
-                  layout === "rows" ? "w-full" : "",
-                  layout === "timeline" ? cn(
-                    "relative md:w-[calc(50%-2rem)]", 
-                    index % 2 === 0 ? "md:mr-auto" : "md:ml-auto"
-                  ) : ""
-                )}
-              >
-                <div className="h-full">
-                  {layout === "grid" ? (
-                    <PremiumShowcaseCard project={project} />
-                  ) : (
-                    <ProjectCard project={project} />
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
       )}
+
+      {shown.length === 0 ? (
+        <p className="mx-auto max-w-[1400px] px-4 py-16 text-lg text-text-secondary sm:px-6 md:px-8">
+          {q ? "No project has that name." : "Our projects will appear here soon."}
+        </p>
+      ) : (
+        <ul className="mx-auto max-w-[1400px] space-y-20 px-4 sm:px-6 md:space-y-28 md:px-8">
+          {shown.map((p, i) => <ProjectRow key={p.id || p.slug} project={p} flip={i % 2 === 1} first={i === 0} />)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function ProjectRow({ project, flip, first }: { project: Project; flip: boolean; first: boolean }) {
+  const note = CASE_NOTES[project.slug];
+  const state = projectState(project);
+  const href = `/projects/${project.slug}`;
+  return (
+    <li className="grid items-center gap-8 lg:grid-cols-12 lg:gap-14">
+      <Link href={href} tabIndex={-1} aria-hidden="true" className={cn("group block overflow-hidden rounded-[28px] border border-text-primary/10 bg-bg-secondary lg:col-span-7", flip && "lg:order-2")}>
+        {project.coverImage ? (
+          <img
+            src={optimizedImage(project.coverImage, 1200)}
+            onError={(e) => {
+              if (e.currentTarget.getAttribute("src") !== project.coverImage) e.currentTarget.src = project.coverImage;
+            }}
+            alt=""
+            loading={first ? "eager" : "lazy"}
+            className="aspect-[16/10] w-full object-cover object-top transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.025]"
+          />
+        ) : (
+          <span className="flex aspect-[16/10] items-center justify-center bg-[linear-gradient(135deg,#232b62,#033a35)] p-8 text-center text-4xl font-serif font-bold text-white">{project.name}</span>
+        )}
+      </Link>
+      <div className="lg:col-span-5">
+        <p className={cn("text-base font-semibold", state === "Live" ? "text-[#007a78] dark:text-[#4fc3bd]" : "text-text-secondary")}>{state}</p>
+        <h2 className="mt-1 text-4xl sm:text-5xl font-serif font-bold tracking-tight text-text-primary">{project.name}</h2>
+        {note ? (
+          <dl className="mt-6 space-y-5">
+            <Fact term="Who it is for">{note.who}</Fact>
+            <Fact term="The problem">{note.problem}</Fact>
+            <Fact term="What we built">{note.built}</Fact>
+          </dl>
+        ) : (
+          <p className="mt-5 text-lg leading-relaxed text-text-secondary">{realText(project.description) || project.tagline}</p>
+        )}
+        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Link href={href} className={primaryButton}>
+            See {project.name} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+          {project.liveUrl && state === "Live" && (
+            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className={cn(textLink, "inline-flex items-center gap-1")}>
+              Visit {hostOf(project.liveUrl)} <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function Fact({ term, children }: { term: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <dt className="text-sm font-bold text-text-primary">{term}</dt>
+      <dd className="mt-1 text-base sm:text-lg leading-relaxed text-text-secondary text-pretty">{children}</dd>
     </div>
   );
 }

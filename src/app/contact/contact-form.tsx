@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Send, CheckCircle2, AlertCircle } from "lucide-react";
 import { validateEmail, validateRequired, validateLength } from "@/lib/validation";
 import {
@@ -89,6 +89,18 @@ export function ContactForm({ initialService = "" }: { initialService?: string }
   const [formError, setFormError] = useState("");
   const [honeypot, setHoneypot] = useState("");
 
+  // What the visitor already wrote on the landing page, carried over once.
+  useEffect(() => {
+    try {
+      const brief = sessionStorage.getItem("kiwik-brief");
+      if (!brief) return;
+      sessionStorage.removeItem("kiwik-brief");
+      setValues((v) => (v.message ? v : { ...v, message: brief.slice(0, MESSAGE_MAX) }));
+    } catch {
+      /* storage unavailable: the form starts empty */
+    }
+  }, []);
+
   const set =
     (key: keyof Values) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -158,15 +170,15 @@ export function ContactForm({ initialService = "" }: { initialService?: string }
     );
   }
 
-  const labelCls = "block text-[11px] font-mono font-bold uppercase tracking-wider text-text-muted";
+  const labelCls = "block text-base font-bold text-text-primary";
   const boxCls = (invalid: boolean) =>
-    `w-full rounded-xl border bg-bg-secondary px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors ${
-      invalid ? "border-rose-500/60 focus:border-rose-500" : "border-glass-border focus:border-accent-blue"
+    `w-full rounded-xl border bg-bg-secondary px-4 py-3.5 text-base text-text-primary placeholder:text-text-secondary/70 outline-none transition-colors ${
+      invalid ? "border-rose-500/60 focus:border-rose-500" : "border-glass-border focus:border-[#008080]"
     }`;
 
   const errorFor = (key: keyof Values) =>
     errors[key] ? (
-      <p id={`contact-${key}-error`} role="alert" className="text-[11px] font-semibold text-rose-400">
+      <p id={`contact-${key}-error`} role="alert" className="text-sm font-semibold text-rose-600 dark:text-rose-400">
         {errors[key]}
       </p>
     ) : null;
@@ -200,7 +212,7 @@ export function ContactForm({ initialService = "" }: { initialService?: string }
   );
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+    <form onSubmit={handleSubmit} noValidate className="space-y-7">
       {/* Honeypot — hidden from sight and from assistive tech. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
         <label htmlFor="contact-website">Leave this field empty</label>
@@ -215,9 +227,58 @@ export function ContactForm({ initialService = "" }: { initialService?: string }
         />
       </div>
 
+      <div className="space-y-1.5">
+        <label htmlFor="contact-service" className={labelCls}>
+          What do you need help with?
+        </label>
+        <select
+          id="contact-service"
+          name="service"
+          value={values.service}
+          onChange={set("service")}
+          onBlur={blur("service")}
+          aria-invalid={Boolean(errors.service)}
+          className={boxCls(Boolean(errors.service))}
+        >
+          <option value="">Choose one, or skip if you are not sure</option>
+          {SERVICE_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        {errorFor("service")}
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="contact-message" className={labelCls}>
+          What is the problem, or the idea? <span className="text-rose-400">*</span>
+        </label>
+        <textarea
+          id="contact-message"
+          name="message"
+          rows={6}
+          value={values.message}
+          onChange={set("message")}
+          onBlur={blur("message")}
+          required
+          maxLength={MESSAGE_MAX}
+          placeholder="In your own words. No technical detail needed."
+          aria-invalid={Boolean(errors.message)}
+          aria-describedby={errors.message ? "contact-message-error" : "contact-message-count"}
+          className={`${boxCls(Boolean(errors.message))} resize-y leading-relaxed`}
+        />
+        <div className="flex items-start justify-between gap-4">
+          {errorFor("message") ?? <span />}
+          <span id="contact-message-count" className="shrink-0 text-sm tabular-nums text-text-secondary">
+            {values.message.trim().length}/{MESSAGE_MAX}
+          </span>
+        </div>
+      </div>
+
       <div className="grid gap-5 sm:grid-cols-2">
-        {textField("name", "Full name", { required: true, maxLength: 100, placeholder: "Ada Lovelace" })}
-        {textField("company", "Company name", { maxLength: 120, placeholder: "Acme Inc." })}
+        {textField("name", "Your name", { required: true, maxLength: 100 })}
+        {textField("company", "Company (optional)", { maxLength: 120 })}
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
@@ -233,7 +294,7 @@ export function ContactForm({ initialService = "" }: { initialService?: string }
             code is never typed twice and the stored number is unambiguous. */}
         <div className="space-y-1.5">
           <label htmlFor="contact-phone" className={labelCls}>
-            Phone number
+            Phone (optional)
           </label>
           <div className="flex gap-2">
             <select
@@ -243,7 +304,7 @@ export function ContactForm({ initialService = "" }: { initialService?: string }
               value={values.phoneCountryCode}
               onChange={set("phoneCountryCode")}
               className={`shrink-0 rounded-xl border bg-bg-secondary px-3 py-3 text-sm text-text-primary outline-none transition-colors ${
-                errors.phoneCountryCode ? "border-rose-500/60" : "border-glass-border focus:border-accent-blue"
+                errors.phoneCountryCode ? "border-rose-500/60" : "border-glass-border focus:border-[#008080]"
               }`}
             >
               {COUNTRY_CODES.map((c) => (
@@ -273,74 +334,25 @@ export function ContactForm({ initialService = "" }: { initialService?: string }
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor="contact-service" className={labelCls}>
-          Service interested in
-        </label>
-        <select
-          id="contact-service"
-          name="service"
-          value={values.service}
-          onChange={set("service")}
-          onBlur={blur("service")}
-          aria-invalid={Boolean(errors.service)}
-          className={boxCls(Boolean(errors.service))}
-        >
-          <option value="">Select a service…</option>
-          {SERVICE_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        {errorFor("service")}
-      </div>
-
-      <div className="space-y-1.5">
         <label htmlFor="contact-projectRequirements" className={labelCls}>
-          Project requirements
+          Anything that would help us? (optional)
         </label>
         <textarea
           id="contact-projectRequirements"
           name="projectRequirements"
-          rows={4}
+          rows={3}
           value={values.projectRequirements}
           onChange={set("projectRequirements")}
           onBlur={blur("projectRequirements")}
           maxLength={REQUIREMENTS_MAX}
-          placeholder="Tell us about scope, timeline, and goals…"
+          placeholder="When you need it, a budget, links to look at"
           aria-invalid={Boolean(errors.projectRequirements)}
           className={`${boxCls(Boolean(errors.projectRequirements))} resize-y leading-relaxed`}
         />
         <div className="flex items-start justify-between gap-4">
           {errorFor("projectRequirements") ?? <span />}
-          <span className="shrink-0 text-[11px] font-mono text-text-muted">
+          <span className="shrink-0 text-sm tabular-nums text-text-secondary">
             {values.projectRequirements.trim().length}/{REQUIREMENTS_MAX}
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <label htmlFor="contact-message" className={labelCls}>
-          Message <span className="text-rose-400">*</span>
-        </label>
-        <textarea
-          id="contact-message"
-          name="message"
-          rows={6}
-          value={values.message}
-          onChange={set("message")}
-          onBlur={blur("message")}
-          required
-          maxLength={MESSAGE_MAX}
-          placeholder="Anything else we should know?"
-          aria-invalid={Boolean(errors.message)}
-          aria-describedby={errors.message ? "contact-message-error" : "contact-message-count"}
-          className={`${boxCls(Boolean(errors.message))} resize-y leading-relaxed`}
-        />
-        <div className="flex items-start justify-between gap-4">
-          {errorFor("message") ?? <span />}
-          <span id="contact-message-count" className="shrink-0 text-[11px] font-mono text-text-muted">
-            {values.message.trim().length}/{MESSAGE_MAX}
           </span>
         </div>
       </div>
@@ -356,12 +368,12 @@ export function ContactForm({ initialService = "" }: { initialService?: string }
         <button
           type="submit"
           disabled={status === "sending"}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-blue px-6 py-3.5 text-sm font-bold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1a2150] dark:bg-white px-7 py-3.5 text-base font-bold text-white dark:text-[#10142e] transition-opacity hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Send className="h-4 w-4" />
-          {status === "sending" ? "Sending…" : "Send inquiry"}
+          {status === "sending" ? "Sending…" : "Send to Kiwik"}
         </button>
-        <p className="text-[11px] text-text-muted">
+        <p className="text-sm text-text-secondary">
           We use what you send only to reply to you. Required fields are marked
           <span className="text-rose-400"> *</span>.
         </p>

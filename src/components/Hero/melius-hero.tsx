@@ -3,21 +3,19 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { PaperBackground } from "./paper-background";
-import { ImageRibbon } from "./ribbon";
-import { BrandGradient } from "@/components/gl/brand-gradient";
+import dynamic from "next/dynamic";
+import { ArrowRight } from "lucide-react";
 import { useSiteCMS } from "@/stores/site-cms-store";
-import { useThemeStore } from "@/stores/theme-store";
 import { HERO_COPY } from "@/data/home-content";
 
-/** Pale on paper, deep on black, so the headline reads the same on both. */
-const HERO_COLORS: Record<"light" | "dark", [string, string, string]> = {
-  light: ["#d3def8", "#cdefea", "#fafafd"],
-  dark: ["#1b2358", "#05504f", "#070708"],
-};
+// The orbit's box, sized so the whole hero fits one screen.
+const ORBIT_BOX = "relative mx-auto w-full max-w-[1500px] h-[300px] sm:h-[clamp(220px,37svh,420px)]";
+const MetalOrbit = dynamic(() => import("@/components/concepts/c13-metal-orbit").then((m) => m.MetalOrbitVisual), {
+  ssr: false,
+  loading: () => <div className={ORBIT_BOX} />,
+});
 
 export function MeliusHero() {
-  const dark = useThemeStore((s) => s.mode) === "dark";
   const cms = useSiteCMS();
   const hero = cms.hero;
 
@@ -26,17 +24,10 @@ export function MeliusHero() {
   const description = hero?.description || HERO_COPY.description;
 
   return (
-    <PaperBackground className="min-h-screen flex flex-col justify-between pt-12 pb-12 overflow-hidden">
-      <BrandGradient
-        key={dark ? "dark" : "light"}
-        colors={HERO_COLORS[dark ? "dark" : "light"]}
-        brightness={dark ? 0.9 : 1.3}
-        strength={1.5}
-        opacity={dark ? 0.85 : 0.9}
-        className="[mask-image:radial-gradient(ellipse_62%_50%_at_50%_50%,#000_20%,transparent_100%)]"
-      />
+    // Plain white or plain black behind the hero, nothing else, and it runs up under the menu bar.
+    <section className="relative -mt-[72px] min-h-[100svh] flex flex-col justify-between pt-[calc(72px+1.5rem)] pb-8 overflow-hidden bg-white dark:bg-black text-text-primary select-none">
       {/* Hero Center Section */}
-      <main className="flex-1 flex flex-col items-center justify-center space-y-6 sm:space-y-10 my-auto text-center px-4 relative z-10">
+      <main className="flex-1 flex flex-col items-center justify-center space-y-5 sm:space-y-7 [@media(min-width:640px)_and_(max-height:800px)]:space-y-4 my-auto text-center px-4 relative z-10">
         
         {/* Version Badge */}
         {hero?.badgeVisible !== false && (
@@ -72,10 +63,10 @@ export function MeliusHero() {
           </h1>
         </motion.div>
 
-        {/* ─────────────────────────────────────────────────────────────
-            INTERACTIVE PARALLAX INFINITE IMAGE EMITTER GALLERY
-           ───────────────────────────────────────────────────────────── */}
-        <ImageRibbon />
+        {/* The Kiwik mark in liquid metal, with what we build circling it. */}
+        <div className="w-full">
+          <MetalOrbit className={ORBIT_BOX} glow={false} />
+        </div>
 
         {/* ─────────────────────────────────────────────────────────────
             SUBTITLE & DESCRIPTION
@@ -84,14 +75,22 @@ export function MeliusHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.4, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-lg mx-auto text-center"
+          className="max-w-xl mx-auto text-center"
         >
           <p className="text-sm sm:text-base text-text-secondary leading-loose tracking-wide font-sans font-medium">
             {description}
           </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+            <Link href={HERO_COPY.primary.href} className="inline-flex items-center gap-2 rounded-full bg-[#1a2150] dark:bg-white px-6 py-3 text-sm sm:text-base font-bold text-white dark:text-[#10142e] transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]">
+              {HERO_COPY.primary.text} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link href={HERO_COPY.secondary.href} className="text-sm sm:text-base font-bold text-text-primary underline decoration-[#008080]/50 decoration-2 underline-offset-[6px] hover:decoration-[#008080] transition-colors">
+              {HERO_COPY.secondary.text}
+            </Link>
+          </div>
         </motion.div>
 
       </main>
-    </PaperBackground>
+    </section>
   );
 }

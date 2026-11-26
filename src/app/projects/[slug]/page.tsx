@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ProjectDetailContent } from "@/components/projects/project-detail-content";
 import { getProjectBySlug, getPublicProjects } from "@/lib/seo-data";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
+import type { Project } from "@/types";
 
 /**
  * Server wrapper around the existing client detail view.
@@ -148,89 +149,34 @@ export default async function ProjectDetailPage({ params }: Props) {
         />
       )}
 
-      <ProjectDetailContent />
-
-      {/* Server-rendered summary of the record.
-
-          ProjectDetailContent is a client component that reads the project from
-          the store after hydration, so none of the project's own words reach
-          the HTML — a crawler fetching this URL got about 1,200 characters of
-          navigation and footer, with the project's name appearing once and its
-          description, stack and status not at all. Search engines and AI
-          crawlers do not run the JavaScript that fills that in. This section
-          states the same facts as real text, from the same database record. */}
-      <section
-        aria-labelledby="project-summary-heading"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4"
-      >
-        <h2
-          id="project-summary-heading"
-          className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-text-muted mb-4"
-        >
-          About {project.name}
-        </h2>
-        <div className="max-w-3xl space-y-4">
-          {(project.description || project.tagline) && (
-            <p className="text-base text-text-secondary leading-relaxed">
-              <strong className="text-text-primary">{project.name}</strong>
-              {project.tagline ? ` — ${project.tagline}. ` : " — "}
-              {project.description}
-            </p>
-          )}
-          <dl className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
-            {project.category && (
-              <div className="flex gap-2">
-                <dt className="text-text-muted">Category:</dt>
-                <dd className="text-text-primary font-medium">{project.category}</dd>
-              </div>
-            )}
-            {project.status && (
-              <div className="flex gap-2">
-                <dt className="text-text-muted">Status:</dt>
-                <dd className="text-text-primary font-medium">{project.status}</dd>
-              </div>
-            )}
-            {techNames.length > 0 && (
-              <div className="flex gap-2">
-                <dt className="text-text-muted">Built with:</dt>
-                <dd className="text-text-primary font-medium">{techNames.join(", ")}</dd>
-              </div>
-            )}
-          </dl>
-          {(project.liveUrl || project.githubUrl) && (
-            <p className="text-sm text-text-secondary">
-              {project.liveUrl && (
-                <a href={project.liveUrl} rel="noopener" className="text-accent-blue hover:underline">
-                  Visit {project.name}
-                </a>
-              )}
-              {project.liveUrl && project.githubUrl && <span className="mx-2 text-text-muted">·</span>}
-              {project.githubUrl && (
-                <a href={project.githubUrl} rel="noopener" className="text-accent-blue hover:underline">
-                  Source on GitHub
-                </a>
-              )}
-            </p>
-          )}
-        </div>
-      </section>
+      <ProjectDetailContent
+        serverProject={{
+          slug: project.slug,
+          name: project.name,
+          tagline: project.tagline,
+          description: project.description,
+          coverImage: project.coverImage,
+          status: project.status as Project["status"],
+          liveUrl: project.liveUrl,
+          githubUrl: project.githubUrl,
+          techStack: techNames.map((name) => ({ name }) as Project["techStack"][number]),
+        }}
+      />
 
       {/* Crawlable related links. The detail view navigates client-side, so
           without real anchors these relationships are invisible to a crawler. */}
       {related.length > 0 && (
         <nav
           aria-label="Related projects"
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16"
+          className="mx-auto max-w-[1400px] px-4 pb-4 sm:px-6 md:px-8"
         >
-          <h2 className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-text-muted mb-4">
-            More Kiwik projects
-          </h2>
+          <h2 className="sr-only">More of our work</h2>
           <ul className="flex flex-wrap gap-3">
             {related.map((p) => (
               <li key={p.slug}>
                 <a
                   href={`/projects/${p.slug}`}
-                  className="inline-flex items-center px-4 py-2 rounded-full bg-glass-bg border border-glass-border text-sm font-medium text-text-primary hover:border-accent-blue/40 transition-colors"
+                  className="inline-flex items-center rounded-full border border-text-primary/15 px-5 py-2.5 text-base font-semibold text-text-primary transition-colors hover:border-[#008080]"
                 >
                   {p.name}
                 </a>

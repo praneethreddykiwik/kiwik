@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Mail, MessageSquare, Clock } from "lucide-react";
 import { ContactForm } from "./contact-form";
+import { PageIntro } from "@/components/layout/page-intro";
 import { isServiceOption } from "@/lib/contact-options";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
@@ -23,6 +23,12 @@ export const metadata: Metadata = {
 };
 
 const CONTACT_EMAIL = "praneeth@kiwik.one";
+
+const NEXT = [
+  { title: "We read it and reply", text: "Usually within two working days, with any questions we have." },
+  { title: "We talk it through", text: "Until we both understand the problem and what would fix it." },
+  { title: "You get a plan", text: "What we would build, the time and the cost. Then you decide." },
+];
 
 export default async function ContactPage({
   searchParams,
@@ -56,68 +62,33 @@ export default async function ContactPage({
         }}
       />
 
-      <main className="mx-auto max-w-6xl px-4 pt-24 pb-20 sm:px-6 lg:px-8">
-        <header className="mb-12 max-w-2xl">
-          <p className="mb-3 text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-text-muted">
-            Contact
-          </p>
-          <h1 className="text-4xl font-serif font-semibold leading-[1.1] tracking-tight text-text-primary sm:text-5xl">
-            Talk to us
-          </h1>
-          {/* Server-rendered prose, so this page says something to a crawler
-              even before any JavaScript runs. */}
-          <p className="mt-5 text-lg leading-relaxed text-text-secondary">
-            Tell us about the website, app, AI system or online store you want to build, or ask us
-            about working together. Your message reaches the team directly.
-          </p>
-        </header>
-
-        <div className="grid gap-12 lg:grid-cols-[1fr_320px] lg:gap-16">
-          <div className="order-2 lg:order-1">
-            <ContactForm initialService={initialService} />
-          </div>
-
-          <aside className="order-1 space-y-6 lg:order-2">
-            <div className="rounded-2xl border border-glass-border bg-bg-secondary/50 p-6">
-              <Mail className="mb-3 h-5 w-5 text-accent-blue" />
-              <h2 className="text-sm font-bold text-text-primary">Email us</h2>
-              <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-                Prefer your own mail client?
-              </p>
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="mt-2 inline-block break-all text-xs font-semibold text-accent-blue hover:underline"
-              >
-                {CONTACT_EMAIL}
-              </a>
-            </div>
-
-            <div className="rounded-2xl border border-glass-border bg-bg-secondary/50 p-6">
-              <Clock className="mb-3 h-5 w-5 text-accent-blue" />
-              <h2 className="text-sm font-bold text-text-primary">Response time</h2>
-              <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-                We read everything that comes in and usually reply within two working days.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-glass-border bg-bg-secondary/50 p-6">
-              <MessageSquare className="mb-3 h-5 w-5 text-accent-blue" />
-              <h2 className="text-sm font-bold text-text-primary">Looking for the work?</h2>
-              <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-                The{" "}
-                <a href="/projects" className="text-accent-blue hover:underline">
-                  projects
-                </a>{" "}
-                and{" "}
-                <a href="/partners" className="text-accent-blue hover:underline">
-                  partner
-                </a>{" "}
-                pages show what we have built so far.
-              </p>
-            </div>
+      <div className="pb-12">
+        <PageIntro
+          title="Tell us what is going wrong"
+          lead="Or what you want to build. Plain words are enough. Your message reaches the team directly, and we usually reply within two working days."
+        />
+        <div className="mx-auto grid max-w-[1400px] gap-12 px-4 sm:px-6 md:px-8 lg:grid-cols-[1.5fr_1fr] lg:gap-20">
+          <ContactForm initialService={initialService} />
+          <aside className="h-fit rounded-[28px] bg-[#1a2150] p-8 text-white sm:p-10 lg:sticky lg:top-28">
+            <h2 className="text-3xl font-serif font-bold tracking-tight">What happens next</h2>
+            <ol className="mt-6 space-y-6">
+              {NEXT.map(({ title, text }, i) => (
+                <li key={title} className="grid grid-cols-[2.25rem_1fr]">
+                  <span aria-hidden="true" className="text-2xl font-serif font-bold text-[#8fe3dd] lining-nums">{i + 1}</span>
+                  <div>
+                    <h3 className="text-lg font-bold">{title}</h3>
+                    <p className="mt-1 text-base leading-relaxed text-white/80">{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-8 border-t border-white/20 pt-6 text-base text-white/80">
+              Rather write an email?{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="break-all font-bold text-white underline underline-offset-4">{CONTACT_EMAIL}</a>
+            </p>
           </aside>
         </div>
-      </main>
+      </div>
     </>
   );
 }

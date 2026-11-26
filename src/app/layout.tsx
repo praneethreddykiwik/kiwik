@@ -32,6 +32,8 @@ const fontMono = JetBrains_Mono({
 });
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Navbar } from "@/components/layout/navbar";
+import { NextStep } from "@/components/layout/next-step";
+import { FAQ } from "@/data/home-content";
 import { Footer } from "@/components/layout/footer";
 import { LayoutMain } from "@/components/layout/layout-main";
 import { CommandPalette } from "@/components/search/command-palette";
@@ -217,6 +219,11 @@ export default function RootLayout({
                       text: "Websites, iOS and Android apps, AI agents and assistants, online stores, SaaS platforms, cloud setups and workflow automation. Products built by Kiwik include Sowcha, Fooducia, HELM Events and Clean AI.",
                     },
                   },
+                  ...FAQ.map(({ q, a }) => ({
+                    "@type": "Question",
+                    name: q,
+                    acceptedAnswer: { "@type": "Answer", text: a },
+                  })),
                   {
                     "@type": "Question",
                     name: "Is Kiwik the same as Kiwix?",
@@ -276,6 +283,7 @@ export default function RootLayout({
             <Navbar />
             <CommandPalette />
             <LayoutMain>{children}</LayoutMain>
+            <NextStep />
             <Footer />
           </LenisProvider>
         </ThemeProvider>

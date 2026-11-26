@@ -17,7 +17,7 @@ export function LayoutMain({ children }: { children: React.ReactNode }) {
   return (
     <main
       className={cn(
-        "flex-1 overflow-x-hidden w-full max-w-full",
+        "flex-1 overflow-x-clip w-full max-w-full",
         isAdmin ? "pt-0 h-screen overflow-hidden" : "pt-[72px]"
       )}
     >

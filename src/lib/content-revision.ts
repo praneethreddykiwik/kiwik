@@ -1,7 +1,7 @@
 import { defaultDeviceShowcase, isSampleShowcase } from "@/data/device-showcase";
 import {
-  DASHBOARD_COPY, EARTH_COPY, FEATURED_COPY, FOOTER_COLUMNS, FOOTER_COPY, HERO_COPY, OLD, PRINCIPLES, PROCESS_BADGE, PROCESS_STEPS,
-  SERVICES, SERVICES_TITLE, TRUST_ITEMS, galleryTitle,
+  DASHBOARD_COPY, EARTH_COPY, FEATURED_COPY, FOOTER_COLUMNS, FOOTER_COPY, HERO_COPY, NAV_CTA, NAV_LABELS, OLD, PRINCIPLES, PROCESS_BADGE, PROCESS_STEPS,
+  SERVICES, SERVICES_TITLE, TRUST_ITEMS, TRUST_TITLE, galleryTitle,
 } from "@/data/home-content";
 import { SITE_TAGLINE } from "@/lib/site";
 import type { SiteCMSData } from "@/types/site-cms-types";
@@ -14,7 +14,7 @@ import type { SiteCMSData } from "@/types/site-cms-types";
  * saved navbar for the defaults and would drop links added in the studio (the
  * live "Contact" item exists only in the database).
  */
-export const CONTENT_REVISION = 6;
+export const CONTENT_REVISION = 8;
 
 /** /docs no longer exists (next.config.ts redirects it), so nothing may link to it. */
 export function isRetiredHref(href: string | undefined): boolean {
@@ -59,9 +59,9 @@ export function applyContentRevision(cms: SiteCMSData, savedRevision: number | u
     next.deviceShowcase = defaultDeviceShowcase;
   }
 
-  if ((savedRevision ?? 0) < 3) applyServiceCopy(next);
-  if ((savedRevision ?? 0) < 4) applyEarthAndFooterCopy(next);
-  if ((savedRevision ?? 0) < 6) applySiteCopy(next);
+  if ((savedRevision ?? 0) < 7) applyServiceCopy(next);
+  if ((savedRevision ?? 0) < 7) applyEarthAndFooterCopy(next);
+  if ((savedRevision ?? 0) < 7) applySiteCopy(next);
 
   // A studio-edited service list is kept, but still gains App Development once.
   const services = next.capabilities?.items;
@@ -89,11 +89,21 @@ function applyServiceCopy(next: SiteCMSData) {
     };
   }
 
+  if (next.capabilities?.items) {
+    next.capabilities = {
+      ...next.capabilities,
+      items: next.capabilities.items.map((item) => {
+        const fresh = SERVICES.find((svc) => svc.id === item.id);
+        return fresh && item.desc === OLD.serviceDescs[item.id] ? { ...item, desc: fresh.desc } : item;
+      }),
+    };
+  }
+
   if (howWeWork?.steps) {
     next.howWeWork = {
       ...howWeWork,
       steps: howWeWork.steps.map((step) => {
-        const fresh = PROCESS_STEPS[OLD.stepDescs.indexOf(step.desc)];
+        const fresh = PROCESS_STEPS[OLD.stepDescs.indexOf(step.desc) % PROCESS_STEPS.length];
         return fresh ? { ...step, desc: fresh.desc } : step;
       }),
     };
@@ -132,7 +142,7 @@ function applySiteCopy(next: SiteCMSData) {
 
   if (hero) {
     const fresh = { ...hero };
-    if (hero.versionBadge === OLD.hero.versionBadge) fresh.versionBadge = HERO_COPY.versionBadge;
+    if (OLD.hero.versionBadges.includes(hero.versionBadge || "")) fresh.versionBadge = HERO_COPY.versionBadge;
     if (OLD.hero.headlines.includes(`${hero.headlinePrefix}|${hero.headlineHighlightWord}`)) {
       fresh.headlinePrefix = HERO_COPY.headlinePrefix;
       fresh.headlineHighlightWord = HERO_COPY.headlineHighlightWord;
@@ -153,21 +163,35 @@ function applySiteCopy(next: SiteCMSData) {
   if (trust?.items?.length && trust.items.every((t) => OLD.trustTitles.includes(t.title))) {
     next.trust = { ...trust, items: TRUST_ITEMS };
   }
+  if (next.trust?.sectionTitle === OLD.trustTitle) next.trust = { ...next.trust, sectionTitle: TRUST_TITLE };
 
   if (whyKiwikPills?.length && whyKiwikPills.every((p) => OLD.pillTexts.includes(p.text))) {
     next.whyKiwikPills = whyKiwikPills.map((p) => ({ ...p, text: PRINCIPLES[OLD.pillTexts.indexOf(p.text)] }));
   }
 
-  if (howWeWork?.badge === OLD.processBadge) next.howWeWork = { ...howWeWork, badge: PROCESS_BADGE };
+  if (next.howWeWork && OLD.processBadges.includes(howWeWork?.badge || "")) next.howWeWork = { ...next.howWeWork, badge: PROCESS_BADGE };
+
+  if (next.howWeWork?.sectionTitle === "How We Work") next.howWeWork = { ...next.howWeWork, sectionTitle: "How we work" };
 
   if (dashboardShowcase && OLD.dashboardTitles.includes(dashboardShowcase.sectionTitle)) {
     next.dashboardShowcase = { ...dashboardShowcase, ...DASHBOARD_COPY };
   }
 
-  if (navigation?.items) {
+  if (next.navigation?.items && navigation) {
+    const items = next.navigation.items.map((i) => {
+      const known = NAV_LABELS[i.id || ""];
+      return known?.from.includes(i.label) ? { ...i, label: known.label } : i;
+    });
+    // Links in the client's reading order, unless the studio has added its own.
+    const order = Object.keys(NAV_LABELS);
+    const standard = items.every((i) => order.includes(i.id || ""));
     next.navigation = {
-      ...navigation,
-      items: navigation.items.map((i) => (i.id === "nav-2" && i.label === "Capabilities" ? { ...i, label: "Services" } : i)),
+      ...next.navigation,
+      items: standard ? items.sort((a, b) => order.indexOf(a.id || "") - order.indexOf(b.id || "")).map((i, n) => ({ ...i, order: n + 1 })) : items,
+      // The old button pointed at a section that does not exist.
+      ...(navigation.ctaButtonText === NAV_CTA.from && navigation.ctaButtonHref === NAV_CTA.fromHref
+        ? { ctaButtonText: NAV_CTA.text, ctaButtonHref: NAV_CTA.href }
+        : {}),
     };
   }
 }

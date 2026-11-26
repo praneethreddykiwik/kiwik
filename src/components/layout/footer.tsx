@@ -172,8 +172,8 @@ export function Footer() {
   return (
     <footer className="relative z-20 mt-20 w-full overflow-hidden text-text-secondary">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
-        {/* Start a project */}
-        <section className="relative overflow-hidden rounded-[28px] md:rounded-[40px] text-white bg-[linear-gradient(112deg,#151a40_0%,#232b62_42%,#0a4f55_78%,#007a78_100%)]">
+        {/* Start a project: not where the visitor is already doing that. */}
+        {pathname !== "/contact" && <section className="relative overflow-hidden rounded-[28px] md:rounded-[40px] text-white bg-[linear-gradient(112deg,#151a40_0%,#232b62_42%,#0a4f55_78%,#007a78_100%)]">
           <div ref={panel} className="absolute inset-0">
             <BrandGradient colors={PANEL_COLORS} brightness={1.15} strength={1.3} density={1} distance={2.1} />
           </div>
@@ -203,7 +203,7 @@ export function Footer() {
               )}
             </div>
           </div>
-        </section>
+        </section>}
 
         {/* Links */}
         <div className="pt-16 md:pt-20 pb-14 grid grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-12">

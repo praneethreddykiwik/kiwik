@@ -6,7 +6,7 @@ import { defaultDeviceShowcase } from "@/data/device-showcase";
 import { CONTENT_REVISION, applyContentRevision } from "@/lib/content-revision";
 import {
   DASHBOARD_COPY, EARTH_COPY, FEATURED_COPY, FOOTER_COLUMNS, FOOTER_COPY, HERO_COPY, PRINCIPLES, PROCESS_BADGE, PROCESS_STEPS,
-  SERVICES, SERVICES_TITLE, TRUST_ITEMS, galleryTitle,
+  SERVICES, SERVICES_TITLE, NAV_CTA, TRUST_ITEMS, TRUST_TITLE, galleryTitle,
 } from "@/data/home-content";
 import { SITE_DESCRIPTION, SITE_TAGLINE, SITE_TITLE } from "@/lib/site";
 import { useProjectsStore } from "@/stores/projects-store";
@@ -168,13 +168,13 @@ const defaultCMSData: SiteCMSData = {
     logoText: "Kiwik.1",
     logoUrl: "/logo.png",
     items: [
-      { id: "nav-1", label: "Projects", href: "/projects", iconName: "Folder", order: 1, visible: true },
-      { id: "nav-partner", label: "Digital Market Partner", href: "/partners", iconName: "Sparkles", order: 2, visible: true },
-      { id: "nav-2", label: "Services", href: "#capabilities", iconName: "Cpu", order: 3, visible: true },
-      { id: "nav-3", label: "How We Work", href: "#how-we-work", iconName: "Workflow", order: 4, visible: true }
+      { id: "nav-2", label: "Services", href: "#capabilities", iconName: "Cpu", order: 1, visible: true },
+      { id: "nav-1", label: "Our work", href: "/projects", iconName: "Folder", order: 2, visible: true },
+      { id: "nav-3", label: "How we work", href: "#how-we-work", iconName: "Workflow", order: 3, visible: true },
+      { id: "nav-partner", label: "Digital marketing", href: "/partners", iconName: "Sparkles", order: 4, visible: true }
     ],
-    ctaButtonText: "Ask Kiwik AI",
-    ctaButtonHref: "#ai",
+    ctaButtonText: NAV_CTA.text,
+    ctaButtonHref: NAV_CTA.href,
     ctaButtonVisible: true
   },
   featuredSection: {
@@ -182,8 +182,8 @@ const defaultCMSData: SiteCMSData = {
     subtitle: FEATURED_COPY.description
   },
   capabilities: { sectionTitle: SERVICES_TITLE, items: SERVICES },
-  trust: { sectionTitle: "Trust & Delivery", items: TRUST_ITEMS },
-  howWeWork: { badge: PROCESS_BADGE, sectionTitle: "How We Work", steps: PROCESS_STEPS },
+  trust: { sectionTitle: TRUST_TITLE, items: TRUST_ITEMS },
+  howWeWork: { badge: PROCESS_BADGE, sectionTitle: "How we work", steps: PROCESS_STEPS },
   footer: {
     columns: FOOTER_COLUMNS,
     socialLinks: [

@@ -3,49 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Cpu, ShieldCheck, Terminal } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { useProjects } from "@/stores/projects-store";
+import { CASE_NOTES, projectState, realText } from "@/data/case-notes";
 import { cn } from "@/lib/utils";
-
-// Category Ambient Color Config for Morphing Background
-const CATEGORY_COLORS: Record<string, { glow: string; text: string; badge: string }> = {
-  ai: {
-    glow: "rgba(168, 85, 247, 0.18)",
-    text: "text-purple-400",
-    badge: "bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30",
-  },
-  cloud: {
-    glow: "rgba(59, 130, 246, 0.18)",
-    text: "text-blue-400",
-    badge: "bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/30",
-  },
-  payments: {
-    glow: "rgba(16, 185, 129, 0.18)",
-    text: "text-emerald-400",
-    badge: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30",
-  },
-  automation: {
-    glow: "rgba(249, 115, 22, 0.18)",
-    text: "text-orange-400",
-    badge: "bg-orange-500/10 text-orange-600 dark:text-orange-300 border-orange-500/30",
-  },
-  web: {
-    glow: "rgba(14, 165, 233, 0.18)",
-    text: "text-sky-400",
-    badge: "bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/30",
-  },
-  saas: {
-    glow: "rgba(99, 102, 241, 0.18)",
-    text: "text-indigo-400",
-    badge: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/30",
-  },
-};
-
-const DEFAULT_COLOR = {
-  glow: "rgba(148, 163, 184, 0.18)",
-  text: "text-slate-300",
-  badge: "bg-slate-500/10 text-slate-600 dark:text-slate-300 border-slate-500/30",
-};
 
 export function AppleCoverflowCarousel() {
   const rawProjects = useProjects();
@@ -97,12 +58,7 @@ export function AppleCoverflowCarousel() {
     }
   };
 
-  // Both guards matter: the list is empty on first paint before the store
-  // hydrates, and a project authored in the admin studio may have no category.
-  const activeProject = displayProjects[activeIndex];
-  const colorStyle =
-    CATEGORY_COLORS[(activeProject?.category || "").toLowerCase()] || DEFAULT_COLOR;
-
+  // The list is empty on first paint, before the store hydrates.
   if (displayProjects.length === 0) return null;
 
   return (
@@ -111,17 +67,8 @@ export function AppleCoverflowCarousel() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onWheel={handleWheel}
-      className="relative w-full max-w-[1400px] min-h-[660px] sm:min-h-[720px] mx-auto flex flex-col items-center justify-center select-none overflow-hidden py-4"
+      className="relative w-full max-w-[1400px] min-h-[620px] mx-auto flex flex-col items-center justify-center select-none overflow-hidden py-4"
     >
-      {/* ─────────────────────────────────────────────────────────────
-          MORPHING AMBIENT BACKGROUND BACKLIGHT (Smooth 500ms)
-         ───────────────────────────────────────────────────────────── */}
-      <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[420px] rounded-full blur-[80px] pointer-events-none z-0 transform-gpu will-change-transform"
-        animate={{ background: colorStyle.glow }}
-        transition={{ duration: 0.5 }}
-      />
-
       {/* ─────────────────────────────────────────────────────────────
           3D COVER-FLOW CAROUSEL CONTAINER (Hardware Accelerated)
          ───────────────────────────────────────────────────────────── */}
@@ -154,12 +101,12 @@ export function AppleCoverflowCarousel() {
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
               style={{ transformStyle: "preserve-3d" }}
               className={cn(
-                "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-[1150px] h-auto min-h-[460px] lg:h-[540px] rounded-[32px] bg-[#0A0C12] border border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col lg:flex-row cursor-pointer transition-all duration-300 transform-gpu",
+                "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-[1150px] h-auto min-h-[460px] lg:h-[540px] rounded-[32px] bg-[#0a0a0b] shadow-[0_30px_70px_-20px_rgba(16,20,46,0.55)] overflow-hidden flex flex-col lg:flex-row cursor-pointer transition-all duration-300 transform-gpu",
                 isCenter ? "pointer-events-auto" : "pointer-events-auto hover:opacity-60"
               )}
             >
               {/* ── 70% CINEMATIC PRODUCT VISUAL AREA ── */}
-              <div className="relative w-full lg:w-[68%] h-[240px] sm:h-[300px] lg:h-full bg-[#0E1017] border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden flex items-center justify-center p-6 group">
+              <div className="relative w-full lg:w-[62%] h-[240px] sm:h-[300px] lg:h-full bg-[#0E1017] overflow-hidden flex items-center justify-center p-6 group">
                 
                 {/* Background Specular Grid */}
                 <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.04] pointer-events-none" />
@@ -176,7 +123,7 @@ export function AppleCoverflowCarousel() {
                       decoding="async"
                       className="w-full h-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0E1017] via-[#0E1017]/20 to-transparent" />
+                    
                   </div>
                 )}
 
@@ -187,57 +134,36 @@ export function AppleCoverflowCarousel() {
                   </div>
                 )}
 
-                {/* Top Glass Specular Glow */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0E1017] via-transparent to-white/5 opacity-60 pointer-events-none" />
               </div>
 
-              {/* ── 30% EDITORIAL CONTENT AREA ── */}
-              <div className="w-full lg:w-[32%] p-6 sm:p-8 flex flex-col justify-between space-y-4 bg-[#0A0C12]">
-                <div className="space-y-3">
-                  
-                  {/* Status & Category Badge */}
-                  <div className="flex items-center gap-2">
-                    <span className={cn("text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border", colorStyle.badge)}>
-                      ● {(project.status || "").replace("-", " ")}
-                    </span>
-                    <span className="text-xs font-mono uppercase tracking-wider text-white/40">
-                      {project.category}
-                    </span>
-                  </div>
-
-                  {/* Large Editorial Headline */}
-                  <h3 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
-                    {project.name}
-                  </h3>
-
-                  {/* Tagline */}
-                  <p className="text-xs sm:text-sm text-[#A1A1AA] leading-relaxed font-sans line-clamp-3">
-                    {project.tagline || project.description}
-                  </p>
-
-                  {/* Tech Stack Pills */}
-                  <div className="flex flex-wrap gap-1.5 pt-2">
-                    {(project.techStack || []).slice(0, 3).map((t) => (
-                      <span key={t.name} className="px-2.5 py-1 text-[10px] font-mono font-medium rounded-full bg-white/10 border border-white/10 text-white/80">
-                        {t.name}
-                      </span>
-                    ))}
-                  </div>
+              {/* The problem, and what was built for it */}
+              <div className="flex w-full flex-col justify-between gap-6 bg-[#0a0a0b] p-6 text-white sm:p-8 lg:w-[38%]">
+                <div>
+                  <p className="text-sm font-semibold text-[#8fe3dd]">{projectState(project)}</p>
+                  <h3 className="mt-1 text-3xl sm:text-4xl font-serif font-bold tracking-tight">{project.name}</h3>
+                  {CASE_NOTES[project.slug] ? (
+                    <dl className="mt-5 space-y-4">
+                      <div>
+                        <dt className="text-sm font-bold">The problem</dt>
+                        <dd className="mt-0.5 text-base leading-relaxed text-white/80">{CASE_NOTES[project.slug].problem}</dd>
+                      </div>
+                      <div className="max-sm:hidden">
+                        <dt className="text-sm font-bold">What we built</dt>
+                        <dd className="mt-0.5 text-base leading-relaxed text-white/80">{CASE_NOTES[project.slug].built}</dd>
+                      </div>
+                    </dl>
+                  ) : (
+                    <p className="mt-4 text-base leading-relaxed text-white/80 line-clamp-5">{project.tagline || realText(project.description)}</p>
+                  )}
                 </div>
-
-                {/* Dynamic CTA Action Links */}
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                  <Link
-                    href={`/projects/${project.slug}`}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black font-sans font-bold text-xs hover:bg-white/90 transition-all shadow-md group-hover:scale-105"
-                  >
-                    <span>See the project</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-
+                <Link
+                  href={`/projects/${project.slug}`}
+                  tabIndex={isCenter ? undefined : -1}
+                  className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-6 py-3 text-base font-bold text-[#10142e] transition-transform duration-200 hover:scale-[1.03]"
+                >
+                  See {project.name} <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
               </div>
-
             </motion.div>
           );
         })}
@@ -270,9 +196,6 @@ export function AppleCoverflowCarousel() {
               aria-label={`Go to project ${i + 1}`}
             />
           ))}
-          <span className="ml-2 text-[10px] text-neutral-600 dark:text-white/60 font-bold">
-            {String(activeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-          </span>
         </div>
 
         {/* Right Arrow Button */}
@@ -285,25 +208,6 @@ export function AppleCoverflowCarousel() {
         </button>
 
       </div>
-
-      {/* ─────────────────────────────────────────────────────────────
-          FLOATING CORNER SIDE NAVIGATION ARROWS
-         ───────────────────────────────────────────────────────────── */}
-      <button
-        onClick={handlePrev}
-        className="absolute left-6 top-[40%] sm:top-[45%] -translate-y-1/2 w-14 h-14 rounded-full bg-black/40 dark:bg-white/10 backdrop-blur-xl border border-black/15 dark:border-white/20 flex items-center justify-center text-white hover:bg-black/60 dark:hover:bg-white/20 active:scale-95 transition-all shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-40 cursor-pointer hidden md:flex group"
-        aria-label="Previous project"
-      >
-        <ArrowLeft className="w-6 h-6 text-white/80 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
-      </button>
-
-      <button
-        onClick={handleNext}
-        className="absolute right-6 top-[40%] sm:top-[45%] -translate-y-1/2 w-14 h-14 rounded-full bg-black/40 dark:bg-white/10 backdrop-blur-xl border border-black/15 dark:border-white/20 flex items-center justify-center text-white hover:bg-black/60 dark:hover:bg-white/20 active:scale-95 transition-all shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-40 cursor-pointer hidden md:flex group"
-        aria-label="Next project"
-      >
-        <ArrowRight className="w-6 h-6 text-white/80 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
-      </button>
     </div>
   );
 }

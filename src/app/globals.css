@@ -284,12 +284,35 @@ body {
   }
 }
 
-h1, h2, h3, h4, h5, h6 {
+/*
+ * Tablets and laptops: the whole site one step smaller (what 90% browser zoom
+ * used to show), since text, spacing and components are all sized in rem.
+ * Short screens go a little smaller again; large desktop monitors a little
+ * larger.
+ */
+@media (min-width: 769px) {
+  html, body {
+    font-size: 13.5px;
+  }
+}
+@media (min-width: 769px) and (max-height: 760px) {
+  html, body {
+    font-size: 12.75px;
+  }
+}
+@media (min-width: 1920px) and (min-height: 1000px) {
+  html, body {
+    font-size: 14.25px;
+  }
+}
+
+/* Not inside .concept, where each design sets its own type. */
+:where(h1, h2, h3, h4, h5, h6):where(:not(.concept *)) {
   letter-spacing: 0.02em;
   line-height: 1.25;
 }
 
-p {
+:where(p):where(:not(.concept *)) {
   line-height: 1.7;
   letter-spacing: -0.006em;
   /* Hanken Grotesk ships proportional lining figures by default; tabular ones

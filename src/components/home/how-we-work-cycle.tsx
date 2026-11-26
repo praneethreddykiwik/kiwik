@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useInView, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 import * as LucideIcons from "lucide-react";
-import { Workflow } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PROCESS_BADGE } from "@/data/home-content";
 import { useSiteCMS } from "@/stores/site-cms-store";
@@ -129,14 +128,11 @@ export function HowWeWorkCycle() {
       id="how-we-work"
       className="py-16 md:py-24 px-4 sm:px-6 md:px-8 max-w-[1400px] mx-auto relative z-20 scroll-mt-24 sm:scroll-mt-28"
     >
-      <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono font-bold uppercase tracking-wider">
-          <Workflow className="w-3.5 h-3.5" />
-          <span>{howWeWork.badge || PROCESS_BADGE}</span>
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-serif font-bold text-text-primary tracking-tight">
-          {howWeWork.sectionTitle || "How We Work"}
+      <div className="mx-auto mb-10 max-w-3xl text-center">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold tracking-tight leading-[1.08] text-text-primary">
+          {howWeWork.sectionTitle || "How we work"}
         </h2>
+        <p className="mt-4 text-lg text-text-secondary">{howWeWork.badge || PROCESS_BADGE}</p>
       </div>
 
       <div
@@ -160,7 +156,7 @@ export function HowWeWorkCycle() {
                       fill="none"
                       strokeWidth={2}
                       strokeLinecap="round"
-                      className="stroke-accent-blue"
+                      className="stroke-[#0a8f8b]"
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={entered ? { pathLength: 1, opacity: 1 } : undefined}
                       transition={timing({ pathLength: { duration: 0.6, delay: at, ease: "easeInOut" as const }, opacity: { duration: 0.01, delay: at } })}
@@ -169,7 +165,7 @@ export function HowWeWorkCycle() {
                       <motion.path
                         data-arrow-head=""
                         d="M-8 -6.5 L5 0 L-8 6.5 L-4.5 0 Z"
-                        className="fill-accent-blue"
+                        className="fill-[#0a8f8b]"
                         initial={{ opacity: 0 }}
                         animate={entered ? { opacity: 1 } : undefined}
                         transition={timing({ duration: 0.2, delay: at + 0.5 })}
@@ -187,7 +183,7 @@ export function HowWeWorkCycle() {
                     fill="none"
                     strokeWidth={3}
                     strokeLinecap="round"
-                    className="stroke-accent-blue"
+                    className="stroke-[#0a8f8b]"
                     initial={{ pathLength: reduced ? 1 : 0 }}
                     animate={{ pathLength: 1 }}
                     transition={{ duration: TRAVEL, ease: "easeInOut" }}
@@ -195,7 +191,7 @@ export function HowWeWorkCycle() {
                   <g transform={arrows[active].head}>
                     <motion.path
                       d="M-8 -6.5 L5 0 L-8 6.5 L-4.5 0 Z"
-                      className="fill-accent-blue"
+                      className="fill-[#0a8f8b]"
                       initial={{ opacity: reduced ? 1 : 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.25, delay: reduced ? 0 : TRAVEL * 0.85 }}
@@ -206,13 +202,13 @@ export function HowWeWorkCycle() {
 
               {active !== null && !reduced && (
                 <g>
-                  <motion.circle cx={dotX} cy={dotY} r={11} className="fill-accent-blue/25" />
-                  <motion.circle data-dot="" cx={dotX} cy={dotY} r={5} className="fill-accent-blue" />
+                  <motion.circle cx={dotX} cy={dotY} r={11} className="fill-[#0a8f8b]/25" />
+                  <motion.circle data-dot="" cx={dotX} cy={dotY} r={5} className="fill-[#0a8f8b]" />
                 </g>
               )}
 
               <g className="motion-safe:animate-[spin_14s_linear_infinite]" style={{ transformBox: "fill-box", transformOrigin: "center", animationPlayState: onScreen ? "running" : "paused" }}>
-                <LoopIcon x={-17} y={-40} width={34} height={34} strokeWidth={1.5} className="text-accent-blue" />
+                <LoopIcon x={-17} y={-40} width={34} height={34} strokeWidth={1.5} className="text-[#0a8f8b]" />
               </g>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.g
@@ -223,16 +219,16 @@ export function HowWeWorkCycle() {
                   transition={{ duration: reduced ? 0 : 0.25 }}
                 >
                   {active === null ? (
-                    <text y={26} textAnchor="middle" className="fill-text-secondary font-mono font-bold uppercase" fontSize={13} letterSpacing={1.5}>
-                      {count} phases
+                    <text y={26} textAnchor="middle" className="fill-text-secondary font-semibold" fontSize={15}>
+                      {count} steps
                     </text>
                   ) : (
                     <>
-                      <text y={24} textAnchor="middle" className="fill-text-primary font-mono font-bold uppercase" fontSize={17} letterSpacing={1.5}>
+                      <text y={24} textAnchor="middle" className="fill-text-primary font-bold" fontSize={21}>
                         {steps[active].title}
                       </text>
-                      <text y={46} textAnchor="middle" className="fill-text-secondary font-mono font-bold uppercase" fontSize={11} letterSpacing={1.2}>
-                        Phase {active + 1} of {count}
+                      <text y={46} textAnchor="middle" className="fill-text-secondary font-medium" fontSize={14}>
+                        Step {active + 1} of {count}
                       </text>
                     </>
                   )}
@@ -257,7 +253,7 @@ export function HowWeWorkCycle() {
                         cy={y}
                         fill="none"
                         strokeWidth={2}
-                        className="stroke-accent-blue"
+                        className="stroke-[#0a8f8b]"
                         initial={{ r: NODE, opacity: 0.7 }}
                         animate={{ r: NODE + 18, opacity: 0 }}
                         transition={{ duration: 1.1, ease: "easeOut" }}
@@ -273,13 +269,13 @@ export function HowWeWorkCycle() {
                         cy={y}
                         r={NODE}
                         strokeWidth={on ? 2.5 : 1.5}
-                        className={cn("fill-bg-secondary transition-colors duration-500", on ? "stroke-accent-blue" : "stroke-accent-blue/40")}
+                        className={cn("fill-bg-secondary transition-colors duration-500", on ? "stroke-[#0a8f8b]" : "stroke-[#0a8f8b]/40")}
                       />
-                      <circle cx={x} cy={y} r={NODE} className={cn("fill-accent-blue transition-opacity duration-500", on ? "opacity-15" : "opacity-0")} />
+                      <circle cx={x} cy={y} r={NODE} className={cn("fill-[#0a8f8b] transition-opacity duration-500", on ? "opacity-15" : "opacity-0")} />
                       {Icon ? (
-                        <Icon x={x - 13} y={y - 13} width={26} height={26} className="text-accent-blue" />
+                        <Icon x={x - 13} y={y - 13} width={26} height={26} className="text-[#0a8f8b]" />
                       ) : (
-                        <text x={x} y={y} dy="0.35em" textAnchor="middle" fontSize={22} className="fill-accent-blue font-mono font-bold">
+                        <text x={x} y={y} dy="0.35em" textAnchor="middle" fontSize={22} className="fill-[#0a8f8b] font-bold">
                           {step.step || String(i + 1).padStart(2, "0")}
                         </text>
                       )}
@@ -308,7 +304,7 @@ export function HowWeWorkCycle() {
                   isCycle && (cos < -0.2 ? "lg:text-right" : cos <= 0.2 && "lg:text-center")
                 )}
               >
-                <span className={cn("shrink-0 w-8 h-8 rounded-xl bg-accent-blue/10 border border-accent-blue/20 text-accent-blue text-xs font-mono font-bold flex items-center justify-center", isCycle && "lg:hidden")}>
+                <span className={cn("shrink-0 w-8 h-8 rounded-xl bg-[#0a8f8b]/10 border border-[#0a8f8b]/20 text-[#0a8f8b] text-xs font-mono font-bold flex items-center justify-center", isCycle && "lg:hidden")}>
                   {p.step.step || String(i + 1).padStart(2, "0")}
                 </span>
                 <motion.div
@@ -316,11 +312,10 @@ export function HowWeWorkCycle() {
                   animate={entered ? { opacity: 1, y: 0 } : undefined}
                   transition={timing({ duration: 0.6, delay: i * STAGGER + 0.15, ease: EASE })}
                 >
-                  <span className="block text-[9px] font-mono font-bold uppercase tracking-wider text-text-secondary">Phase {i + 1}</span>
-                  <h3 className={cn("mt-1 text-sm font-mono font-bold uppercase tracking-wider transition-colors duration-500", active === i ? "text-accent-blue" : "text-text-primary")}>
+                                    <h3 className={cn("text-xl font-bold transition-colors duration-500", active === i ? "text-[#0a8f8b]" : "text-text-primary")}>
                     {p.step.title}
                   </h3>
-                  <p className={cn("mt-1.5 text-xs leading-relaxed font-medium transition-colors duration-500", active === i ? "text-text-primary" : "text-text-secondary")}>{p.step.desc}</p>
+                  <p className={cn("mt-1 text-base leading-relaxed transition-colors duration-500", active === i ? "text-text-primary" : "text-text-secondary")}>{p.step.desc}</p>
                 </motion.div>
               </li>
             );

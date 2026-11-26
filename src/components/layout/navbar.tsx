@@ -4,14 +4,18 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Command, Search, Sparkles, Sun, Moon } from 'lucide-react';
+import { Menu, X, Command, Search, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeSwitcher } from './theme-switcher';
 import { useThemeStore } from '@/stores/theme-store';
 import { useSiteCMS } from '@/stores/site-cms-store';
+import { NAV_CTA } from '@/data/home-content';
 
 export function Navbar() {
   const [scrolled, setScrolled] = React.useState(false);
+  // Out of the way while reading down the page; back as soon as the visitor
+  // scrolls up, nears the top or reaches the end.
+  const [hidden, setHidden] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
   const pathname = usePathname();
@@ -25,11 +29,20 @@ export function Navbar() {
     // into one rAF, so `scrollY` is read at most once per frame instead of once
     // per scroll event.
     let frame: number | null = null;
+    let lastY = window.scrollY;
     const handleScroll = () => {
       if (frame !== null) return;
       frame = requestAnimationFrame(() => {
         frame = null;
-        setScrolled(window.scrollY > 25);
+        const y = window.scrollY;
+        const delta = y - lastY;
+        setScrolled(y > 25);
+        const nearTop = y < 140;
+        const nearEnd = y + window.innerHeight > document.documentElement.scrollHeight - 160;
+        if (nearTop || nearEnd) setHidden(false);
+        else if (delta > 6) setHidden(true);
+        else if (delta < -6) setHidden(false);
+        if (Math.abs(delta) > 6) lastY = y;
       });
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -57,7 +70,14 @@ export function Navbar() {
   if (pathname?.startsWith('/admin')) return null;
 
   return (
-    <div className="fixed top-3 inset-x-0 z-50 flex justify-center px-3 sm:px-6 pointer-events-none">
+    <div
+      className={cn(
+        'fixed top-3 inset-x-0 z-50 flex justify-center px-3 sm:px-6 pointer-events-none transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+        hidden && !mobileMenuOpen && '-translate-y-[140%]'
+      )}
+      // Keyboard users tabbing into the menu always get it back.
+      onFocusCapture={() => setHidden(false)}
+    >
       <motion.header
         initial={{ y: -25, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -206,7 +226,7 @@ export function Navbar() {
           {/* Theme Switcher Button */}
           <ThemeSwitcher />
 
-          {/* Compact Primary CTA Button: Ask Kiwik AI */}
+          {/* Compact Primary CTA Button */}
           {navCMS.ctaButtonVisible !== false && (
             <motion.div 
               whileHover={{ y: -1, scale: 1.02 }} 
@@ -214,12 +234,11 @@ export function Navbar() {
               transition={{ duration: 0.2 }}
             >
               <Link
-                href={navCMS.ctaButtonHref || "#ai"}
-                onClick={(e) => handleNavClick(e, navCMS.ctaButtonHref || "#ai")}
-                className="h-[36px] px-4 rounded-full bg-gradient-to-b from-white to-neutral-100 dark:bg-gradient-to-r dark:from-blue-600 dark:to-indigo-600 border border-black/10 dark:border-white/20 text-[#111111] dark:text-white text-xs font-bold font-sans flex items-center gap-1.5 transition-all shadow-sm hover:shadow-blue-500/20"
+                href={navCMS.ctaButtonHref || NAV_CTA.href}
+                onClick={(e) => handleNavClick(e, navCMS.ctaButtonHref || NAV_CTA.href)}
+                className="h-[38px] px-5 rounded-full bg-[#1a2150] dark:bg-white text-white dark:text-[#10142e] text-[13px] font-bold font-sans flex items-center transition-opacity hover:opacity-90"
               >
-                <Sparkles className="w-3 h-3 text-blue-500 dark:text-blue-200 animate-pulse" />
-                <span>{navCMS.ctaButtonText || "Ask Kiwik AI"}</span>
+                <span>{navCMS.ctaButtonText || NAV_CTA.text}</span>
               </Link>
             </motion.div>
           )}

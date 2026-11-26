@@ -119,13 +119,14 @@ function Pin({ place, label }: { place: GlobePlace; label: RefObject<Map<string,
   const ref = useRef<THREE.Mesh>(null);
   const position = useMemo(() => onGlobe(place.lat, place.lon, 1.006), [place]);
   const facing = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), position.clone().normalize()), [position]);
+  const material = useRef<THREE.ShaderMaterial>(null);
   const uniforms = useMemo(() => ({ uTime: { value: Math.random() * 2 } }), []);
   const world = useMemo(() => new THREE.Vector3(), []);
   const normal = useMemo(() => new THREE.Vector3(), []);
   const { camera, size } = useThree();
 
   useFrame((_, dt) => {
-    uniforms.uTime.value += dt;
+    if (material.current) material.current.uniforms.uTime.value += dt;
     const el = label.current.get(place.name);
     if (!el || !ref.current) return;
     ref.current.getWorldPosition(world);
@@ -138,7 +139,8 @@ function Pin({ place, label }: { place: GlobePlace; label: RefObject<Map<string,
   return (
     <mesh ref={ref} position={position} quaternion={facing}>
       <planeGeometry args={[0.13, 0.13]} />
-      <shaderMaterial vertexShader={PLAIN_VERT} fragmentShader={RING_FRAG} uniforms={uniforms} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
+      {/* React Three Fiber copies uniforms, so the moving one is written on the material itself. */}
+      <shaderMaterial ref={material} vertexShader={PLAIN_VERT} fragmentShader={RING_FRAG} uniforms={uniforms} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
     </mesh>
   );
 }
@@ -167,14 +169,15 @@ function Arc({ from, to }: { from: GlobePlace; to: GlobePlace }) {
     }
     return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 60, 0.0045, 6, false);
   }, [from, to]);
+  const material = useRef<THREE.ShaderMaterial>(null);
   const uniforms = useMemo(() => ({ uTime: { value: 0 } }), []);
   useEffect(() => () => geometry.dispose(), [geometry]);
   useFrame((_, dt) => {
-    uniforms.uTime.value += dt;
+    if (material.current) material.current.uniforms.uTime.value += dt;
   });
   return (
     <mesh geometry={geometry}>
-      <shaderMaterial vertexShader={PLAIN_VERT} fragmentShader={ARC_FRAG} uniforms={uniforms} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
+      <shaderMaterial ref={material} vertexShader={PLAIN_VERT} fragmentShader={ARC_FRAG} uniforms={uniforms} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
     </mesh>
   );
 }

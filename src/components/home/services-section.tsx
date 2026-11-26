@@ -11,10 +11,8 @@ import { useProjects } from "@/stores/projects-store";
 import { useSiteCMS } from "@/stores/site-cms-store";
 import type { CapabilityItem } from "@/types/site-cms-types";
 import type { Project } from "@/types";
+import { MINI_CSS, MINI_SCREENS } from "@/components/concepts/mini-ui";
 
-/** Services shown as a large card with a picture; the rest go in the list beside the last one. */
-const FEATURED = 5;
-const SPANS = ["lg:col-span-7", "lg:col-span-5", "lg:col-span-5", "lg:col-span-7", "lg:col-span-7"];
 // Alternating washes in the logo's two ribbon colours.
 const WASHES = [
   "from-[#5a6cae]/25 dark:from-[#5a6cae]/30",
@@ -47,56 +45,55 @@ function Screenshot({ project, className }: { project: Project; className?: stri
   );
 }
 
-function Visual({ service, example, sites }: { service: CapabilityItem; example?: Project; sites: Project[] }) {
-  // An app: zoom in on the lower right of the cover, where the app itself is shown.
-  if (example && service.iconName === "Smartphone") {
-    const src = example.coverImage || "";
-    return (
-      <div className="absolute inset-y-0 left-7 sm:left-9 right-0 overflow-hidden rounded-tl-2xl shadow-[0_24px_60px_-20px_rgba(16,20,46,0.45)]">
-        <img
-          src={optimizedImage(src, 1200)}
-          onError={(e) => {
-            if (e.currentTarget.getAttribute("src") !== src) e.currentTarget.src = src;
-          }}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="absolute right-[-18%] bottom-0 w-[150%] max-w-none min-h-full object-cover object-bottom origin-[80%_100%] transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-        />
-      </div>
-    );
-  }
-  if (example) {
-    return (
-      <div className="absolute inset-y-0 left-7 sm:left-9 -right-10 transition-transform duration-500 ease-out group-hover:-translate-y-2">
-        <Screenshot project={example} />
-      </div>
-    );
-  }
-  // No single example: a fan of sites we have built.
-  if (sites.length === 0) return null;
+/** Cloud & DevOps has no product to show, so it shows the work itself: a release going out. */
+function DeployPanel() {
+  const rows: [string, string][] = [
+    ["Build", "passed"],
+    ["Tests", "128 passed"],
+    ["Security scan", "no issues"],
+    ["Deploy", "live"],
+  ];
   return (
-    <div aria-hidden="true" className="absolute inset-0">
-      {sites.slice(0, 3).map((site, i) => (
-        <div
-          key={site.slug}
-          style={{ left: `${6 + i * 17}%`, top: `${i * 34}px`, zIndex: i }}
-          className={cn(
-            "absolute w-[62%] transition-transform duration-500 ease-out",
-            i === 0 && "group-hover:-translate-x-2 group-hover:-translate-y-2",
-            i === 2 && "group-hover:translate-x-2 group-hover:translate-y-1"
-          )}
-        >
-          <Screenshot project={site} />
-        </div>
-      ))}
+    <div className="h-full overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-[#0b0d14] shadow-[0_24px_60px_-20px_rgba(16,20,46,0.45)]">
+      <div aria-hidden="true" className="flex gap-1.5 px-3 py-2 bg-[#141722]">
+        <span className="w-2 h-2 rounded-full bg-[#5a6cae]" />
+        <span className="w-2 h-2 rounded-full bg-[#8fabd9]" />
+        <span className="w-2 h-2 rounded-full bg-[#008080]" />
+      </div>
+      <ul className="p-4 font-mono text-[12px] sm:text-[13px] leading-6 text-white/80">
+        {rows.map(([step, result], i) => (
+          <li key={step} className="flex items-center justify-between gap-3 border-b border-white/[0.06] last:border-0 py-1">
+            <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#4fc3bd]" style={{ opacity: 0.5 + i * 0.15 }} />{step}</span>
+            <span className="text-[#4fc3bd]">{result}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
+/** A service with no product of its own shows a drawn screen of that kind of work, never a repeated screenshot. */
+function drawnFor(service: CapabilityItem): React.ReactNode | "deploy" {
+  const t = `${service.title} ${service.iconName}`.toLowerCase();
+  if (/cloud|devops|server/.test(t)) return "deploy";
+  const pick = (name: string) => {
+    const View = MINI_SCREENS.find((m) => m.name === name)!.View;
+    return <View />;
+  };
+  if (/web|globe/.test(t)) return pick("Website");
+  if (/secur|identity|shield|lock/.test(t)) return pick("Cybersecurity");
+  if (/automat|workflow|zap/.test(t)) return pick("Invoicing");
+  if (/commerce|store|shop/.test(t)) return pick("Online store");
+  if (/ai|bot|spark/.test(t)) return pick("AI assistant");
+  if (/app|phone/.test(t)) return pick("Delivery app");
+  return pick("Sales dashboard");
+}
+
 /**
- * What a client can hire Kiwik for, shown with products it has built. Cards slide
- * in but never fade, so they are readable before scripts have loaded.
+ * What a client can hire Kiwik for, shown with products it has built. Every
+ * card has the same shape: what it is, what it does, and a picture of real
+ * work at the same size along the bottom. Cards slide in but never fade, so
+ * they are readable before scripts have loaded.
  */
 export function ServicesSection() {
   const { capabilities } = useSiteCMS();
@@ -108,18 +105,15 @@ export function ServicesSection() {
 
   if (services.length === 0) return null;
 
-  const featured = services.slice(0, FEATURED);
-  const others = services.slice(FEATURED);
-  const sites = projects.filter((p) => p.coverImage);
 
   return (
     <section id="capabilities" className="py-16 md:py-24 px-4 sm:px-6 md:px-8 max-w-[1400px] mx-auto relative z-20 scroll-mt-24">
       <div className="mb-10 md:mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="max-w-4xl">
-          <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-text-secondary">Our services</span>
-          <h2 className="mt-3 text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-text-primary tracking-tight leading-[1.08] text-balance">
+        <div className="max-w-3xl">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-text-primary tracking-tight leading-[1.08] text-balance">
             {capabilities.sectionTitle || "What we can build for you"}
           </h2>
+          <p className="mt-4 text-lg text-text-secondary text-pretty">Pick what you need. Where we have built it for a client, the card shows the real product.</p>
         </div>
         <Link
           href="/contact"
@@ -129,72 +123,63 @@ export function ServicesSection() {
         </Link>
       </div>
 
-      <ul className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
-        {featured.map((service, i) => {
+      <style>{MINI_CSS}</style>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+        {services.map((service, i) => {
           const Icon = iconFor(service.iconName);
           const example = service.projectSlug ? projects.find((p) => p.slug === service.projectSlug) : undefined;
-          const lastAlone = i === featured.length - 1 && others.length === 0 && i % 2 === 0;
+          const drawn = example?.coverImage ? undefined : drawnFor(service);
           return (
             <motion.li
               key={service.id || i}
               initial={{ y: 28 }}
               whileInView={{ y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.55, delay: (i % 2) * 0.08, ease: EASE }}
-              className={cn(
-                "group relative flex flex-col overflow-hidden rounded-[28px] bg-bg-elevated dark:bg-bg-secondary border border-glass-border hover:border-[#8fabd9]/60 transition-colors",
-                lastAlone ? "lg:col-span-12" : SPANS[i]
-              )}
+              transition={{ duration: 0.55, delay: (i % 4) * 0.06, ease: EASE }}
+              className="group relative flex flex-col overflow-hidden rounded-[24px] bg-bg-elevated dark:bg-bg-secondary border border-glass-border hover:border-[#8fabd9]/60 transition-colors"
             >
               <div aria-hidden="true" className={cn("absolute inset-0 bg-radial-[at_80%_100%] to-transparent to-65% pointer-events-none", WASHES[i % 2])} />
-              <div className="relative p-7 sm:p-9 pb-6 sm:pb-8">
+              <div className="relative flex flex-1 flex-col p-6 sm:p-7">
                 <div className="flex items-center gap-3">
-                  <Icon className="w-6 h-6 text-[#008080] dark:text-[#4fc3bd]" aria-hidden="true" />
-                  <h3 className="text-xl sm:text-2xl font-bold text-text-primary tracking-tight">{service.title}</h3>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#008080]/10 dark:bg-[#4fc3bd]/10">
+                    <Icon className="w-5 h-5 text-[#008080] dark:text-[#4fc3bd]" aria-hidden="true" />
+                  </span>
+                  <h3 className="text-lg sm:text-xl font-bold text-text-primary tracking-tight">{service.title}</h3>
                 </div>
-                <p className="mt-3 max-w-[42ch] text-base text-text-secondary leading-relaxed">{service.desc}</p>
-                {example && (
+                <p className="mt-3 text-base text-text-secondary leading-relaxed">{service.desc}</p>
+                {example ? (
                   <Link
                     href={`/projects/${example.slug}`}
                     // The whole card is the click target.
-                    className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-[#34407f] dark:text-[#a9c0e6] after:absolute after:inset-0 after:z-10 focus-visible:outline-2 focus-visible:outline-offset-4"
+                    className="mt-auto pt-4 inline-flex items-center gap-1 text-sm font-bold text-[#34407f] dark:text-[#a9c0e6] after:absolute after:inset-0 after:z-10 focus-visible:outline-2 focus-visible:outline-offset-4"
                   >
                     See {example.name}
                     <ArrowUpRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
                   </Link>
+                ) : (
+                  <Link
+                    href="/contact"
+                    className="mt-auto pt-4 inline-flex items-center gap-1 text-sm font-bold text-[#34407f] dark:text-[#a9c0e6] after:absolute after:inset-0 after:z-10 focus-visible:outline-2 focus-visible:outline-offset-4"
+                  >
+                    Ask about this
+                    <ArrowUpRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
+                  </Link>
                 )}
               </div>
-              <div className="relative mt-auto h-[230px] sm:h-[290px]">
-                <Visual service={service} example={example} sites={sites} />
+              <div className="relative px-6 sm:px-7 pb-6 sm:pb-7">
+                <div className="aspect-[16/10] transition-transform duration-500 ease-out group-hover:-translate-y-1">
+                  {example?.coverImage ? (
+                    <Screenshot project={example} className="h-full [&_img]:h-[calc(100%-26px)] [&_img]:aspect-auto" />
+                  ) : drawn === "deploy" ? (
+                    <DeployPanel />
+                  ) : (
+                    <div className="h-full overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-white shadow-[0_24px_60px_-20px_rgba(16,20,46,0.45)]">{drawn}</div>
+                  )}
+                </div>
               </div>
             </motion.li>
           );
         })}
-
-        {others.length > 0 && (
-          <motion.li
-            initial={{ y: 28 }}
-            whileInView={{ y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.55, delay: 0.08, ease: EASE }}
-            className={cn("rounded-[28px] bg-[#1a2150] text-white overflow-hidden", featured.length % 2 === 1 ? "lg:col-span-5" : "lg:col-span-12")}
-          >
-            <ul className="h-full flex flex-col divide-y divide-white/12">
-              {others.map((service, i) => {
-                const Icon = iconFor(service.iconName);
-                return (
-                  <li key={service.id || i} className="flex-1 flex items-center gap-5 p-7 sm:px-9 hover:bg-white/[0.06] transition-colors">
-                    <Icon className="w-7 h-7 shrink-0 text-[#8fabd9]" aria-hidden="true" />
-                    <div>
-                      <h3 className="text-lg font-bold tracking-tight">{service.title}</h3>
-                      <p className="mt-1 text-sm text-white/75 leading-relaxed">{service.desc}</p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </motion.li>
-        )}
       </ul>
     </section>
   );
