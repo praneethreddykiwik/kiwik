@@ -14,7 +14,7 @@ import type { SiteCMSData } from "@/types/site-cms-types";
  * saved navbar for the defaults and would drop links added in the studio (the
  * live "Contact" item exists only in the database).
  */
-export const CONTENT_REVISION = 9;
+export const CONTENT_REVISION = 10;
 
 /** /docs no longer exists (next.config.ts redirects it), so nothing may link to it. */
 export function isRetiredHref(href: string | undefined): boolean {
@@ -63,6 +63,10 @@ export function applyContentRevision(cms: SiteCMSData, savedRevision: number | u
   if ((savedRevision ?? 0) < 7) applyEarthAndFooterCopy(next);
   if ((savedRevision ?? 0) < 7) applySiteCopy(next);
   if ((savedRevision ?? 0) < 9) applyPolishedCopy(next);
+  // Revision 10: the header link to the projects page reads "Projects" again.
+  if ((savedRevision ?? 0) < 10 && next.navigation?.items) {
+    next.navigation = { ...next.navigation, items: next.navigation.items.map((i) => (i.label === "Our work" && i.href === "/projects" ? { ...i, label: "Projects" } : i)) };
+  }
 
   // A studio-edited service list is kept, but still gains App Development once.
   const services = next.capabilities?.items;

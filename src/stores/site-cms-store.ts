@@ -169,7 +169,7 @@ const defaultCMSData: SiteCMSData = {
     logoUrl: "/logo.png",
     items: [
       { id: "nav-2", label: "Services", href: "#capabilities", iconName: "Cpu", order: 1, visible: true },
-      { id: "nav-1", label: "Our work", href: "/projects", iconName: "Folder", order: 2, visible: true },
+      { id: "nav-1", label: "Projects", href: "/projects", iconName: "Folder", order: 2, visible: true },
       { id: "nav-3", label: "How we work", href: "#how-we-work", iconName: "Workflow", order: 3, visible: true },
       { id: "nav-partner", label: "Digital marketing", href: "/partners", iconName: "Sparkles", order: 4, visible: true }
     ],

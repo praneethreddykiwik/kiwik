@@ -280,7 +280,7 @@ export const REV8 = {
 /** The order a client reads the site in, and plainer names for the links. */
 export const NAV_LABELS: Record<string, { from: string[]; label: string }> = {
   "nav-2": { from: ["Capabilities", "Services"], label: "Services" },
-  "nav-1": { from: ["Projects"], label: "Our work" },
+  "nav-1": { from: ["Projects", "Our work"], label: "Projects" },
   "nav-3": { from: ["How We Work"], label: "How we work" },
   "nav-partner": { from: ["Digital Market Partner", "Digital marketing"], label: "Growth marketing" },
   "nav-contact": { from: ["Contact"], label: "Contact" },

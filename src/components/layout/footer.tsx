@@ -216,8 +216,8 @@ export function Footer() {
             </nav>
           )}
           {projects.length > 0 && (
-            <nav aria-label="Our work" className="lg:col-span-2">
-              <FooterHeading>Our work</FooterHeading>
+            <nav aria-label="Projects" className="lg:col-span-2">
+              <FooterHeading>Projects</FooterHeading>
               <ul className="mt-5 space-y-3">
                 {projects.slice(0, 5).map((p) => <FooterItem key={p.slug} href={`/projects/${p.slug}`}>{p.name}</FooterItem>)}
                 <FooterItem href="/projects">All projects</FooterItem>
