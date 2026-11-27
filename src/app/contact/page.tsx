@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: ["/og-image.png"] },
 };
 
-const CONTACT_EMAIL = "praneeth@kiwik.one";
+const CONTACT_EMAIL = "info@kiwik.one";
 
 const NEXT = [
   { title: "We read it and reply", text: "Usually within two working days, with any questions we have." },

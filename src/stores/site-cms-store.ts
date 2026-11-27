@@ -57,7 +57,7 @@ const defaultCMSData: SiteCMSData = {
     logoUrl: "/logo.png",
     faviconUrl: "/logo-dark.png",
     copyrightText: "© 2026 Kiwik Inc. All rights reserved.",
-    contactEmail: "praneeth@kiwik.one",
+    contactEmail: "info@kiwik.one",
     contactPhone: FOOTER_COPY.contactPhone,
     address: FOOTER_COPY.address,
     version: "1.0.0-beta",
@@ -197,7 +197,7 @@ const defaultCMSData: SiteCMSData = {
     logoText: "Kiwik",
     logoUrl: "/logo.png",
     statusBadgeVisible: true,
-    contactEmail: "praneeth@kiwik.one",
+    contactEmail: "info@kiwik.one",
     bottomLinks: [
       { label: "Projects", href: "/projects" }
     ],
@@ -378,6 +378,8 @@ const LEGACY_CONTACT_EMAILS = new Set([
   "hello@kiwik.dev",
   "sarah@kiwik.io",
   "alex@kiwik.io",
+  // The public address is info@kiwik.one; this personal one was shown before.
+  "praneeth@kiwik.one",
 ]);
 
 function reconcileContactEmail(value: string | undefined, fallback: string): string {

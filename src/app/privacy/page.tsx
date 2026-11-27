@@ -13,7 +13,7 @@ const TITLE = "Privacy — what Kiwik collects and why";
 const DESCRIPTION =
   "What data Kiwik collects, why, how long it is kept, and how to have it removed. No third-party analytics, no advertising trackers, no IP logging.";
 
-const CONTACT_EMAIL = "praneeth@kiwik.one";
+const CONTACT_EMAIL = "info@kiwik.one";
 const UPDATED = "17 August 2026";
 
 export const metadata: Metadata = {

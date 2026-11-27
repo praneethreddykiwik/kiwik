@@ -49,7 +49,7 @@ ${projectLines || "- Project list unavailable at time of generation."}
 - [Digital Market Partner](${SITE_URL}/partners): brands that work with Kiwik.
 
 ## Contact
-- praneeth@kiwik.one
+- info@kiwik.one
 `;
 
   return new Response(body, {
