@@ -31,7 +31,7 @@ function Section({ id, title, text, children }: { id: string; title: React.React
 
 export function WhatWeBuildSection() {
   return (
-    <Section id="what-we-build" title={<>Everything your business <i className="font-semibold">runs on</i></>} text="The website your customers see, the app in their pocket and the tools your team uses every day. We design and build all of it.">
+    <Section id="what-we-build" title={<>Everything your business <i className="font-semibold">runs on</i></>} text="The flagship your customers see, the app in their pocket and the command centre your team runs on. We design and engineer all of it.">
       <GlassWords />
     </Section>
   );
@@ -39,7 +39,7 @@ export function WhatWeBuildSection() {
 
 export function AiFlowSection() {
   return (
-    <Section id="ai-for-your-business" title={<>The busywork goes in. <i className="font-semibold">The results come out.</i></>} text="Emails, chats, orders and spreadsheets flow into one system we build around your business. Replies, stock, payments and reports come out, and your team only checks what needs a person.">
+    <Section id="ai-for-your-business" title={<>The busywork goes in. <i className="font-semibold">The results come out.</i></>} text="Emails, chats, orders and spreadsheets stream into one intelligent engine built around your business. Replies, inventory, payments and insights flow out, and your team steps in only where a human touch matters.">
       <Flow />
     </Section>
   );
@@ -47,7 +47,7 @@ export function AiFlowSection() {
 
 export function OneTeamSection() {
   return (
-    <Section id="one-team" title={<>One team, <i className="font-semibold">every kind of software</i></>} text="Websites, mobile apps, AI agents, online stores and dashboards, built and looked after by the same people.">
+    <Section id="one-team" title={<>One crew, <i className="font-semibold">every layer of the stack</i></>} text="Digital flagships, native apps, autonomous agents, commerce engines and live dashboards, engineered and cared for by the same people.">
       <Particles />
     </Section>
   );

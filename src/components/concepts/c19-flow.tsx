@@ -15,10 +15,10 @@ const IN = [
 ] as const;
 
 const OUT = [
-  ["Replies written", Send],
-  ["Stock kept up to date", Package],
-  ["Payments followed up", CheckCircle2],
-  ["Reports in your inbox", BarChart3],
+  ["Replies drafted", Send],
+  ["Inventory synced live", Package],
+  ["Payments chased", CheckCircle2],
+  ["Insights in your inbox", BarChart3],
 ] as const;
 
 const W = 1000;

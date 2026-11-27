@@ -8,14 +8,14 @@ import { cn } from "@/lib/utils";
 import { useProducts } from "@/stores/products-store";
 import { useSiteCMS } from "@/stores/site-cms-store";
 
-const CONTACT = "/contact?service=Digital%20Market%20Partnership";
+const CONTACT = "/contact?service=Growth%20Marketing%20Partnership";
 
 // Distinctive, non-generic defaults. Overridable via the admin (cms.partnersPage).
 const DEFAULTS = {
   headline: "Bring more customers",
   headlineAccent: "to your brand",
   subhead:
-    "For businesses with something good to sell and not enough people seeing it. We plan the campaign, build the website or app it needs, and keep improving it with you.",
+    "For businesses with something good to sell and not enough people seeing it. We plan the campaign, engineer the flagship site or app it needs, and keep optimising it with you.",
   servicesTitle: "What we do for a brand",
   servicesSub: "From finding your customers to measuring what worked.",
   showcaseTitle: "A brand we work with",

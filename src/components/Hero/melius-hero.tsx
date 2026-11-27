@@ -56,7 +56,7 @@ export function MeliusHero() {
           className="space-y-1 sm:space-y-2 max-w-4xl mx-auto"
         >
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-medium tracking-wide leading-[1.15] py-1 text-text-primary text-balance">
-            {headlinePrefix} <br />
+            <span className="block text-balance">{headlinePrefix}</span>
             <span className="italic font-semibold text-text-primary">
               {headlineHighlight}
             </span>

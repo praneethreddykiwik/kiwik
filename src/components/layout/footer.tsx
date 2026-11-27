@@ -182,10 +182,10 @@ export function Footer() {
           <FooterMark />
           <div className="relative px-6 pt-8 pb-12 sm:px-10 sm:pb-16 lg:px-16 lg:py-24 max-w-3xl lg:max-w-[54%]">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold tracking-tight leading-[1.08] text-balance">
-              Have an idea? Let&rsquo;s build it.
+              Have an idea? Let&rsquo;s engineer it.
             </h2>
             <p className="mt-5 max-w-lg text-base sm:text-lg text-white/80">
-              A website, an app, an AI system or an online store. Tell us what you need and we will come back with a plan.
+              A digital flagship, a native app, an AI agent or a commerce engine. Tell us the vision and we will come back with a blueprint.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
               <Link

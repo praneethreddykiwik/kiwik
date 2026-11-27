@@ -8,9 +8,9 @@ import { HeroShell, SLOT } from "./hero-shell";
 import { PaperLayer } from "./paper-slot";
 
 const ROWS = [
-  [["Website", Globe], ["Mobile app", Smartphone], ["AI chatbot", Bot], ["Online store", ShoppingCart], ["Booking system", CalendarCheck]],
-  [["Sales dashboard", BarChart3], ["Automation", Workflow], ["Cybersecurity", Lock], ["Payments", CreditCard]],
-  [["Stock control", Package], ["Customer portal", Users], ["Delivery app", Truck], ["AI reports", Bot], ["Staff app", Smartphone]],
+  [["Digital Flagships", Globe], ["Native Apps", Smartphone], ["Conversational AI", Bot], ["Commerce Engines", ShoppingCart], ["Smart Scheduling", CalendarCheck]],
+  [["Revenue Intelligence", BarChart3], ["Workflow Autopilot", Workflow], ["Zero-Trust Security", Lock], ["Frictionless Payments", CreditCard]],
+  [["Inventory Intelligence", Package], ["Client Portals", Users], ["Fleet & Delivery Apps", Truck], ["AI Insights", Bot], ["Workforce Apps", Smartphone]],
 ] as const;
 
 const CSS = `

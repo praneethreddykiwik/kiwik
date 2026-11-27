@@ -7,7 +7,7 @@ import { useGL } from "@/components/gl/use-gl";
 import { useThemeStore } from "@/stores/theme-store";
 import { HeroShell, SLOT } from "./hero-shell";
 
-const WORDS = ["Websites", "Mobile apps", "AI agents", "Online stores", "Dashboards"];
+const WORDS = ["Digital Flagships", "Native Apps", "AI Agents", "Commerce Engines", "Live Dashboards"];
 
 /** Without WebGL: the words simply take turns. */
 function Flat() {
@@ -56,7 +56,7 @@ export function ParticleVisual() {
         <>
           {/* The first word, still, until the points take over. */}
           <div aria-hidden="true" className={`absolute inset-0 flex items-center justify-center transition-opacity duration-700 ${ready ? "opacity-0" : "opacity-100"}`}>
-            <span className="text-6xl sm:text-8xl md:text-[9rem] font-serif italic font-semibold text-[#1a2150]/25 dark:text-[#5ee0d0]/25">{WORDS[0]}</span>
+            <span className="text-6xl sm:text-8xl md:text-[9rem] font-serif italic font-semibold text-[#1a2150]/25 dark:text-[#5ee0d0]/25 whitespace-nowrap">{WORDS[0]}</span>
           </div>
           {gl === "on" && (
             <div className={`absolute inset-0 transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}>

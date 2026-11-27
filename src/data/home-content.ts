@@ -1,25 +1,25 @@
 import type { CapabilityItem, FooterColumn, TrustItem, WorkflowStep } from "@/types/site-cms-types";
 
 export const HERO_COPY = {
-  versionBadge: "Software · Apps · AI",
-  headlinePrefix: "Software and AI built for",
+  versionBadge: "Product Engineering · Applied AI",
+  headlinePrefix: "Software engineered for",
   headlineHighlightWord: "your business",
-  description: "Kiwik designs, builds and looks after websites, mobile apps, AI systems and online stores. Tell us what you need and we take it from idea to launch.",
+  description: "Kiwik engineers digital flagships, native mobile apps, applied AI and commerce engines. Bring us the idea, and we carry it from first sketch to launch day and beyond.",
   primary: { text: "Start a project", href: "/contact" },
   secondary: { text: "See what we have built", href: "/projects" },
 };
 
 export const FEATURED_COPY = {
   badgeText: "Our work",
-  title: "Real problems, real products",
-  description: "Each of these started with a problem. Here is what we built for it.",
+  title: "Real problems, shipped products",
+  description: "Each one began as a business problem. Here is what we engineered to solve it.",
 };
 
 export const TRUST_ITEMS: TrustItem[] = [
-  { id: "tr-1", title: "Products you can open", desc: "See what we have built before you decide to work with us." },
-  { id: "tr-2", title: "Security from the start", desc: "Access, passwords and customer data are protected as we build." },
-  { id: "tr-3", title: "Ready for more customers", desc: "Planned for more users, more data and more features later on." },
-  { id: "tr-4", title: "Support after launch", desc: "We keep watching it, fixing it and improving it with you." },
+  { id: "tr-1", title: "Live proof, not promises", desc: "Open the products we have shipped before you decide to work with us." },
+  { id: "tr-2", title: "Secure by design", desc: "Access, credentials and customer data are hardened as we build, not bolted on later." },
+  { id: "tr-3", title: "Engineered to scale", desc: "Architected for more users, more data and new features from day one." },
+  { id: "tr-4", title: "Continuous care", desc: "After launch we monitor, refine and evolve it alongside you." },
 ];
 
 /** What a client says, what Kiwik does about it, and what is different afterwards. */
@@ -74,13 +74,13 @@ export const FAQ: { q: string; a: string }[] = [
 ];
 
 /** In the order of the icons saved with them: chip, shield, layers, cloud, sparkles. */
-export const PRINCIPLES = ["AI where it helps", "Security from day one", "Built around your business", "Fast on every device", "Easy to grow later"];
+export const PRINCIPLES = ["Intelligence where it counts", "Secure by design", "Tailored architecture", "Instant on every screen", "Engineered to scale"];
 
-export const PROCESS_BADGE = "From first message to launch, and after";
+export const PROCESS_BADGE = "From first conversation to launch, and beyond";
 
 export const DASHBOARD_COPY = {
   sectionTitle: "What Kiwik does",
-  sectionSubtitle: "We design, build and support software for businesses: websites, mobile apps, AI systems, online stores and custom platforms.",
+  sectionSubtitle: "We architect, engineer and evolve software for businesses: digital flagships, native mobile apps, applied AI, commerce engines and bespoke platforms.",
   kernelStatusText: "",
   labels: ["Kiwik Workspace", "Our products", "", ""],
 };
@@ -103,35 +103,35 @@ export function galleryTitle(title: string | undefined): string {
 
 /** `projectSlug` links a service to a published project that demonstrates it. */
 export const SERVICES: CapabilityItem[] = [
-  { id: "svc-web", title: "Website Development", desc: "A fast site that explains what you do and turns visitors into enquiries.", iconName: "Globe" },
-  { id: "cap-app-development", title: "App Development", desc: "iPhone and Android apps for your customers or your team, from design to launch.", iconName: "Smartphone", projectSlug: "fooducia" },
-  { id: "svc-ai", title: "AI Development", desc: "Assistants and AI features that take over slow, repeated work.", iconName: "Sparkles", projectSlug: "clean-ai" },
-  { id: "svc-commerce", title: "E-commerce", desc: "Sell online at any hour, with a catalog, cart, secure checkout and order tracking.", iconName: "ShoppingBag", projectSlug: "sowcha" },
-  { id: "svc-saas", title: "Software & Product Development", desc: "Your idea as a working product, or one system in place of scattered tools.", iconName: "Layers", projectSlug: "helm-events" },
-  { id: "svc-cloud", title: "Cloud & DevOps", desc: "Hosting, deployment and updates handled for you.", iconName: "Cloud" },
-  { id: "svc-automation", title: "Automation & Workflows", desc: "Copying, chasing and typing things twice, replaced by tools that talk to each other.", iconName: "Workflow" },
-  { id: "svc-security", title: "Security & Identity", desc: "Safe sign in, the right access for the right people, and customer data protected.", iconName: "Shield" },
+  { id: "svc-web", title: "Digital Flagships", desc: "Your website engineered as your hardest-working salesperson: fast, search-ready and built to turn visitors into enquiries.", iconName: "Globe" },
+  { id: "cap-app-development", title: "Native Mobile Engineering", desc: "Fluid iPhone and Android apps for your customers or your crew, crafted from first sketch to App Store launch.", iconName: "Smartphone", projectSlug: "fooducia" },
+  { id: "svc-ai", title: "Applied Intelligence", desc: "AI copilots and autonomous agents that read, reply, sort and quote, so repetitive work runs itself.", iconName: "Sparkles", projectSlug: "clean-ai" },
+  { id: "svc-commerce", title: "Commerce Engines", desc: "Storefronts that sell around the clock, with curated catalogs, frictionless checkout and live order tracking.", iconName: "ShoppingBag", projectSlug: "sowcha" },
+  { id: "svc-saas", title: "Product Engineering", desc: "Your idea shipped as a living product, or one command centre in place of scattered tools.", iconName: "Layers", projectSlug: "helm-events" },
+  { id: "svc-cloud", title: "Cloud Foundations", desc: "Resilient hosting, automated releases and continuous monitoring, handled end to end.", iconName: "Cloud" },
+  { id: "svc-automation", title: "Workflow Autopilot", desc: "Copy-paste, chasing and double entry replaced by connected systems that hand work to each other.", iconName: "Workflow" },
+  { id: "svc-security", title: "Zero-Trust Security", desc: "Hardened sign-in, precise access control and protected customer data, designed in from the first line of code.", iconName: "Shield" },
 ];
 export const TRUST_TITLE = "What you can count on";
-export const SERVICES_TITLE = "What we can build for you";
+export const SERVICES_TITLE = "What we engineer";
 
 export const PROCESS_STEPS: WorkflowStep[] = [
-  { id: "sw-1", step: "01", title: "Discover", desc: "You tell us the problem. We ask questions until we understand it." },
-  { id: "sw-2", step: "02", title: "Design", desc: "You see the screens before we build, and change what you want." },
-  { id: "sw-3", step: "03", title: "Build", desc: "It takes shape in front of you, and you try it as we go." },
-  { id: "sw-4", step: "04", title: "Secure", desc: "We protect sign in, data and access before anyone uses it." },
-  { id: "sw-5", step: "05", title: "Operate", desc: "We launch it, watch it and keep improving it with you." },
+  { id: "sw-1", step: "01", title: "Discover", desc: "You share the challenge. We dig in until we understand it as well as you do." },
+  { id: "sw-2", step: "02", title: "Design", desc: "You explore interactive screens before a line of code, and shape them freely." },
+  { id: "sw-3", step: "03", title: "Engineer", desc: "It comes to life in short sprints, and you test-drive every release." },
+  { id: "sw-4", step: "04", title: "Harden", desc: "Sign-in, data and access are locked down before anyone goes live." },
+  { id: "sw-5", step: "05", title: "Evolve", desc: "We launch, monitor and keep refining it alongside you." },
 ];
 
 /** Every figure here can be checked on the site itself. */
 export const EARTH_COPY = {
-  headline: "We turn your idea into working software.",
-  description: "Websites, mobile apps, AI systems and business platforms. One team plans it with you, builds it, launches it and supports it afterwards.",
+  headline: "From first idea to living software.",
+  description: "Digital flagships, native apps, applied AI and business platforms. One crew architects it with you, engineers it, launches it and keeps it sharp.",
   stats: [
-    { id: "st-services", value: "8", label: "Services", description: "From websites and apps to AI and cloud." },
-    { id: "st-steps", value: "5", label: "Clear steps", description: "Discover, design, build, secure, operate." },
-    { id: "st-products", value: "4", label: "Products", description: "Sowcha, Fooducia, HELM Events and Clean AI." },
-    { id: "st-places", value: "2", label: "Locations", description: "Dubai, UAE and Hyderabad, India." },
+    { id: "st-services", value: "8", label: "Disciplines", description: "From digital flagships and native apps to applied AI and cloud." },
+    { id: "st-steps", value: "5", label: "Delivery phases", description: "Discover, design, engineer, harden, evolve." },
+    { id: "st-products", value: "4", label: "Products shipped", description: "Sowcha, Fooducia, HELM Events and Clean AI." },
+    { id: "st-places", value: "2", label: "Studios", description: "Dubai, UAE and Hyderabad, India." },
   ],
   cta1Text: "Start a project",
   cta1Href: "/contact",
@@ -146,7 +146,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     links: [
       { id: "fl-about", label: "About Kiwik", href: "/about" },
       { id: "fl-how", label: "How we work", href: "/#how-we-work" },
-      { id: "fl-partner", label: "Digital marketing", href: "/partners" },
+      { id: "fl-partner", label: "Growth marketing", href: "/partners" },
       { id: "fl-contact", label: "Contact", href: "/contact" },
     ],
   },
@@ -214,12 +214,75 @@ export const OLD = {
   },
 };
 
+/** Wording shipped in content revision 8, replaced by the polished vocabulary in revision 9. */
+export const REV8 = {
+  hero: {
+  versionBadge: "Software · Apps · AI",
+  headlinePrefix: "Software and AI built for",
+  headlineHighlightWord: "your business",
+  description: "Kiwik designs, builds and looks after websites, mobile apps, AI systems and online stores. Tell us what you need and we take it from idea to launch.",
+  primary: { text: "Start a project", href: "/contact" },
+  secondary: { text: "See what we have built", href: "/projects" },
+},
+  featured: {
+  badgeText: "Our work",
+  title: "Real problems, real products",
+  description: "Each of these started with a problem. Here is what we built for it.",
+},
+  trustItems: [
+  { id: "tr-1", title: "Products you can open", desc: "See what we have built before you decide to work with us." },
+  { id: "tr-2", title: "Security from the start", desc: "Access, passwords and customer data are protected as we build." },
+  { id: "tr-3", title: "Ready for more customers", desc: "Planned for more users, more data and more features later on." },
+  { id: "tr-4", title: "Support after launch", desc: "We keep watching it, fixing it and improving it with you." },
+],
+  principles: ["AI where it helps", "Security from day one", "Built around your business", "Fast on every device", "Easy to grow later"],
+  processBadge: "From first message to launch, and after",
+  dashboard: {
+  sectionTitle: "What Kiwik does",
+  sectionSubtitle: "We design, build and support software for businesses: websites, mobile apps, AI systems, online stores and custom platforms.",
+  kernelStatusText: "",
+  labels: ["Kiwik Workspace", "Our products", "", ""],
+},
+  services: [
+  { id: "svc-web", title: "Website Development", desc: "A fast site that explains what you do and turns visitors into enquiries.", iconName: "Globe" },
+  { id: "cap-app-development", title: "App Development", desc: "iPhone and Android apps for your customers or your team, from design to launch.", iconName: "Smartphone", projectSlug: "fooducia" },
+  { id: "svc-ai", title: "AI Development", desc: "Assistants and AI features that take over slow, repeated work.", iconName: "Sparkles", projectSlug: "clean-ai" },
+  { id: "svc-commerce", title: "E-commerce", desc: "Sell online at any hour, with a catalog, cart, secure checkout and order tracking.", iconName: "ShoppingBag", projectSlug: "sowcha" },
+  { id: "svc-saas", title: "Software & Product Development", desc: "Your idea as a working product, or one system in place of scattered tools.", iconName: "Layers", projectSlug: "helm-events" },
+  { id: "svc-cloud", title: "Cloud & DevOps", desc: "Hosting, deployment and updates handled for you.", iconName: "Cloud" },
+  { id: "svc-automation", title: "Automation & Workflows", desc: "Copying, chasing and typing things twice, replaced by tools that talk to each other.", iconName: "Workflow" },
+  { id: "svc-security", title: "Security & Identity", desc: "Safe sign in, the right access for the right people, and customer data protected.", iconName: "Shield" },
+],
+  servicesTitle: "What we can build for you",
+  steps: [
+  { id: "sw-1", step: "01", title: "Discover", desc: "You tell us the problem. We ask questions until we understand it." },
+  { id: "sw-2", step: "02", title: "Design", desc: "You see the screens before we build, and change what you want." },
+  { id: "sw-3", step: "03", title: "Build", desc: "It takes shape in front of you, and you try it as we go." },
+  { id: "sw-4", step: "04", title: "Secure", desc: "We protect sign in, data and access before anyone uses it." },
+  { id: "sw-5", step: "05", title: "Operate", desc: "We launch it, watch it and keep improving it with you." },
+],
+  earth: {
+  headline: "We turn your idea into working software.",
+  description: "Websites, mobile apps, AI systems and business platforms. One team plans it with you, builds it, launches it and supports it afterwards.",
+  stats: [
+    { id: "st-services", value: "8", label: "Services", description: "From websites and apps to AI and cloud." },
+    { id: "st-steps", value: "5", label: "Clear steps", description: "Discover, design, build, secure, operate." },
+    { id: "st-products", value: "4", label: "Products", description: "Sowcha, Fooducia, HELM Events and Clean AI." },
+    { id: "st-places", value: "2", label: "Locations", description: "Dubai, UAE and Hyderabad, India." },
+  ],
+  cta1Text: "Start a project",
+  cta1Href: "/contact",
+  cta2Text: "See our work",
+  cta2Href: "/projects",
+},
+};
+
 /** The order a client reads the site in, and plainer names for the links. */
 export const NAV_LABELS: Record<string, { from: string[]; label: string }> = {
   "nav-2": { from: ["Capabilities", "Services"], label: "Services" },
   "nav-1": { from: ["Projects"], label: "Our work" },
   "nav-3": { from: ["How We Work"], label: "How we work" },
-  "nav-partner": { from: ["Digital Market Partner"], label: "Digital marketing" },
+  "nav-partner": { from: ["Digital Market Partner", "Digital marketing"], label: "Growth marketing" },
   "nav-contact": { from: ["Contact"], label: "Contact" },
 };
 export const NAV_CTA = { text: "Start a project", href: "/contact", from: "Ask Kiwik AI", fromHref: "#ai" };

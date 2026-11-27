@@ -36,7 +36,7 @@ export default async function AboutPage() {
     <div className="pb-8">
       <PageIntro
         title="One team, from your first message to long after launch"
-        lead="Kiwik designs, builds and looks after software for businesses: websites, mobile apps, AI systems, online stores and custom platforms."
+        lead="Kiwik architects, engineers and evolves software for businesses: digital flagships, native mobile apps, applied AI, commerce engines and bespoke platforms."
         points={["Your message reaches the team directly", "Plain language, not jargon", "Dubai and Hyderabad"]}
       >
         <Link href="/contact" className={primaryButton}>Start a project <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>

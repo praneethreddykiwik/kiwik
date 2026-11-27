@@ -18,28 +18,28 @@ export const CASE_NOTES: Record<string, CaseNote> = {
     problem: "A label that makes its clothes with care needs a place online that feels the same way.",
     built: "A site that presents its collections, lookbook and journal beautifully on any device, and makes it easy to get in touch.",
     gives: ["Collections and a lookbook to browse", "The story behind the pieces", "A journal to come back to", "A direct way to ask what is available"],
-    service: "E-commerce",
+    service: "Commerce Engines",
   },
   fooducia: {
     who: "Families who want fresher food",
     problem: "Vegetables can spend days on shelves before they reach a kitchen.",
     built: "A service where the order comes first: the produce is harvested after it and brought to the door.",
     gives: ["Fresh produce, harvested after the order", "Diet plans made for the customer", "Delivery to the door"],
-    service: "App Development",
+    service: "Native Mobile Engineering",
   },
   "helm-events": {
     who: "Event studios, planners and decorators",
     problem: "Event teams run on scattered spreadsheets, emails and tools that do not talk to each other.",
     built: "One place to run the whole event: tasks, vendors, clients, tickets and the numbers.",
     gives: ["Tasks that pass from managers to vendors and floor teams", "Vendors who update their own progress", "Registration and ticketing", "Revenue, costs and profit at a glance"],
-    service: "Software & Product Development",
+    service: "Product Engineering",
   },
   "clean-ai": {
     who: "Households and home service providers",
     problem: "It is hard to know what a cleaning or repair job will cost, and who can be trusted to do it.",
     built: "The customer takes a photo of the job. AI reads it, works out an itemised price and finds verified providers nearby.",
     gives: ["A photo instead of a long form", "A price broken down line by line", "The best matching verified providers nearby", "A separate area for customers, providers and staff"],
-    service: "AI Development",
+    service: "Applied Intelligence",
   },
 };
 

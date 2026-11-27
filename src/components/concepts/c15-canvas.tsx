@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { seeded } from "./gl-util";
 
-export const WORDS = ["Websites", "Mobile apps", "AI agents", "Online stores", "Dashboards"];
+export const WORDS = ["Digital Flagships", "Native Apps", "AI Agents", "Commerce Engines", "Live Dashboards"];
 const N = 9000;
 const HOLD = 1.5;
 const MOVE = 0.9;

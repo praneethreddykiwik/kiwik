@@ -1,6 +1,6 @@
 import { defaultDeviceShowcase, isSampleShowcase } from "@/data/device-showcase";
 import {
-  DASHBOARD_COPY, EARTH_COPY, FEATURED_COPY, FOOTER_COLUMNS, FOOTER_COPY, HERO_COPY, NAV_CTA, NAV_LABELS, OLD, PRINCIPLES, PROCESS_BADGE, PROCESS_STEPS,
+  DASHBOARD_COPY, EARTH_COPY, FEATURED_COPY, FOOTER_COLUMNS, FOOTER_COPY, HERO_COPY, NAV_CTA, NAV_LABELS, OLD, PRINCIPLES, REV8, PROCESS_BADGE, PROCESS_STEPS,
   SERVICES, SERVICES_TITLE, TRUST_ITEMS, TRUST_TITLE, galleryTitle,
 } from "@/data/home-content";
 import { SITE_TAGLINE } from "@/lib/site";
@@ -14,7 +14,7 @@ import type { SiteCMSData } from "@/types/site-cms-types";
  * saved navbar for the defaults and would drop links added in the studio (the
  * live "Contact" item exists only in the database).
  */
-export const CONTENT_REVISION = 8;
+export const CONTENT_REVISION = 9;
 
 /** /docs no longer exists (next.config.ts redirects it), so nothing may link to it. */
 export function isRetiredHref(href: string | undefined): boolean {
@@ -62,10 +62,11 @@ export function applyContentRevision(cms: SiteCMSData, savedRevision: number | u
   if ((savedRevision ?? 0) < 7) applyServiceCopy(next);
   if ((savedRevision ?? 0) < 7) applyEarthAndFooterCopy(next);
   if ((savedRevision ?? 0) < 7) applySiteCopy(next);
+  if ((savedRevision ?? 0) < 9) applyPolishedCopy(next);
 
   // A studio-edited service list is kept, but still gains App Development once.
   const services = next.capabilities?.items;
-  if ((savedRevision ?? 0) < 1 && services && !services.some((s) => /app development/i.test(s.title || ""))) {
+  if ((savedRevision ?? 0) < 1 && services && !services.some((s) => s.id === "cap-app-development" || /app development|mobile engineering/i.test(s.title || ""))) {
     const appDevelopment = SERVICES.find((s) => s.id === "cap-app-development")!;
     next.capabilities = { ...next.capabilities, items: [...services, appDevelopment] };
   }
@@ -192,6 +193,119 @@ function applySiteCopy(next: SiteCMSData) {
       ...(navigation.ctaButtonText === NAV_CTA.from && navigation.ctaButtonHref === NAV_CTA.fromHref
         ? { ctaButtonText: NAV_CTA.text, ctaButtonHref: NAV_CTA.href }
         : {}),
+    };
+  }
+}
+
+/**
+ * Revision 9: the plain service names ("Website Development", "E-commerce"...)
+ * become the polished vocabulary. Only text still exactly as revision 8 shipped
+ * it is replaced, so studio edits survive.
+ */
+function applyPolishedCopy(next: SiteCMSData) {
+  const swap = <T,>(value: T, was: T, now: T): T => (value === was ? now : value);
+  const byId = <X extends { id?: string }>(list: X[], id: string | undefined) => list.find((x) => x.id === id);
+
+  if (next.hero) {
+    const h = next.hero;
+    next.hero = {
+      ...h,
+      versionBadge: swap(h.versionBadge, REV8.hero.versionBadge, HERO_COPY.versionBadge),
+      headlinePrefix: swap(h.headlinePrefix, REV8.hero.headlinePrefix, HERO_COPY.headlinePrefix),
+      description: swap(h.description, REV8.hero.description, HERO_COPY.description),
+    };
+  }
+
+  if (next.featuredSection) {
+    const f = next.featuredSection;
+    next.featuredSection = {
+      ...f,
+      title: swap(f.title, REV8.featured.title, FEATURED_COPY.title),
+      subtitle: swap(f.subtitle, REV8.featured.description, FEATURED_COPY.description),
+    };
+  }
+  if (next.projectsPage) {
+    const pp = next.projectsPage;
+    next.projectsPage = { ...pp, title: swap(pp.title, REV8.featured.title, FEATURED_COPY.title), description: swap(pp.description, REV8.featured.description, FEATURED_COPY.description) };
+  }
+
+  if (next.capabilities) {
+    const c = next.capabilities;
+    next.capabilities = {
+      ...c,
+      sectionTitle: swap(c.sectionTitle, REV8.servicesTitle, SERVICES_TITLE),
+      items: (c.items || []).map((item) => {
+        const was = byId(REV8.services, item.id);
+        const now = byId(SERVICES, item.id);
+        if (!was || !now) return item;
+        return { ...item, title: swap(item.title, was.title, now.title), desc: swap(item.desc, was.desc, now.desc) };
+      }),
+    };
+  }
+
+  if (next.trust?.items) {
+    next.trust = {
+      ...next.trust,
+      items: next.trust.items.map((item) => {
+        const was = byId(REV8.trustItems, item.id);
+        const now = byId(TRUST_ITEMS, item.id);
+        if (!was || !now) return item;
+        return { ...item, title: swap(item.title, was.title, now.title), desc: swap(item.desc, was.desc, now.desc) };
+      }),
+    };
+  }
+
+  if (next.whyKiwikPills) {
+    next.whyKiwikPills = next.whyKiwikPills.map((p) => {
+      const i = REV8.principles.indexOf(p.text);
+      return i >= 0 ? { ...p, text: PRINCIPLES[i] } : p;
+    });
+  }
+
+  if (next.howWeWork) {
+    const w = next.howWeWork;
+    next.howWeWork = {
+      ...w,
+      badge: swap(w.badge, REV8.processBadge, PROCESS_BADGE),
+      steps: (w.steps || []).map((step) => {
+        const was = byId(REV8.steps, step.id);
+        const now = byId(PROCESS_STEPS, step.id);
+        if (!was || !now) return step;
+        return { ...step, title: swap(step.title, was.title, now.title), desc: swap(step.desc, was.desc, now.desc) };
+      }),
+    };
+  }
+
+  if (next.dashboardShowcase) {
+    next.dashboardShowcase = {
+      ...next.dashboardShowcase,
+      sectionSubtitle: swap(next.dashboardShowcase.sectionSubtitle, REV8.dashboard.sectionSubtitle, DASHBOARD_COPY.sectionSubtitle),
+    };
+  }
+
+  if (next.earthShowcase) {
+    const e = next.earthShowcase;
+    next.earthShowcase = {
+      ...e,
+      headline: swap(e.headline, REV8.earth.headline, EARTH_COPY.headline),
+      description: swap(e.description, REV8.earth.description, EARTH_COPY.description),
+      stats: (e.stats || []).map((st) => {
+        const was = byId(REV8.earth.stats, st.id);
+        const now = byId(EARTH_COPY.stats, st.id);
+        if (!was || !now) return st;
+        return { ...st, label: swap(st.label, was.label, now.label), description: swap(st.description, was.description, now.description) };
+      }),
+    };
+  }
+
+  const rename = (label: string) => (label === "Digital marketing" ? "Growth marketing" : label);
+  if (next.navigation?.items) {
+    next.navigation = { ...next.navigation, items: next.navigation.items.map((i) => ({ ...i, label: rename(i.label) })) };
+  }
+  if (next.footer?.columns) {
+    next.footer = {
+      ...next.footer,
+      columns: next.footer.columns.map((col) => ({ ...col, links: (col.links || []).map((l) => ({ ...l, label: rename(l.label) })) })),
     };
   }
 }

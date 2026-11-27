@@ -9,17 +9,37 @@
 
 /** Drawn from the capabilities the site actually advertises. */
 export const SERVICE_OPTIONS = [
-  "Website Development",
-  "App Development",
-  "AI Development",
-  "E-commerce",
-  "Software & Product Development",
-  "Cloud & DevOps",
-  "Automation & Workflows",
-  "Security & Identity",
-  "Digital Market Partnership",
+  "Digital Flagships",
+  "Native Mobile Engineering",
+  "Applied Intelligence",
+  "Commerce Engines",
+  "Product Engineering",
+  "Cloud Foundations",
+  "Workflow Autopilot",
+  "Zero-Trust Security",
+  "Growth Marketing Partnership",
   "Something else",
 ] as const;
+
+/** Names the services had before, so old links and saved forms still resolve. */
+const LEGACY_SERVICES: Record<string, (typeof SERVICE_OPTIONS)[number]> = {
+  "Website Development": "Digital Flagships",
+  "App Development": "Native Mobile Engineering",
+  "AI Development": "Applied Intelligence",
+  "E-commerce": "Commerce Engines",
+  "Software & Product Development": "Product Engineering",
+  "Cloud & DevOps": "Cloud Foundations",
+  "Automation & Workflows": "Workflow Autopilot",
+  "Security & Identity": "Zero-Trust Security",
+  "Digital Market Partnership": "Growth Marketing Partnership",
+};
+
+/** The current option for a value that may use an old service name, or "" if it is not one. */
+export function toServiceOption(value: string | undefined | null): (typeof SERVICE_OPTIONS)[number] | "" {
+  if (!value) return "";
+  if ((SERVICE_OPTIONS as readonly string[]).includes(value)) return value as (typeof SERVICE_OPTIONS)[number];
+  return LEGACY_SERVICES[value] || "";
+}
 
 export type ServiceOption = (typeof SERVICE_OPTIONS)[number];
 

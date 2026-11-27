@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ContactForm } from "./contact-form";
 import { PageIntro } from "@/components/layout/page-intro";
-import { isServiceOption } from "@/lib/contact-options";
+import { toServiceOption } from "@/lib/contact-options";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 const TITLE = "Contact Kiwik — Talk to the team";
@@ -39,7 +39,7 @@ export default async function ContactPage({
   // chosen. Validated against the same list the dropdown is built from, so an
   // arbitrary query value cannot inject text into the select.
   const { service } = await searchParams;
-  const initialService = service && isServiceOption(service) ? service : "";
+  const initialService = toServiceOption(service);
 
   return (
     <>

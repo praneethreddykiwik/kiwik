@@ -111,9 +111,9 @@ export function ServicesSection() {
       <div className="mb-10 md:mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="max-w-3xl">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-text-primary tracking-tight leading-[1.08] text-balance">
-            {capabilities.sectionTitle || "What we can build for you"}
+            {capabilities.sectionTitle || "What we engineer"}
           </h2>
-          <p className="mt-4 text-lg text-text-secondary text-pretty">Pick what you need. Where we have built it for a client, the card shows the real product.</p>
+          <p className="mt-4 text-lg text-text-secondary text-pretty">Eight disciplines, one crew. Where we have shipped it for a client, the card shows the live product.</p>
         </div>
         <Link
           href="/contact"

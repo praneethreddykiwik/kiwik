@@ -321,7 +321,7 @@ export function AIChatbot() {
     if (query.includes("hello") || query.includes("hi ") || query.includes("hey")) {
       text = `Hi there! Welcome to Kiwik. Ask me about our projects${projects.length ? ` (like ${projects.slice(0, 2).map(p => p.name).join(", ")})` : ""}, our services, or our partners at /partners.`;
     } else {
-      text = `Kiwik builds websites, mobile apps, AI systems, online stores and custom software. Ask me about our projects: ${projects.map(p => p.name).join(", ")}. To talk about your own idea, write to us at /contact.`;
+      text = `Kiwik engineers digital flagships, native mobile apps, applied AI, commerce engines and bespoke platforms. Ask me about our projects: ${projects.map(p => p.name).join(", ")}. To talk about your own idea, write to us at /contact.`;
     }
 
     return { text, matchedProjects };
